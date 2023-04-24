@@ -1,9 +1,9 @@
-DROP TABLE lists_items;
+DROP TABLE reward;
 
-DROP TABLE users_lists;
+DROP TABLE user_habbit;
 
-DROP TABLE todo_lists;
+DROP TABLE habbit_tracker;
 
 DROP TABLE users;
 
-DROP TABLE todo_items;
+DROP TABLE habbit;
