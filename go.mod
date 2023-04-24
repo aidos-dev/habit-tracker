@@ -1,4 +1,4 @@
-module github.com/aidos-dev/toDoApp
+module github.com/aidos-dev/habit-tracker
 
 go 1.20
 

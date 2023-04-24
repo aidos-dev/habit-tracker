@@ -1,7 +1,7 @@
 package repository
 
 import (
-	todo "github.com/aidos-dev/toDoApp"
+	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/jmoiron/sqlx"
 )
 

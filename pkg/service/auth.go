@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	todo "github.com/aidos-dev/toDoApp"
-	"github.com/aidos-dev/toDoApp/pkg/repository"
+	todo "github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/pkg/repository"
 	"github.com/dgrijalva/jwt-go"
 )
 

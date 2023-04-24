@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	todo "github.com/aidos-dev/toDoApp"
+	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/gin-gonic/gin"
 )
 

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	todo "github.com/aidos-dev/toDoApp"
+	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/gin-gonic/gin"
 )
 

@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	todo "github.com/aidos-dev/toDoApp"
-	"github.com/aidos-dev/toDoApp/pkg/handler"
-	"github.com/aidos-dev/toDoApp/pkg/repository"
-	"github.com/aidos-dev/toDoApp/pkg/service"
+	todo "github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/pkg/handler"
+	"github.com/aidos-dev/habit-tracker/pkg/repository"
+	"github.com/aidos-dev/habit-tracker/pkg/service"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 

@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 
-	todo "github.com/aidos-dev/toDoApp"
+	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/jmoiron/sqlx"
 )
 

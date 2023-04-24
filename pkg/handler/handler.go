@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/aidos-dev/toDoApp/pkg/service"
+	"github.com/aidos-dev/habit-tracker/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
