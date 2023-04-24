@@ -11,7 +11,7 @@ docker pull postgres
 To start the data base run the command:
 
 ```
-docker run --name=todo-db -e POSTGRES_PASSWORD='qwerty' -p 5432:5432 -d --rm postgres
+docker run --name=habbit-db -e POSTGRES_PASSWORD='qwerty' -p 5432:5432 -d --rm postgres
 ```
 
 To create migration files run the command:
@@ -53,11 +53,11 @@ Inside the postgres environment, to check all the tables run the command:
 To start the docker compose for the first time run the command:
 
 ```
-docker-compose up --build todo-app
+docker-compose up --build habbit-tracker
 ```
 
 When docker containers are built run the command without --build flag:
 
 ```
-docker-compose up todo-app
+docker-compose up habbit-tracker
 ```
