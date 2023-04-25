@@ -50,6 +50,16 @@ Inside the postgres environment, to check all the tables run the command:
 \d
 ```
 
+In case of errors with migration and db becomes dirty, enter the data base and do the next:
+
+```
+select * from schema_migrations;
+```
+
+```
+update schema_migrations set dirty =false where version=XXXX;
+```
+
 To start the docker compose for the first time run the command:
 
 ```
