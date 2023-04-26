@@ -1,4 +1,4 @@
-FROM golang:1.14-buster
+FROM golang:1.17.1-alpine3.14
 
 RUN go version
 ENV GOPATH=/
@@ -6,8 +6,9 @@ ENV GOPATH=/
 COPY ./ ./
 
 # install psql
-RUN apt-get update
-RUN apt-get -y install postgresql-client
+
+RUN apk update
+RUN apk add postgresql-client
 
 # make wait-for-postgres.sh executable
 RUN chmod +x wait-for-postgres.sh
@@ -16,4 +17,4 @@ RUN chmod +x wait-for-postgres.sh
 RUN go mod download
 RUN go build -o habbit-tracker ./cmd/main.go
 
-CMD ["./todo-app"]
+CMD ["./habbit-tracker"]

@@ -1,22 +1,26 @@
 version: '3.8'
 
 services:
-  todo-app:
+  habbit-tracker:
     build: ./
-    command: ./wait-for-postgres.sh db ./todo-app migrate -path ./schema -database 'postgres://postgres:qwerty@localhost:5432/postgres?sslmode=disable' up 
     ports:
-      - "8000:8000"
+    - "8000:8000"
+    command: ./wait-for-postgres.sh db ./habbit-tracker 
+
     depends_on:
       - db
     environment:
       - DB_PASSWORD=qwerty
+    links:
+      - db
     
-
   db:
+    image: postgres
     restart: always
-    image: postgres:latest
+    
     volumes:
-    - ./.database/postgres/data:/var/lib/postgresql/data
+      - ./.database/postgres/data:/var/lib/postgresql/data
+      - ./schema/000001_init.up.sql:/docker-entrypoint-initdb.d/create_tables.sql
     environment:
       - POSTGRES_PASSWORD=qwerty
     ports:

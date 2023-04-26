@@ -56,13 +56,13 @@ func main() {
 		}
 	}()
 
-	logrus.Println("TodoApp Started")
+	logrus.Println("HabbitTrackerApp Started")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
-	logrus.Println("TodoApp Shutting Down")
+	logrus.Println("HabbitTrackerApp Shutting Down")
 
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shutting down: %s", err.Error())

@@ -1,4 +1,4 @@
-package todo
+package habit
 
 import "errors"
 

@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"github.com/aidos-dev/habit-tracker"
 	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/jmoiron/sqlx"
 )
 
 type Authorization interface {
-	CreateUser(user todo.User) (int, error)
-	GetUser(username, password string) (todo.User, error)
+	CreateUser(user habit.User) (int, error)
+	GetUser(username, password string) (habit.User, error)
 }
 
 type TodoList interface {

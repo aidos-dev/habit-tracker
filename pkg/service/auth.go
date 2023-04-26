@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	todo "github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker"
 	"github.com/aidos-dev/habit-tracker/pkg/repository"
 	"github.com/dgrijalva/jwt-go"
 )
 
 const (
-	salt       = "lk65vm29vkf437fb817hfn3857kdn4nv"
-	signingKey = "436k456lklj24tlk4$#$lk4(klnt54#(*&$"
+	salt       = "lk6vm9vkf437#b817h^n3@7kdn4nv"
+	signingKey = "436k@5*6lklj24t6^k4$#$lk4(kt54#(*&$"
 	tokenTTL   = 12 * time.Hour
 )
 
@@ -30,7 +30,7 @@ func NewAuthService(repo repository.Authorization) *AuthService {
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user todo.User) (int, error) {
+func (s *AuthService) CreateUser(user habit.User) (int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user)
 }

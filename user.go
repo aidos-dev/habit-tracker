@@ -1,8 +1,10 @@
-package todo
+package habit
 
 type User struct {
-	Id       int    `json:"-" db:"id"`
-	Name     string `json:"name" binding:"required"`
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Id        int    `json:"-" db:"id"`
+	Username  string `json:"userName" binding:"required"`
+	FirstName string `json:"firstName" binding:"required"`
+	LastName  string `json:"lastName" binding:"required"`
+	Email     string `json:"eMail" binding:"required"`
+	Password  string `json:"password_hash" binding:"required"`
 }
