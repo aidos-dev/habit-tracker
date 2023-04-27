@@ -63,11 +63,11 @@ update schema_migrations set dirty =false where version=XXXX;
 To start the docker compose for the first time run the command:
 
 ```
-docker-compose up --build habbit-tracker
+docker-compose up --build habit-tracker
 ```
 
 When docker containers are built run the command without --build flag:
 
 ```
-docker-compose up habbit-tracker
+docker-compose up habit-tracker
 ```

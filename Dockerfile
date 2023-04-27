@@ -7,7 +7,7 @@ COPY ./ ./
 
 # install psql
 
-RUN apk update
+
 RUN apk add postgresql-client
 
 # make wait-for-postgres.sh executable
@@ -15,6 +15,6 @@ RUN chmod +x wait-for-postgres.sh
 
 # build go app
 RUN go mod download
-RUN go build -o habbit-tracker ./cmd/main.go
+RUN go build -o habit-tracker ./cmd/main.go
 
-CMD ["./habbit-tracker"]
+CMD ["./habit-tracker"]

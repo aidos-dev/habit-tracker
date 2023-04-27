@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  habbit-tracker:
+  habit-tracker:
     build: ./
     ports:
     - "8000:8000"
-    command: ./wait-for-postgres.sh db ./habbit-tracker 
+    command: ./wait-for-postgres.sh db ./habit-tracker 
 
     depends_on:
       - db
