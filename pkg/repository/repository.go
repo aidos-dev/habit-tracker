@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/aidos-dev/habit-tracker"
-	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -11,32 +10,32 @@ type Authorization interface {
 	GetUser(username, password string) (habit.User, error)
 }
 
-type TodoList interface {
-	Create(userId int, list todo.TodoList) (int, error)
-	GetAll(userId int) ([]todo.TodoList, error)
-	GetById(userId, listId int) (todo.TodoList, error)
-	Delete(userId, listId int) error
-	Update(userId, listId int, input todo.UpdateListInput) error
+type Habit interface {
+	Create(userId int, habit habit.Habit) (int, error)
+	GetAll(userId int) ([]habit.Habit, error)
+	GetById(userId, habitId int) (habit.Habit, error)
+	Delete(userId, habitId int) error
+	Update(userId, habitId int, input habit.UpdateHabitInput) error
 }
 
-type TodoItem interface {
-	Create(listId int, item todo.TodoItem) (int, error)
-	GetAll(userId, listId int) ([]todo.TodoItem, error)
-	GetById(userId, itemId int) (todo.TodoItem, error)
+type HabitTracker interface {
+	Create(habitId int, item habit.HabitTracker) (int, error)
+	GetAll(userId, habitId int) ([]habit.HabitTracker, error)
+	GetById(userId, itemId int) (habit.HabitTracker, error)
 	Delete(userId, itemId int) error
-	Update(userId, itemId int, input todo.UpdateItemInput) error
+	Update(userId, itemId int, input habit.UpdateTrackerInput) error
 }
 
 type Repository struct {
 	Authorization
-	TodoList
-	TodoItem
+	Habit
+	HabitTracker
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
-		TodoList:      NewTodoListPostgres(db),
-		TodoItem:      NewTodoItemPostgres(db),
+		Habit:         NewHabitPostgres(db),
+		HabitTracker:  NewHabitTrackerPostgres(db),
 	}
 }
