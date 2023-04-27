@@ -21,9 +21,9 @@ type Habit interface {
 type HabitTracker interface {
 	Create(habitId int, item habit.HabitTracker) (int, error)
 	GetAll(userId, habitId int) ([]habit.HabitTracker, error)
-	GetById(userId, itemId int) (habit.HabitTracker, error)
-	Delete(userId, itemId int) error
-	Update(userId, itemId int, input habit.UpdateTrackerInput) error
+	GetById(userId, habitId int) (habit.HabitTracker, error)
+	Delete(userId, habitId int) error
+	Update(userId, habitId int, input habit.UpdateTrackerInput) error
 }
 
 type Repository struct {
