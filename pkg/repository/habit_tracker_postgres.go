@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker"
-	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type HabitTrackerPostgres struct {
@@ -17,61 +17,78 @@ func NewHabitTrackerPostgres(db *sqlx.DB) *HabitTrackerPostgres {
 	return &HabitTrackerPostgres{db: db}
 }
 
-func (r *HabitTrackerPostgres) Create(habitId int, item habit.HabitTracker) (int, error) {
+func (r *HabitTrackerPostgres) Create(userHabitId int, tracker habit.HabitTracker) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
 
-	var itemId int
-	createItemQuery := fmt.Sprintf("INSERT INTO %s (title, description) values ($1, $2) RETURNING id", todoItemsTable)
+	var trackerId int
+	createTrackerQuery := fmt.Sprintf("INSERT INTO %s (user_habit_id, unit_of_messure, goal, frequency, start_date, end_date, counter, done) values ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id", habitTrackerTable)
 
-	row := tx.QueryRow(createItemQuery, item.Title, item.Description)
-	err = row.Scan(&itemId)
+	row := tx.QueryRow(createTrackerQuery, userHabitId, tracker.UnitOfMessure, tracker.Goal, tracker.Frequency, tracker.StartDate, tracker.EndDate, tracker.Counter, tracker.Done)
+	err = row.Scan(&trackerId)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 
-	createListItemsQuery := fmt.Sprintf("INSERT INTO %s (list_id, item_id) values ($1, $2)", listsItemsTable)
-	_, err = tx.Exec(createListItemsQuery, listId, itemId)
-	if err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-
-	return itemId, tx.Commit()
+	return trackerId, tx.Commit()
 }
 
-func (r *HabitTrackerPostgres) GetAll(userId, habitId int) ([]habit.HabitTracker, error) {
-	var items []todo.TodoItem
-	query := fmt.Sprintf("SELECT ti.id, ti.title, ti.description, ti.done FROM %s ti INNER JOIN %s li on li.item_id = ti.id INNER JOIN %s ul on ul.list_id = li.list_id WHERE li.list_id = $1 AND ul.user_id = $2",
-		todoItemsTable, listsItemsTable, usersListsTable)
+func (r *HabitTrackerPostgres) GetAll(userId int) ([]habit.HabitTracker, error) {
+	var trackers []habit.HabitTracker
+	query := fmt.Sprintf("SELECT ti.id, ti.user_habit_id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
+		habitTrackerTable, usersHabitsTable)
 
-	if err := r.db.Select(&items, query, listId, userId); err != nil {
+	if err := r.db.Select(&trackers, query, userId); err != nil {
 		return nil, err
 	}
 
-	return items, nil
+	return trackers, nil
 }
 
 func (r *HabitTrackerPostgres) GetById(userId, habitId int) (habit.HabitTracker, error) {
-	var item todo.TodoItem
-	query := fmt.Sprintf("SELECT ti.id, ti.title, ti.description, ti.done FROM %s ti INNER JOIN %s li on li.item_id = ti.id INNER JOIN %s ul on ul.list_id = li.list_id WHERE ti.id = $1 AND ul.user_id = $2",
-		todoItemsTable, listsItemsTable, usersListsTable)
+	var habitTracker habit.HabitTracker
 
-	if err := r.db.Get(&item, query, itemId, userId); err != nil {
-		return item, err
-	}
+	query := fmt.Sprintf("SELECT ti.id, ti.user_habit_id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2",
+		habitTrackerTable, usersHabitsTable)
+	err := r.db.Get(&habitTracker, query, userId, habitId)
 
-	return item, nil
+	return habitTracker, err
 }
 
 func (r *HabitTrackerPostgres) Delete(userId, habitId int) error {
-	query := fmt.Sprintf("DELETE FROM %s ti USING %s li, %s ul WHERE ti.id = li.item_id AND li.list_id = ul.list_id AND ul.user_id = $1 AND ti.id = $2",
-		todoItemsTable, listsItemsTable, usersListsTable)
-	_, err := r.db.Exec(query, userId, itemId)
+	query := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2",
+		habitTrackerTable, usersHabitsTable)
+	_, err := r.db.Exec(query, userId, habitId)
+
 	return err
+}
+
+/*
+trackerMapStruct and newTrackerMap are created to pass fields of HabitTracker as variables. We can't
+use variables for
+*/
+type trackerMapStruct struct {
+	trackerMap map[string]any
+}
+
+func newTrackerMap() trackerMapStruct {
+	var tracker habit.UpdateTrackerInput
+	updateTrackMap := map[string]any{
+		"unit_of_messure": tracker.UnitOfMessure,
+		"goal":            tracker.Goal,
+		"frequency":       tracker.Frequency,
+		"start_date":      tracker.StartDate,
+		"end_date":        tracker.EndDate,
+		"counter":         tracker.Counter,
+		"done":            tracker.Done,
+	}
+
+	return trackerMapStruct{
+		trackerMap: updateTrackMap,
+	}
 }
 
 func (r *HabitTrackerPostgres) Update(userId, habitId int, input habit.UpdateTrackerInput) error {
@@ -79,31 +96,36 @@ func (r *HabitTrackerPostgres) Update(userId, habitId int, input habit.UpdateTra
 	args := make([]interface{}, 0)
 	argId := 1
 
-	if input.Title != nil {
-		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
-		args = append(args, *input.Title)
-		argId++
-	}
+	updateInputs := newTrackerMap()
 
-	if input.Description != nil {
-		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
-		args = append(args, *input.Description)
-		argId++
-	}
-
-	if input.Done != nil {
-		setValues = append(setValues, fmt.Sprintf("done=$%d", argId))
-		args = append(args, *input.Done)
-		argId++
+	for key := range updateInputs.trackerMap {
+		setValues, args, argId = updateAppender(setValues, updateInputs, args, argId, key)
 	}
 
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE %s ti SET %s FROM %s li, %s ul WHERE ti.id = li.item_id AND li.list_id = ul.list_id AND ul.user_id = $%d AND ti.id = $%d",
-		todoItemsTable, setQuery, listsItemsTable, usersListsTable, argId, argId+1)
+	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.habit_id AND ul.habit_id=$%d AND ul.user_id=$%d",
+		habitsTable, setQuery, usersHabitsTable, argId, argId+1)
 
-	args = append(args, userId, itemId)
+	args = append(args, habitId, userId)
+
+	logrus.Debugf("updateQuerry: %s", query)
+	logrus.Debugf("args: %s", args)
 
 	_, err := r.db.Exec(query, args...)
 	return err
+}
+
+/*
+updateAppender func helps to avoid code repetition. It checks and heldels updates for each feild of UpdateTrackerInput.
+Example of standard implementation of this update handling in habit_postgres.go file (method Update)
+*/
+func updateAppender(setValues []string, updateInput trackerMapStruct, args []interface{}, argId int, fieldName string) ([]string, []interface{}, int) {
+	if updateInput.trackerMap[fieldName] != nil {
+		setValues = append(setValues, fmt.Sprintf("%s=$%d", fieldName, argId))
+		args = append(args, updateInput.trackerMap[fieldName])
+		argId++
+	}
+
+	return setValues, args, argId
 }
