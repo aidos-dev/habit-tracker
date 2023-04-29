@@ -43,7 +43,7 @@ func (r *HabitPostgres) Create(userId int, habit habit.Habit) (int, error) {
 
 func (r *HabitPostgres) GetAll(userId int) ([]habit.Habit, error) {
 	var habits []habit.Habit
-	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1",
+	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
 		habitsTable, usersHabitsTable)
 	err := r.db.Select(&habits, query, userId)
 

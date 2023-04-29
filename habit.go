@@ -43,7 +43,7 @@ type UpdateHabitInput struct {
 
 func (i UpdateHabitInput) Validate() error {
 	if i.Title == nil && i.Description == nil {
-		return errors.New("update structure has no values")
+		return errors.New("habit update structure has no values")
 	}
 
 	return nil
@@ -61,8 +61,20 @@ type UpdateTrackerInput struct {
 
 func (i UpdateTrackerInput) Validate() error {
 	if i.UnitOfMessure == nil && i.Goal == nil && i.Frequency == nil && i.StartDate == nil && i.EndDate == nil && i.Counter == nil && i.Done == nil {
-		return errors.New("update structure has no values")
+		return errors.New("habit tracker update structure has no values")
 	}
 
+	return nil
+}
+
+type UpdateRewardInput struct {
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+}
+
+func (i UpdateRewardInput) Validate() error {
+	if i.Title == nil && i.Description == nil {
+		return errors.New("reward update structure has no values")
+	}
 	return nil
 }

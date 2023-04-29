@@ -19,10 +19,18 @@ type Habit interface {
 }
 
 type HabitTracker interface {
-	Create(habitId int, item habit.HabitTracker) (int, error)
+	Create(habitId int, tracker habit.HabitTracker) (int, error)
 	GetAll(userId int) ([]habit.HabitTracker, error)
 	GetById(userId, habitId int) (habit.HabitTracker, error)
 	Delete(userId, habitId int) error
+	Update(userId, habitId int, input habit.UpdateTrackerInput) error
+}
+
+type Reward interface {
+	Create(habitTrackerId int, reward habit.Reward) (int, error)
+	GetAll(userId int) ([]habit.Reward, error)
+	GetById(userId, habitId int) ([]habit.Reward, error)
+	Delete(habitTrackerId, rewardId int) error
 	Update(userId, habitId int, input habit.UpdateTrackerInput) error
 }
 
