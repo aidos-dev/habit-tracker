@@ -68,7 +68,8 @@ func (r *HabitTrackerPostgres) Delete(userId, habitId int) error {
 
 /*
 trackerMapStruct and newTrackerMap are created to pass fields of HabitTracker as variables. We can't
-use variables for
+use variables to call struct fields. Struct fields can be called only with direct name specification. 
+Therefore newTrackerMap func builds and returns a map of strings as keys and struct fields as values.
 */
 type trackerMapStruct struct {
 	trackerMap map[string]any
@@ -117,7 +118,8 @@ func (r *HabitTrackerPostgres) Update(userId, habitId int, input habit.UpdateTra
 }
 
 /*
-updateAppender func helps to avoid code repetition. It checks and heldels updates for each feild of UpdateTrackerInput.
+updateAppender func helps to avoid code repetition. It checks and handles updates for each feild of 
+UpdateTrackerInput.
 Example of standard implementation of this update handling in habit_postgres.go file (method Update)
 */
 func updateAppender(setValues []string, updateInput trackerMapStruct, args []interface{}, argId int, fieldName string) ([]string, []interface{}, int) {

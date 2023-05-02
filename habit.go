@@ -30,10 +30,17 @@ type HabitTracker struct {
 }
 
 type Reward struct {
-	Id             int    `json:"id" db:"id"`
-	HabitTrackerId int    `json:"habit_tracker_id" db:"habit_tracker_id" binding:"required"`
-	Title          string `json:"title" db:"title" binding:"required"`
-	Description    string `json:"description" db:"description"`
+	Id          int    `json:"id" db:"id"`
+	Title       string `json:"title" db:"title" binding:"required"`
+	Description string `json:"description" db:"description"`
+	HabitId     int    `json:"habitId" db:"habitId"`
+}
+
+type UserReward struct {
+	Id       int
+	UserId   int
+	RewardId int
+	HabitId  int
 }
 
 type UpdateHabitInput struct {

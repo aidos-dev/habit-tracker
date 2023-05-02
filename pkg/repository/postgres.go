@@ -12,6 +12,7 @@ const (
 	usersHabitsTable  = "user_habit"
 	habitTrackerTable = "habit_tracker"
 	rewardTable       = "reward"
+	userRewardTable   = "user_reward"
 )
 
 type Config struct {

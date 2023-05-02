@@ -27,17 +27,22 @@ type HabitTracker interface {
 }
 
 type Reward interface {
-	Create(habitTrackerId int, reward habit.Reward) (int, error)
-	GetAll(userId int) ([]habit.Reward, error)
-	GetById(userId, habitId int) ([]habit.Reward, error)
-	Delete(habitTrackerId, rewardId int) error
-	Update(userId, habitId int, input habit.UpdateTrackerInput) error
+	Create(reward habit.Reward) (int, error)
+	AssignReward(userId int, rewardId int, habitId int) (int, error)
+	GetAllRewards() ([]habit.Reward, error)
+	GetById(rewardId int) (habit.Reward, error)
+	GetByUserId(userId int) ([]habit.Reward, error)
+	Delete(rewardId int) error
+	RemoveFromUser(userId, rewardId int) error
+	UpdateReward(rewardId int) error              // PENDING
+	UpdateUsersReward(userId, rewardId int) error // PENDING
 }
 
 type Repository struct {
 	Authorization
 	Habit
 	HabitTracker
+	Reward
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
@@ -45,5 +50,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Authorization: NewAuthPostgres(db),
 		Habit:         NewHabitPostgres(db),
 		HabitTracker:  NewHabitTrackerPostgres(db),
+		Reward:        NewRewardPostgres(db),
 	}
 }
