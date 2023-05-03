@@ -19,7 +19,7 @@ type Habit interface {
 }
 
 type HabitTracker interface {
-	Create(habitId int, tracker habit.HabitTracker) (int, error)
+	Create(userHabitId int, tracker habit.HabitTracker) (int, error)
 	GetAll(userId int) ([]habit.HabitTracker, error)
 	GetById(userId, habitId int) (habit.HabitTracker, error)
 	Delete(userId, habitId int) error
