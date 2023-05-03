@@ -1,4 +1,4 @@
-DROP TABLE habit_tracker_reward;
+DROP TABLE user_reward;
 DROP TABLE reward;
 DROP TABLE user_habbit;
 DROP TABLE habbit_tracker;

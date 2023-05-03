@@ -34,8 +34,8 @@ type Reward interface {
 	GetByUserId(userId int) ([]habit.Reward, error)
 	Delete(rewardId int) error
 	RemoveFromUser(userId, rewardId int) error
-	UpdateReward(rewardId int) error              // PENDING
-	UpdateUsersReward(userId, rewardId int) error // PENDING
+	UpdateReward(rewardId int) error
+	UpdateUsersReward(userId, rewardId int) error
 }
 
 type Repository struct {

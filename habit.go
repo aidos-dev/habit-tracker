@@ -85,3 +85,15 @@ func (i UpdateRewardInput) Validate() error {
 	}
 	return nil
 }
+
+type UpdateUserRewardInput struct {
+	RewardId *string `json:"rewardId"`
+	HabitId  *string `json:"habitId"`
+}
+
+func (i UpdateUserRewardInput) Validate() error {
+	if i.RewardId == nil && i.HabitId == nil {
+		return errors.New("user reward update structure has no values")
+	}
+	return nil
+}

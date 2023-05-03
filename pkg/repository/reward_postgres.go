@@ -81,51 +81,23 @@ func (r *RewardPostgres) GetByUserId(userId int) ([]habit.Reward, error) {
 }
 
 func (r *RewardPostgres) Delete(rewardId int) error {
-	query := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2",
-		habitsTable, usersHabitsTable)
-	_, err := r.db.Exec(query, userId, habitId)
+	query := fmt.Sprintf("DELETE FROM %s tl WHERE tl.id = $1",
+		rewardTable)
+	_, err := r.db.Exec(query, rewardId)
 
 	return err
 }
 
+// Take away from user
 func (r *RewardPostgres) RemoveFromUser(userId, rewardId int) error {
-	// Take away from user
-}
+	query := fmt.Sprintf("DELETE FROM %s tl WHERE tl.user_id = $1 AND tl.reward_id=$2",
+		userRewardTable)
+	_, err := r.db.Exec(query, userId, rewardId)
 
-// PENDING
-func (r *RewardPostgres) UpdateReward(rewardId int) error {
-	setValues := make([]string, 0)
-	args := make([]interface{}, 0)
-	argId := 1
-
-	if input.Title != nil {
-		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
-		args = append(args, *input.Title)
-		argId++
-	}
-
-	if input.Description != nil {
-		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
-		args = append(args, *input.Description)
-		argId++
-	}
-
-	setQuery := strings.Join(setValues, ", ")
-
-	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.habit_id AND ul.habit_id=$%d AND ul.user_id=$%d",
-		habitsTable, setQuery, usersHabitsTable, argId, argId+1)
-
-	args = append(args, habitId, userId)
-
-	logrus.Debugf("updateQuerry: %s", query)
-	logrus.Debugf("args: %s", args)
-
-	_, err := r.db.Exec(query, args...)
 	return err
 }
 
-// PENDING
-func (r *RewardPostgres) UpdateUsersReward(userId, rewardId int) error {
+func (r *RewardPostgres) UpdateReward(rewardId int, input habit.UpdateRewardInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
@@ -133,25 +105,46 @@ func (r *RewardPostgres) UpdateUsersReward(userId, rewardId int) error {
 	if input.Title != nil {
 		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
 		args = append(args, *input.Title)
-		argId++
 	}
 
 	if input.Description != nil {
 		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
 		args = append(args, *input.Description)
-		argId++
 	}
 
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.habit_id AND ul.habit_id=$%d AND ul.user_id=$%d",
-		habitsTable, setQuery, usersHabitsTable, argId, argId+1)
-
-	args = append(args, habitId, userId)
+	query := fmt.Sprintf("UPDATE %s tl SET %s WHERE tl.id = %d",
+		rewardTable, setQuery, rewardId)
 
 	logrus.Debugf("updateQuerry: %s", query)
-	logrus.Debugf("args: %s", args)
 
-	_, err := r.db.Exec(query, args...)
+	_, err := r.db.Exec(query)
+	return err
+}
+
+func (r *RewardPostgres) UpdateUsersReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	if input.RewardId != nil {
+		setValues = append(setValues, fmt.Sprintf("reward_id=$%d", argId))
+		args = append(args, *input.RewardId)
+	}
+
+	if input.HabitId != nil {
+		setValues = append(setValues, fmt.Sprintf("habit_id=$%d", argId))
+		args = append(args, *input.HabitId)
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s tl SET %s WHERE tl.user_id = $%d AND tl.reward_id=$%d",
+		userRewardTable, setQuery, userId, rewardId)
+
+	logrus.Debugf("updateQuerry: %s", query)
+
+	_, err := r.db.Exec(query)
 	return err
 }
