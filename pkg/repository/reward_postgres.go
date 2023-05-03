@@ -105,11 +105,13 @@ func (r *RewardPostgres) UpdateReward(rewardId int, input habit.UpdateRewardInpu
 	if input.Title != nil {
 		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
 		args = append(args, *input.Title)
+		argId++
 	}
 
 	if input.Description != nil {
 		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
 		args = append(args, *input.Description)
+		argId++
 	}
 
 	setQuery := strings.Join(setValues, ", ")
@@ -118,8 +120,9 @@ func (r *RewardPostgres) UpdateReward(rewardId int, input habit.UpdateRewardInpu
 		rewardTable, setQuery, rewardId)
 
 	logrus.Debugf("updateQuerry: %s", query)
+	logrus.Debugf("args: %s", args)
 
-	_, err := r.db.Exec(query)
+	_, err := r.db.Exec(query, args...)
 	return err
 }
 
@@ -131,11 +134,13 @@ func (r *RewardPostgres) UpdateUsersReward(userId, rewardId int, input habit.Upd
 	if input.RewardId != nil {
 		setValues = append(setValues, fmt.Sprintf("reward_id=$%d", argId))
 		args = append(args, *input.RewardId)
+		argId++
 	}
 
 	if input.HabitId != nil {
 		setValues = append(setValues, fmt.Sprintf("habit_id=$%d", argId))
 		args = append(args, *input.HabitId)
+		argId++
 	}
 
 	setQuery := strings.Join(setValues, ", ")
@@ -144,7 +149,8 @@ func (r *RewardPostgres) UpdateUsersReward(userId, rewardId int, input habit.Upd
 		userRewardTable, setQuery, userId, rewardId)
 
 	logrus.Debugf("updateQuerry: %s", query)
+	logrus.Debugf("args: %s", args)
 
-	_, err := r.db.Exec(query)
+	_, err := r.db.Exec(query, args...)
 	return err
 }
