@@ -4,23 +4,24 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/aidos-dev/habit-tracker"
 	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) createList(c *gin.Context) {
+func (h *Handler) createHabit(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
 
-	var input todo.TodoList
+	var input habit.Habit
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.TodoList.Create(userId, input)
+	id, err := h.services.Habit.Create(userId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -31,24 +32,24 @@ func (h *Handler) createList(c *gin.Context) {
 	})
 }
 
-type getAllListsResponse struct {
-	Data []todo.TodoList `json:"data"`
+type getAllHabitsResponse struct {
+	Data []habit.Habit `json:"data"`
 }
 
-func (h *Handler) getAllLists(c *gin.Context) {
+func (h *Handler) getAllHabits(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
 
-	lists, err := h.services.TodoList.GetAll(userId)
+	habits, err := h.services.Habit.GetAll(userId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, getAllListsResponse{
-		Data: lists,
+	c.JSON(http.StatusOK, getAllHabitsResponse{
+		Data: habits,
 	})
 }
 
