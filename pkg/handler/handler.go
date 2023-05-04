@@ -24,27 +24,31 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api", h.userIdentity)
 	{
-		lists := api.Group("/lists")
+		habits := api.Group("/habits")
 		{
-			lists.POST("/", h.createList)
-			lists.GET("/", h.getAllLists)
-			lists.GET("/:id", h.getListById)
-			lists.PUT("/:id", h.updateList)
-			lists.DELETE("/:id", h.deleteList)
+			habits.POST("/", h.createHabit)
+			habits.GET("/", h.getAllHabits)
+			habits.GET("/:id", h.getHabitById)
+			habits.PUT("/:id", h.updateHabit)
+			habits.DELETE("/:id", h.deleteHabit)
 
-			items := lists.Group(":id/items")
+			trackers := habits.Group(":id/trackers")
 			{
-				items.POST("/", h.createItem)
-				items.GET("/", h.getAllItems)
+				trackers.POST("/", h.createHabitTracker)
+				trackers.GET("/", h.getAllHabitTrackers)
 			}
 		}
 
-		items := api.Group("items")
+		trackers := api.Group("trackers")
 		{
-			items.GET("/:id", h.getItemById)
-			items.PUT("/:id", h.updateItem)
-			items.DELETE("/:id", h.deleteItem)
+			trackers.GET("/:id", h.getHabitTrackerById)
+			trackers.PUT("/:id", h.updateHabitTracker)
+			trackers.DELETE("/:id", h.deleteHabitTracker)
 		}
+
+		// admin := api.Group("/admin", h.adminAuth)
+		// {
+		// }
 	}
 
 	return router
