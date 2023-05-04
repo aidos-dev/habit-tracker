@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/aidos-dev/habit-tracker"
-	todo "github.com/aidos-dev/habit-tracker"
 	"github.com/gin-gonic/gin"
 )
 
@@ -53,66 +52,40 @@ func (h *Handler) getAllHabits(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getListById(c *gin.Context) {
+func (h *Handler) getHabitById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
-	list, err := h.services.TodoList.GetById(userId, id)
+	habit, err := h.services.Habit.GetById(userId, habitId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	c.JSON(http.StatusOK, habit)
 }
 
-func (h *Handler) updateList(c *gin.Context) {
+func (h *Handler) deleteHabit(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
-	var input todo.UpdateListInput
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.services.TodoList.Update(userId, id, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, statusResponse{"ok"})
-}
-
-func (h *Handler) deleteList(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		return
-	}
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
-		return
-	}
-
-	err = h.services.TodoList.Delete(userId, id)
+	err = h.services.Habit.Delete(userId, habitId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -121,4 +94,31 @@ func (h *Handler) deleteList(c *gin.Context) {
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "ok",
 	})
+}
+
+func (h *Handler) updateHabit(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		return
+	}
+
+	habitId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	var input habit.UpdateHabitInput
+
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.Habit.Update(userId, habitId, input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
