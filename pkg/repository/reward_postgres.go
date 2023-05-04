@@ -126,7 +126,7 @@ func (r *RewardPostgres) UpdateReward(rewardId int, input habit.UpdateRewardInpu
 	return err
 }
 
-func (r *RewardPostgres) UpdateUsersReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
+func (r *RewardPostgres) UpdateUserReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1

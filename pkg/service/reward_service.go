@@ -45,6 +45,6 @@ func (s *RewardService) UpdateReward(rewardId int, input habit.UpdateRewardInput
 	return s.repo.UpdateReward(rewardId, input)
 }
 
-func (s *RewardService) UpdateUsersReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
+func (s *RewardService) UpdateUserReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
 	return s.repo.UpdateUsersReward(userId, rewardId, input)
 }

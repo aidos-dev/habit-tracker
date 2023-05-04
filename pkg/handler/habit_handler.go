@@ -20,14 +20,14 @@ func (h *Handler) createHabit(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Habit.Create(userId, input)
+	habitId, err := h.services.Habit.Create(userId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"habitId": habitId,
 	})
 }
 
@@ -58,7 +58,7 @@ func (h *Handler) getHabitById(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("habitId"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
@@ -79,7 +79,7 @@ func (h *Handler) deleteHabit(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("habitId"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
@@ -102,7 +102,7 @@ func (h *Handler) updateHabit(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("habitId"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
