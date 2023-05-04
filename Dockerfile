@@ -1,4 +1,4 @@
-FROM golang:1.17.1-alpine3.14
+FROM golang:1.20.1-alpine3.17
 
 RUN go version
 ENV GOPATH=/

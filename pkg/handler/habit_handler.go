@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -43,7 +44,7 @@ func (h *Handler) getAllHabits(c *gin.Context) {
 
 	habits, err := h.services.Habit.GetAll(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabits: %v", err.Error()))
 		return
 	}
 
@@ -66,7 +67,7 @@ func (h *Handler) getHabitById(c *gin.Context) {
 
 	habit, err := h.services.Habit.GetById(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitById: %v", err.Error()))
 		return
 	}
 
@@ -87,7 +88,7 @@ func (h *Handler) deleteHabit(c *gin.Context) {
 
 	err = h.services.Habit.Delete(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteHabit: %v", err.Error()))
 		return
 	}
 
@@ -116,7 +117,7 @@ func (h *Handler) updateHabit(c *gin.Context) {
 	}
 
 	if err := h.services.Habit.Update(userId, habitId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateHabit: %v", err.Error()))
 		return
 	}
 

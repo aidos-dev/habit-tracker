@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -16,13 +17,13 @@ func (h *Handler) createReward(c *gin.Context) {
 
 	var input habit.Reward
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: createReward: %v", err.Error()))
 		return
 	}
 
 	id, err := h.services.Reward.Create(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: createReward: %v", err.Error()))
 		return
 	}
 
@@ -51,13 +52,13 @@ func (h *Handler) assignReward(c *gin.Context) {
 
 	var input habit.Reward
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: assignReward: %v", err.Error()))
 		return
 	}
 
 	id, err := h.services.Reward.AssignReward(userId, rewardId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: assignReward: %v", err.Error()))
 		return
 	}
 
@@ -71,13 +72,13 @@ func (h *Handler) assignReward(c *gin.Context) {
 func (h *Handler) getAllRewards(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllRewards: %v", err.Error()))
 		return
 	}
 
 	rewards, err := h.services.Reward.GetAllRewards()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllRewards: %v", err.Error()))
 		return
 	}
 
@@ -89,7 +90,7 @@ func (h *Handler) getAllRewards(c *gin.Context) {
 func (h *Handler) getRewardById(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardById: %v", err.Error()))
 		return
 	}
 
@@ -101,7 +102,7 @@ func (h *Handler) getRewardById(c *gin.Context) {
 
 	reward, err := h.services.Reward.GetById(rewardId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardById: %v", err.Error()))
 		return
 	}
 
@@ -112,13 +113,13 @@ func (h *Handler) getRewardById(c *gin.Context) {
 func (h *Handler) getRewardsByUserId(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardsByUserId: %v", err.Error()))
 		return
 	}
 
 	rewards, err := h.services.Reward.GetByUserId(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardsByUserId: %v", err.Error()))
 		return
 	}
 
@@ -130,7 +131,7 @@ func (h *Handler) getRewardsByUserId(c *gin.Context) {
 func (h *Handler) deleteReward(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteReward: %v", err.Error()))
 		return
 	}
 
@@ -142,7 +143,7 @@ func (h *Handler) deleteReward(c *gin.Context) {
 
 	err = h.services.Reward.Delete(rewardId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteReward: %v", err.Error()))
 		return
 	}
 
@@ -153,7 +154,7 @@ func (h *Handler) deleteReward(c *gin.Context) {
 func (h *Handler) removeRewardFromUser(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: removeRewardFromUser: %v", err.Error()))
 		return
 	}
 
@@ -165,7 +166,7 @@ func (h *Handler) removeRewardFromUser(c *gin.Context) {
 
 	err = h.services.Reward.RemoveFromUser(userId, rewardId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: removeRewardFromUser: %v", err.Error()))
 		return
 	}
 
@@ -188,12 +189,12 @@ func (h *Handler) updateReward(c *gin.Context) {
 
 	var input habit.UpdateRewardInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: updateReward: %v", err.Error()))
 		return
 	}
 
 	if err := h.services.Reward.UpdateReward(rewardId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateReward: %v", err.Error()))
 		return
 	}
 
@@ -215,12 +216,12 @@ func (h *Handler) updateUserReward(c *gin.Context) {
 
 	var input habit.UpdateUserRewardInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: updateUserReward: %v", err.Error()))
 		return
 	}
 
 	if err := h.services.Reward.UpdateUserReward(userId, rewardId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateUserReward: %v", err.Error()))
 		return
 	}
 

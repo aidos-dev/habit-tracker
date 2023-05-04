@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -23,7 +24,7 @@ func (h *Handler) createHabitTracker(c *gin.Context) {
 
 	var input habit.HabitTracker
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: createHabitTracker: %v", err.Error()))
 		return
 	}
 
@@ -47,7 +48,7 @@ func (h *Handler) getAllHabitTrackers(c *gin.Context) {
 
 	trackers, err := h.services.HabitTracker.GetAll(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabitTrackers: %v", err.Error()))
 		return
 	}
 
@@ -69,7 +70,7 @@ func (h *Handler) getHabitTrackerById(c *gin.Context) {
 
 	tracker, err := h.services.HabitTracker.GetById(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitTrackerById: %v", err.Error()))
 		return
 	}
 
@@ -91,7 +92,7 @@ func (h *Handler) deleteHabitTracker(c *gin.Context) {
 
 	err = h.services.HabitTracker.Delete(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteHabitTracker: %v", err.Error()))
 		return
 	}
 
@@ -117,7 +118,7 @@ func (h *Handler) updateHabitTracker(c *gin.Context) {
 	}
 
 	if err := h.services.HabitTracker.Update(userId, habitId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateHabitTracker: %v", err.Error()))
 		return
 	}
 
