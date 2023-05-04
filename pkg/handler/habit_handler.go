@@ -59,9 +59,9 @@ func (h *Handler) getHabitById(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("habitId"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:getHabitById: invalid id param: %v", habitId))
 		return
 	}
 
@@ -80,9 +80,9 @@ func (h *Handler) deleteHabit(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("habitId"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:deleteHabit: invalid id param: %v", habitId))
 		return
 	}
 
@@ -103,9 +103,9 @@ func (h *Handler) updateHabit(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("habitId"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:updateHabit: invalid id param: %v", habitId))
 		return
 	}
 

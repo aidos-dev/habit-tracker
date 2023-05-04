@@ -62,7 +62,7 @@ func (h *Handler) getHabitTrackerById(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("habitId"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
 		return
@@ -84,7 +84,7 @@ func (h *Handler) deleteHabitTracker(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("habitId"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
 		return
@@ -105,7 +105,7 @@ func (h *Handler) updateHabitTracker(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("habitId"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
