@@ -46,5 +46,5 @@ func (s *RewardService) UpdateReward(rewardId int, input habit.UpdateRewardInput
 }
 
 func (s *RewardService) UpdateUserReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
-	return s.repo.UpdateUsersReward(userId, rewardId, input)
+	return s.repo.UpdateUserReward(userId, rewardId, input)
 }
