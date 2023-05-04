@@ -6,7 +6,7 @@ import (
 )
 
 type Habit struct {
-	Id          int    `json:"habitId" db:"habitId"`
+	Id          int    `json:"habitId" db:"id"`
 	Title       string `json:"title" db:"title" binding:"required"`
 	Description string `json:"description" db:"description"`
 }
@@ -18,7 +18,7 @@ type UsersHabits struct {
 }
 
 type HabitTracker struct {
-	Id            int       `json:"trackerId" db:"trackerId"`
+	Id            int       `json:"trackerId" db:"id"`
 	UserHabitId   int       `json:"user_habit_id" db:"user_habit_id" binding:"required"`
 	UnitOfMessure string    `json:"unit_of_messure" db:"unit_of_messure" binding:"required"`
 	Goal          string    `json:"goal" db:"goal" binding:"required"`
@@ -30,7 +30,7 @@ type HabitTracker struct {
 }
 
 type Reward struct {
-	Id          int    `json:"rewardId" db:"rewardId"`
+	Id          int    `json:"rewardId" db:"id"`
 	Title       string `json:"title" db:"title" binding:"required"`
 	Description string `json:"description" db:"description"`
 	HabitId     int    `json:"habitId" db:"habitId"`
