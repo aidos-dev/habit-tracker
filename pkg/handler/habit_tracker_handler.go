@@ -4,30 +4,30 @@ import (
 	"net/http"
 	"strconv"
 
-	todo "github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker"
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) createItem(c *gin.Context) {
-	userId, err := getUserId(c)
+func (h *Handler) createHabitTracker(c *gin.Context) {
+	_, err := getUserId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	listId, err := strconv.Atoi(c.Param("id"))
+	userHabitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
 		return
 	}
 
-	var input todo.TodoItem
+	var input habit.HabitTracker
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.TodoItem.Create(userId, listId, input)
+	id, err := h.services.HabitTracker.Create(userHabitId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -38,69 +38,59 @@ func (h *Handler) createItem(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getAllItems(c *gin.Context) {
+func (h *Handler) getAllHabitTrackers(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	listId, err := strconv.Atoi(c.Param("id"))
+	trackers, err := h.services.HabitTracker.GetAll(userId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, trackers)
+}
+
+func (h *Handler) getHabitTrackerById(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
 		return
 	}
 
-	items, err := h.services.TodoItem.GetAll(userId, listId)
+	tracker, err := h.services.HabitTracker.GetById(userId, habitId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, tracker)
 }
 
-func (h *Handler) getItemById(c *gin.Context) {
+func (h *Handler) deleteHabitTracker(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	itemId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
 		return
 	}
 
-	item, err := h.services.TodoItem.GetById(userId, itemId)
+	err = h.services.HabitTracker.Delete(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, item)
-}
-
-func (h *Handler) updateItem(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		return
-	}
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
-		return
-	}
-
-	var input todo.UpdateItemInput
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.services.TodoItem.Update(userId, id, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -108,21 +98,25 @@ func (h *Handler) updateItem(c *gin.Context) {
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
-func (h *Handler) deleteItem(c *gin.Context) {
+func (h *Handler) updateHabitTracker(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	itemId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
-	err = h.services.TodoItem.Delete(userId, itemId)
-	if err != nil {
+	var input habit.UpdateTrackerInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.HabitTracker.Update(userId, habitId, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
