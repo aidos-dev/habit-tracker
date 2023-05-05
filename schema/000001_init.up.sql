@@ -15,13 +15,13 @@ CREATE TABLE habit (
 CREATE TABLE habit_tracker (
     id serial not null unique,
     habit_id NUMERIC(10),
-    unit_of_messure varchar(50) not null,
-    goal varchar(50) not null,
-    frequency varchar(255) not null,
-    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    end_date DATE NOT NULL,
+    unit_of_messure varchar(50),
+    goal varchar(50),
+    frequency varchar(255),
+    start_date DATE DEFAULT CURRENT_DATE,
+    end_date DATE,
     counter NUMERIC(10, 2),
-    done boolean not null default false
+    done boolean default false
 );
 
 CREATE TABLE user_habit (
