@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aidos-dev/habit-tracker"
-	"github.com/aidos-dev/habit-tracker/pkg/repository"
+	"github.com/aidos-dev/habit-tracker/internal/models"
+	"github.com/aidos-dev/habit-tracker/internal/repository"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -30,7 +30,7 @@ func NewAuthService(repo repository.Authorization) *AuthService {
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) CreateUser(user habit.User) (int, error) {
+func (s *AuthService) CreateUser(user models.User) (int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user)
 }

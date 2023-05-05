@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +15,7 @@ func (h *Handler) createHabit(c *gin.Context) {
 		return
 	}
 
-	var input habit.Habit
+	var input models.Habit
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -33,7 +33,7 @@ func (h *Handler) createHabit(c *gin.Context) {
 }
 
 type getAllHabitsResponse struct {
-	Data []habit.Habit `json:"data"`
+	Data []models.Habit `json:"data"`
 }
 
 func (h *Handler) getAllHabits(c *gin.Context) {
@@ -109,7 +109,7 @@ func (h *Handler) updateHabit(c *gin.Context) {
 		return
 	}
 
-	var input habit.UpdateHabitInput
+	var input models.UpdateHabitInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())

@@ -1,4 +1,4 @@
-package habit
+package models
 
 import (
 	"errors"

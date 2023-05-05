@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
@@ -17,8 +17,8 @@ func NewHabitTrackerPostgres(db *sqlx.DB) *HabitTrackerPostgres {
 	return &HabitTrackerPostgres{db: db}
 }
 
-func (r *HabitTrackerPostgres) GetAll(userId int) ([]habit.HabitTracker, error) {
-	var trackers []habit.HabitTracker
+func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error) {
+	var trackers []models.HabitTracker
 	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
 		habitTrackerTable, usersHabitsTable)
 
@@ -29,8 +29,8 @@ func (r *HabitTrackerPostgres) GetAll(userId int) ([]habit.HabitTracker, error) 
 	return trackers, nil
 }
 
-func (r *HabitTrackerPostgres) GetById(userId, habitId int) (habit.HabitTracker, error) {
-	var habitTracker habit.HabitTracker
+func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker, error) {
+	var habitTracker models.HabitTracker
 
 	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2",
 		habitTrackerTable, usersHabitsTable)
@@ -49,7 +49,7 @@ type trackerMapStruct struct {
 }
 
 func newTrackerMap() trackerMapStruct {
-	var tracker habit.UpdateTrackerInput
+	var tracker models.UpdateTrackerInput
 	updateTrackMap := map[string]any{
 		"unit_of_messure": tracker.UnitOfMessure,
 		"goal":            tracker.Goal,
@@ -65,7 +65,7 @@ func newTrackerMap() trackerMapStruct {
 	}
 }
 
-func (r *HabitTrackerPostgres) Update(userId, habitId int, input habit.UpdateTrackerInput) error {
+func (r *HabitTrackerPostgres) Update(userId, habitId int, input models.UpdateTrackerInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1

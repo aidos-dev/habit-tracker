@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/aidos-dev/habit-tracker/pkg/service"
+	"github.com/aidos-dev/habit-tracker/internal/service"
 	"github.com/gin-gonic/gin"
 )
 

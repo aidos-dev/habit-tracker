@@ -2,10 +2,9 @@ package main
 
 import (
 	"github.com/aidos-dev/habit-tracker/internal/app"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5"
 )
 
-// TODO: Изучи драйвер pgx
 func main() {
 	app.Run()
 }

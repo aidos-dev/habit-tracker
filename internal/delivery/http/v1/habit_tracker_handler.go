@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -59,7 +59,7 @@ func (h *Handler) updateHabitTracker(c *gin.Context) {
 		return
 	}
 
-	var input habit.UpdateTrackerInput
+	var input models.UpdateTrackerInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -95,7 +95,7 @@ This method is not deleted because it might work for some future functionality
 // 		return
 // 	}
 
-// 	var input habit.HabitTracker
+// 	var input models.HabitTracker
 // 	if err := c.BindJSON(&input); err != nil {
 // 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: createHabitTracker: %v", err.Error()))
 // 		return

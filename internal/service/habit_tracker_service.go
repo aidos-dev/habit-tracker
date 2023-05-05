@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/aidos-dev/habit-tracker"
-	"github.com/aidos-dev/habit-tracker/pkg/repository"
+	"github.com/aidos-dev/habit-tracker/internal/models"
+	"github.com/aidos-dev/habit-tracker/internal/repository"
 )
 
 type HabitTrackerService struct {
@@ -13,15 +13,15 @@ func NewHabitTrackerService(repo repository.HabitTracker) *HabitTrackerService {
 	return &HabitTrackerService{repo: repo}
 }
 
-func (s *HabitTrackerService) GetAll(userId int) ([]habit.HabitTracker, error) {
+func (s *HabitTrackerService) GetAll(userId int) ([]models.HabitTracker, error) {
 	return s.repo.GetAll(userId)
 }
 
-func (s *HabitTrackerService) GetById(userId, habitId int) (habit.HabitTracker, error) {
+func (s *HabitTrackerService) GetById(userId, habitId int) (models.HabitTracker, error) {
 	return s.repo.GetById(userId, habitId)
 }
 
-func (s *HabitTrackerService) Update(userId, habitId int, input habit.UpdateTrackerInput) error {
+func (s *HabitTrackerService) Update(userId, habitId int, input models.UpdateTrackerInput) error {
 	return s.repo.Update(userId, habitId, input)
 }
 

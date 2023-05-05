@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
@@ -17,7 +17,7 @@ func NewRewardPostgres(db *sqlx.DB) *RewardPostgres {
 	return &RewardPostgres{db: db}
 }
 
-func (r *RewardPostgres) Create(reward habit.Reward) (int, error) {
+func (r *RewardPostgres) Create(reward models.Reward) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -52,8 +52,8 @@ func (r *RewardPostgres) AssignReward(userId int, rewardId int, habitId int) (in
 	return id, tx.Commit()
 }
 
-func (r *RewardPostgres) GetAllRewards() ([]habit.Reward, error) {
-	var rewards []habit.Reward
+func (r *RewardPostgres) GetAllRewards() ([]models.Reward, error) {
+	var rewards []models.Reward
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s",
 		rewardTable)
 	err := r.db.Select(&rewards, query)
@@ -61,8 +61,8 @@ func (r *RewardPostgres) GetAllRewards() ([]habit.Reward, error) {
 	return rewards, err
 }
 
-func (r *RewardPostgres) GetById(rewardId int) (habit.Reward, error) {
-	var reward habit.Reward
+func (r *RewardPostgres) GetById(rewardId int) (models.Reward, error) {
+	var reward models.Reward
 
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s WHERE tl.id = $1",
 		rewardTable)
@@ -71,8 +71,8 @@ func (r *RewardPostgres) GetById(rewardId int) (habit.Reward, error) {
 	return reward, err
 }
 
-func (r *RewardPostgres) GetByUserId(userId int) ([]habit.Reward, error) {
-	var rewards []habit.Reward
+func (r *RewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
+	var rewards []models.Reward
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, ul.habit_id FROM %s tl INNER JOIN %s ul on tl.id = ul.reward_id WHERE ul.user_id = $1",
 		rewardTable, userRewardTable)
 	err := r.db.Select(&rewards, query, userId)
@@ -97,7 +97,7 @@ func (r *RewardPostgres) RemoveFromUser(userId, rewardId int) error {
 	return err
 }
 
-func (r *RewardPostgres) UpdateReward(rewardId int, input habit.UpdateRewardInput) error {
+func (r *RewardPostgres) UpdateReward(rewardId int, input models.UpdateRewardInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
@@ -126,7 +126,7 @@ func (r *RewardPostgres) UpdateReward(rewardId int, input habit.UpdateRewardInpu
 	return err
 }
 
-func (r *RewardPostgres) UpdateUserReward(userId, rewardId int, input habit.UpdateUserRewardInput) error {
+func (r *RewardPostgres) UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1

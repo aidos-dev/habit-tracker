@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +15,7 @@ func (h *Handler) createReward(c *gin.Context) {
 		return
 	}
 
-	var input habit.Reward
+	var input models.Reward
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: createReward: %v", err.Error()))
 		return
@@ -50,7 +50,7 @@ func (h *Handler) assignReward(c *gin.Context) {
 		return
 	}
 
-	var input habit.Reward
+	var input models.Reward
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: assignReward: %v", err.Error()))
 		return
@@ -187,7 +187,7 @@ func (h *Handler) updateReward(c *gin.Context) {
 		return
 	}
 
-	var input habit.UpdateRewardInput
+	var input models.UpdateRewardInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: updateReward: %v", err.Error()))
 		return
@@ -214,7 +214,7 @@ func (h *Handler) updateUserReward(c *gin.Context) {
 		return
 	}
 
-	var input habit.UpdateUserRewardInput
+	var input models.UpdateUserRewardInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: updateUserReward: %v", err.Error()))
 		return

@@ -1,41 +1,41 @@
 package repository
 
 import (
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/jmoiron/sqlx"
 )
 
 type Authorization interface {
-	CreateUser(user habit.User) (int, error)
-	GetUser(username, password string) (habit.User, error)
+	CreateUser(user models.User) (int, error)
+	GetUser(username, password string) (models.User, error)
 }
 
 type Habit interface {
-	Create(userId int, habit habit.Habit) (int, error)
-	GetAll(userId int) ([]habit.Habit, error)
-	GetById(userId, habitId int) (habit.Habit, error)
+	Create(userId int, habit models.Habit) (int, error)
+	GetAll(userId int) ([]models.Habit, error)
+	GetById(userId, habitId int) (models.Habit, error)
 	Delete(userId, habitId int) error
-	Update(userId, habitId int, input habit.UpdateHabitInput) error
+	Update(userId, habitId int, input models.UpdateHabitInput) error
 }
 
 type HabitTracker interface {
 	// Create(userHabitId int, tracker habit.HabitTracker) (int, error) // temporarily disabled
-	GetAll(userId int) ([]habit.HabitTracker, error)
-	GetById(userId, habitId int) (habit.HabitTracker, error)
+	GetAll(userId int) ([]models.HabitTracker, error)
+	GetById(userId, habitId int) (models.HabitTracker, error)
 	// Delete(userId, habitId int) error // temporarily disabled
-	Update(userId, habitId int, input habit.UpdateTrackerInput) error
+	Update(userId, habitId int, input models.UpdateTrackerInput) error
 }
 
 type Reward interface {
-	Create(reward habit.Reward) (int, error)
+	Create(reward models.Reward) (int, error)
 	AssignReward(userId int, rewardId int, habitId int) (int, error)
-	GetAllRewards() ([]habit.Reward, error)
-	GetById(rewardId int) (habit.Reward, error)
-	GetByUserId(userId int) ([]habit.Reward, error)
+	GetAllRewards() ([]models.Reward, error)
+	GetById(rewardId int) (models.Reward, error)
+	GetByUserId(userId int) ([]models.Reward, error)
 	Delete(rewardId int) error
 	RemoveFromUser(userId, rewardId int) error
-	UpdateReward(rewardId int, input habit.UpdateRewardInput) error
-	UpdateUserReward(userId, rewardId int, input habit.UpdateUserRewardInput) error
+	UpdateReward(rewardId int, input models.UpdateRewardInput) error
+	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
 }
 
 type Repository struct {

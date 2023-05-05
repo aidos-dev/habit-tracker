@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
@@ -17,7 +17,7 @@ func NewHabitPostgres(db *sqlx.DB) *HabitPostgres {
 	return &HabitPostgres{db: db}
 }
 
-func (r *HabitPostgres) Create(userId int, habit habit.Habit) (int, error) {
+func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -53,8 +53,8 @@ func (r *HabitPostgres) Create(userId int, habit habit.Habit) (int, error) {
 	return habitId, tx.Commit()
 }
 
-func (r *HabitPostgres) GetAll(userId int) ([]habit.Habit, error) {
-	var habits []habit.Habit
+func (r *HabitPostgres) GetAll(userId int) ([]models.Habit, error) {
+	var habits []models.Habit
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
 		habitsTable, usersHabitsTable)
 	err := r.db.Select(&habits, query, userId)
@@ -62,8 +62,8 @@ func (r *HabitPostgres) GetAll(userId int) ([]habit.Habit, error) {
 	return habits, err
 }
 
-func (r *HabitPostgres) GetById(userId, habitId int) (habit.Habit, error) {
-	var habit habit.Habit
+func (r *HabitPostgres) GetById(userId, habitId int) (models.Habit, error) {
+	var habit models.Habit
 
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2",
 		habitsTable, usersHabitsTable)
@@ -87,7 +87,7 @@ func (r *HabitPostgres) Delete(userId, habitId int) error {
 	return err
 }
 
-func (r *HabitPostgres) Update(userId, habitId int, input habit.UpdateHabitInput) error {
+func (r *HabitPostgres) Update(userId, habitId int, input models.UpdateHabitInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1

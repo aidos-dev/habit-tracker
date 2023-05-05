@@ -3,12 +3,12 @@ package v1
 import (
 	"net/http"
 
-	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) signUp(c *gin.Context) {
-	var input habit.User
+	var input models.User
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())

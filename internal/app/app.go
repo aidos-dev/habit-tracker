@@ -6,7 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	v1 "github.com/aidos-dev/habit-tracker/internal/delivery/http/v1"
 	"github.com/aidos-dev/habit-tracker/internal/repository"
+	"github.com/aidos-dev/habit-tracker/internal/server"
 	"github.com/aidos-dev/habit-tracker/internal/service"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -49,9 +51,9 @@ func Run() {
 
 	repos := repository.NewRepository(db)
 	services := service.NewService(repos)
-	handlers := handler.NewHandler(services)
+	handlers := v1.NewHandler(services)
 
-	srv := new(todo.Server)
+	srv := new(server.Server)
 
 	go func() {
 		if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
