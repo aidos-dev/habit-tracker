@@ -20,10 +20,10 @@ type Habit interface {
 }
 
 type HabitTracker interface {
-	Create(userHabitId int, tracker habit.HabitTracker) (int, error)
+	// Create(userHabitId int, tracker habit.HabitTracker) (int, error) // temporarily disabled
 	GetAll(userId int) ([]habit.HabitTracker, error)
 	GetById(userId, habitId int) (habit.HabitTracker, error)
-	Delete(userId, habitId int) error
+	// Delete(userId, habitId int) error // temporarily disabled
 	Update(userId, habitId int, input habit.UpdateTrackerInput) error
 }
 
