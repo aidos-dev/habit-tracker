@@ -34,7 +34,7 @@ func (r *HabitPostgres) Create(userId int, habit habit.Habit) (int, error) {
 
 	// create an empty tracker for a habit
 	var trackerId int
-	createHabitTrackerQuery := fmt.Sprintf("INSERT INTO %s (habit_id) VALUES ($1)", habitTrackerTable)
+	createHabitTrackerQuery := fmt.Sprintf("INSERT INTO %s (habit_id) VALUES ($1) RETURNING id", habitTrackerTable)
 	rowTracker := tx.QueryRow(createHabitTrackerQuery, userId)
 	err = rowTracker.Scan(&trackerId)
 	if err != nil {
