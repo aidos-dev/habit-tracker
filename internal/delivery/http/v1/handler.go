@@ -1,4 +1,4 @@
-package handler
+package v1
 
 import (
 	"github.com/aidos-dev/habit-tracker/pkg/service"

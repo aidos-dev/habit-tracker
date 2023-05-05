@@ -29,7 +29,7 @@ func (s *HabitService) Delete(userId, habitId int) error {
 	return s.repo.Delete(userId, habitId)
 }
 
-func (s *HabitService) Update(userId, habitId int, input habit.UpdateHabitInput) error {
+func (s *HabitService) Update(userId, habitId int, input models.UpdateHabitInput) error {
 	if err := input.Validate(); err != nil {
 		return err
 	}

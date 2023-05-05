@@ -1,4 +1,4 @@
-package habit
+package models
 
 type User struct {
 	Id        int    `json:"-" db:"id"`

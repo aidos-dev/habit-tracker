@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"context"
@@ -6,18 +6,22 @@ import (
 	"os/signal"
 	"syscall"
 
-	todo "github.com/aidos-dev/habit-tracker"
-	"github.com/aidos-dev/habit-tracker/pkg/handler"
-	"github.com/aidos-dev/habit-tracker/pkg/repository"
-	"github.com/aidos-dev/habit-tracker/pkg/service"
+	"github.com/aidos-dev/habit-tracker/internal/repository"
+	"github.com/aidos-dev/habit-tracker/internal/service"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-
-	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 )
 
-func main() {
+func initConfig() error {
+	// AddConfigPath receives a derectory name
+	viper.AddConfigPath("configs")
+	// SetConfig receives a file name (from the directory above)
+	viper.SetConfigName("config")
+	return viper.ReadInConfig()
+}
+
+func Run() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
 	if err := initConfig(); err != nil {
@@ -71,12 +75,4 @@ func main() {
 	if err := db.Close(); err != nil {
 		logrus.Errorf("error occured on db connection close: %s", err.Error())
 	}
-}
-
-func initConfig() error {
-	// AddConfigPath receives a derectory name
-	viper.AddConfigPath("configs")
-	// SetConfig receives a file name (from the directory above)
-	viper.SetConfigName("config")
-	return viper.ReadInConfig()
 }

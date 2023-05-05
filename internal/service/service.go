@@ -2,11 +2,12 @@ package service
 
 import (
 	"github.com/aidos-dev/habit-tracker"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/pkg/repository"
 )
 
 type Authorization interface {
-	CreateUser(user habit.User) (int, error)
+	CreateUser(user models.User) (int, error)
 	GenerateToken(username, password string) (string, error)
 	ParseToken(token string) (int, error)
 }
