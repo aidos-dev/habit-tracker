@@ -11,14 +11,10 @@ CREATE TABLE habit (
     title varchar(255) not null,
     description varchar(255)
 );
-CREATE TABLE user_habit (
-    id serial not null unique,
-    user_id int references user_account (id) on delete cascade not null,
-    habit_id int references habit (id) on delete cascade not null
-);
+
 CREATE TABLE habit_tracker (
     id serial not null unique,
-    user_habit_id int references user_habit (id) on delete cascade not null,
+    habit_id NUMERIC(10),
     unit_of_messure varchar(50) not null,
     goal varchar(50) not null,
     frequency varchar(255) not null,
@@ -27,6 +23,14 @@ CREATE TABLE habit_tracker (
     counter NUMERIC(10, 2),
     done boolean not null default false
 );
+
+CREATE TABLE user_habit (
+    id serial not null unique,
+    user_id int references user_account (id) on delete cascade not null,
+    habit_id int references habit (id) on delete cascade not null,
+    habit_tracker_id int references habit_tracker (id) on delete cascade not null
+);
+
 
 CREATE TABLE reward (
     id serial not null unique,

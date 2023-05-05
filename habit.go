@@ -12,14 +12,15 @@ type Habit struct {
 }
 
 type UsersHabits struct {
-	Id      int
-	UserId  int
-	HabitId int
+	Id             int
+	UserId         int
+	HabitId        int
+	HabitTrackerId int
 }
 
 type HabitTracker struct {
 	Id            int       `json:"trackerId" db:"id"`
-	UserHabitId   int       `json:"user_habit_id" db:"user_habit_id" binding:"required"`
+	HabitId       int       `json:"habitId" db:"habit_id"`
 	UnitOfMessure string    `json:"unit_of_messure" db:"unit_of_messure" binding:"required"`
 	Goal          string    `json:"goal" db:"goal" binding:"required"`
 	Frequency     string    `json:"frequency" db:"frequency" binding:"required"`
