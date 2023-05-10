@@ -1,19 +1,21 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5"
 	"github.com/sirupsen/logrus"
 )
 
 type HabitTrackerPostgres struct {
-	db *sqlx.DB
+	db *pgx.Conn
 }
 
-func NewHabitTrackerPostgres(db *sqlx.DB) *HabitTrackerPostgres {
+func NewHabitTrackerPostgres(db *pgx.Conn) *HabitTrackerPostgres {
 	return &HabitTrackerPostgres{db: db}
 }
 
@@ -22,7 +24,7 @@ func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error)
 	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
 		habitTrackerTable, usersHabitsTable)
 
-	if err := r.db.Select(&trackers, query, userId); err != nil {
+	if err := r.db.QueryRow(context.Background(), query, userId).Scan(&trackers); err != nil {
 		return nil, err
 	}
 
@@ -34,7 +36,7 @@ func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker
 
 	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2",
 		habitTrackerTable, usersHabitsTable)
-	err := r.db.Get(&habitTracker, query, userId, habitId)
+	err := r.db.QueryRow(context.Background(), query, userId, habitId).Scan(&habitTracker)
 
 	return habitTracker, err
 }
@@ -86,7 +88,7 @@ func (r *HabitTrackerPostgres) Update(userId, habitId int, input models.UpdateTr
 	logrus.Debugf("updateQuerry: %s", query)
 	logrus.Debugf("args: %s", args)
 
-	_, err := r.db.Exec(query, args...)
+	_, err := r.db.Exec(context.Background(), query, args...)
 	return err
 }
 
