@@ -15,6 +15,6 @@ RUN chmod +x wait-for-postgres.sh
 
 # build go app
 RUN go mod download
-RUN go build -o habit-tracker ./cmd/main.go
+RUN go build -o habit-tracker ./cmd/habit/main.go
 
 CMD ["./habit-tracker"]

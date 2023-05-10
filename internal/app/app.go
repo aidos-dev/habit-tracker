@@ -10,6 +10,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/internal/repository"
 	"github.com/aidos-dev/habit-tracker/internal/server"
 	"github.com/aidos-dev/habit-tracker/internal/service"
+	_ "github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
