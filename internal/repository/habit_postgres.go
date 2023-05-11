@@ -60,7 +60,19 @@ func (r *HabitPostgres) GetAll(userId int) ([]models.Habit, error) {
 	var habits []models.Habit
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
 		habitsTable, usersHabitsTable)
-	err := r.db.QueryRow(context.Background(), query, userId).Scan(&habits)
+	// err := r.db.QueryRow(context.Background(), query, userId).Scan(&habits)
+
+	rowHabits := r.db.QueryRow(context.Background(), query, userId)
+
+	// for rowHabit.Scan(
+	// 	&habits.Id,
+	// 	&habits.Title,
+	// 	&habits.Description,
+	// )
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+	// 	return habit, err
+	// }
 
 	return habits, err
 }
@@ -71,7 +83,15 @@ func (r *HabitPostgres) GetById(userId, habitId int) (models.Habit, error) {
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2",
 		habitsTable, usersHabitsTable)
 
-	err := r.db.QueryRow(context.Background(), query, userId, habitId).Scan(&habit)
+	// err := r.db.QueryRow(context.Background(), query, userId, habitId).Scan(&habit)
+
+	rowHabit := r.db.QueryRow(context.Background(), query, userId, habitId)
+
+	err := rowHabit.Scan(
+		&habit.Id,
+		&habit.Title,
+		&habit.Description,
+	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return habit, err
