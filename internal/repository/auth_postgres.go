@@ -32,9 +32,9 @@ func NewAuthPostgres(db *pgx.Conn) *AuthPostgres {
 
 func (r *AuthPostgres) CreateUser(user models.User) (int, error) {
 	var id int
-	query := "INSERT INTO $1 (user_name, first_name, last_name, email, password_hash) values ($2, $3, $4, $5, $6) RETURNING id"
+	query := "INSERT INTO user_account (user_name, first_name, last_name, email, password_hash) values ($1, $2, $3, $4, $5) RETURNING id"
 
-	row := r.db.QueryRow(context.Background(), query, usersTable, user.Username, user.FirstName, user.LastName, user.Email, user.Password)
+	row := r.db.QueryRow(context.Background(), query, user.Username, user.FirstName, user.LastName, user.Email, user.Password)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -44,9 +44,9 @@ func (r *AuthPostgres) CreateUser(user models.User) (int, error) {
 
 func (r *AuthPostgres) GetUser(username, password string) (models.User, error) {
 	var user models.User
-	query := "SELECT id FROM $1 WHERE user_name=$2 AND password_hash=$3"
+	query := "SELECT id FROM user_account WHERE user_name=$1 AND password_hash=$2"
 
-	err := r.db.QueryRow(context.Background(), query, usersTable, username, password).Scan(&user)
+	err := r.db.QueryRow(context.Background(), query, username, password).Scan(&user.Id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return user, err

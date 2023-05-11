@@ -20,7 +20,7 @@ services:
     
     volumes:
       # - ./.database/postgres/data:/var/lib/postgresql/data
-      - ./schema/000001_init.up.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/create_tables.sql
     environment:
       - POSTGRES_PASSWORD=qwerty
     ports:
