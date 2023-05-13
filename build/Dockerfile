@@ -1,9 +1,12 @@
 FROM golang:1.20.1-alpine3.17
 
 RUN go version
-ENV GOPATH=/
+
+WORKDIR /app
 
 COPY ./ ./
+
+RUN ls -li
 
 # install psql
 
@@ -11,7 +14,9 @@ COPY ./ ./
 RUN apk add postgresql-client
 
 # make wait-for-postgres.sh executable
-RUN chmod +x wait-for-postgres.sh
+RUN chmod +x build/wait-for-postgres.sh
+
+
 
 # build go app
 RUN go mod download

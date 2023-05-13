@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   habit-tracker:
-    build: ./
+    build:
+      context: ../
+      dockerfile: build/Dockerfile
     ports:
     - "8000:8000"
     command: ./wait-for-postgres.sh db ./habit-tracker 
