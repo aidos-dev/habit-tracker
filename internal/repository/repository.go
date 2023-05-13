@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/aidos-dev/habit-tracker/internal/models"
-	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Authorization interface {
@@ -46,11 +46,11 @@ type Repository struct {
 	Reward
 }
 
-func NewRepository(db *pgx.Conn) *Repository {
+func NewRepository(dbpool *pgxpool.Pool) *Repository {
 	return &Repository{
-		Authorization: NewAuthPostgres(db),
-		Habit:         NewHabitPostgres(db),
-		HabitTracker:  NewHabitTrackerPostgres(db),
-		Reward:        NewRewardPostgres(db),
+		Authorization: NewAuthPostgres(dbpool),
+		Habit:         NewHabitPostgres(dbpool),
+		HabitTracker:  NewHabitTrackerPostgres(dbpool),
+		Reward:        NewRewardPostgres(dbpool),
 	}
 }

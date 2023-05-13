@@ -37,7 +37,7 @@ func Run() {
 		return
 	}
 
-	db, err := repository.NewPostgresDB(repository.Config{
+	dbpool, err := repository.NewPostgresDB(repository.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -50,7 +50,7 @@ func Run() {
 		return
 	}
 
-	repos := repository.NewRepository(db)
+	repos := repository.NewRepository(dbpool)
 	services := service.NewService(repos)
 	handlers := v1.NewHandler(services)
 
@@ -75,7 +75,9 @@ func Run() {
 		logrus.Errorf("error occured on server shutting down: %s", err.Error())
 	}
 
-	if err := db.Close(context.Background()); err != nil {
-		logrus.Errorf("error occured on db connection close: %s", err.Error())
-	}
+	// if err := dbpool.Close(); err != nil {
+	// 	logrus.Errorf("error occured on dbpool connection close: %s", err.Error())
+	// }
+
+	defer dbpool.Close()
 }

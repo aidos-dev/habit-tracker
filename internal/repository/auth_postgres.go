@@ -6,16 +6,16 @@ import (
 	"os"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
-	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuthPostgres struct {
-	db *pgx.Conn
+	dbpool *pgxpool.Pool
 }
 
-func NewAuthPostgres(db *pgx.Conn) *AuthPostgres {
-	return &AuthPostgres{db: db}
+func NewAuthPostgres(dbpool *pgxpool.Pool) *AuthPostgres {
+	return &AuthPostgres{dbpool: dbpool}
 }
 
 // func (r *AuthPostgres) CreateUser(user models.User) (int, error) {
@@ -34,7 +34,7 @@ func (r *AuthPostgres) CreateUser(user models.User) (int, error) {
 	var id int
 	query := "INSERT INTO user_account (user_name, first_name, last_name, email, password_hash) values ($1, $2, $3, $4, $5) RETURNING id"
 
-	row := r.db.QueryRow(context.Background(), query, user.Username, user.FirstName, user.LastName, user.Email, user.Password)
+	row := r.dbpool.QueryRow(context.Background(), query, user.Username, user.FirstName, user.LastName, user.Email, user.Password)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -46,7 +46,7 @@ func (r *AuthPostgres) GetUser(username, password string) (models.User, error) {
 	var user models.User
 	query := "SELECT id FROM user_account WHERE user_name=$1 AND password_hash=$2"
 
-	err := r.db.QueryRow(context.Background(), query, username, password).Scan(&user.Id)
+	err := r.dbpool.QueryRow(context.Background(), query, username, password).Scan(&user.Id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return user, err

@@ -6,21 +6,21 @@ import (
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
-	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
 )
 
 type RewardPostgres struct {
-	db *pgx.Conn
+	dbpool *pgxpool.Pool
 }
 
-func NewRewardPostgres(db *pgx.Conn) *RewardPostgres {
-	return &RewardPostgres{db: db}
+func NewRewardPostgres(dbpool *pgxpool.Pool) *RewardPostgres {
+	return &RewardPostgres{dbpool: dbpool}
 }
 
 func (r *RewardPostgres) Create(reward models.Reward) (int, error) {
-	tx, err := r.db.Begin(context.Background())
+	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
 		return 0, err
 	}
@@ -37,7 +37,7 @@ func (r *RewardPostgres) Create(reward models.Reward) (int, error) {
 }
 
 func (r *RewardPostgres) AssignReward(userId int, rewardId int, habitId int) (int, error) {
-	tx, err := r.db.Begin(context.Background())
+	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +58,7 @@ func (r *RewardPostgres) GetAllRewards() ([]models.Reward, error) {
 	var rewards []models.Reward
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s",
 		rewardTable)
-	err := r.db.QueryRow(context.Background(), query).Scan(&rewards)
+	err := r.dbpool.QueryRow(context.Background(), query).Scan(&rewards)
 
 	return rewards, err
 }
@@ -68,7 +68,7 @@ func (r *RewardPostgres) GetById(rewardId int) (models.Reward, error) {
 
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s WHERE tl.id = $1",
 		rewardTable)
-	err := r.db.QueryRow(context.Background(), query, rewardId).Scan(&reward)
+	err := r.dbpool.QueryRow(context.Background(), query, rewardId).Scan(&reward)
 
 	return reward, err
 }
@@ -77,7 +77,7 @@ func (r *RewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
 	var rewards []models.Reward
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, ul.habit_id FROM %s tl INNER JOIN %s ul on tl.id = ul.reward_id WHERE ul.user_id = $1",
 		rewardTable, userRewardTable)
-	err := r.db.QueryRow(context.Background(), query, userId).Scan(&rewards)
+	err := r.dbpool.QueryRow(context.Background(), query, userId).Scan(&rewards)
 
 	return rewards, err
 }
@@ -85,7 +85,7 @@ func (r *RewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
 func (r *RewardPostgres) Delete(rewardId int) error {
 	query := fmt.Sprintf("DELETE FROM %s tl WHERE tl.id = $1",
 		rewardTable)
-	_, err := r.db.Exec(context.Background(), query, rewardId)
+	_, err := r.dbpool.Exec(context.Background(), query, rewardId)
 
 	return err
 }
@@ -94,7 +94,7 @@ func (r *RewardPostgres) Delete(rewardId int) error {
 func (r *RewardPostgres) RemoveFromUser(userId, rewardId int) error {
 	query := fmt.Sprintf("DELETE FROM %s tl WHERE tl.user_id = $1 AND tl.reward_id=$2",
 		userRewardTable)
-	_, err := r.db.Exec(context.Background(), query, userId, rewardId)
+	_, err := r.dbpool.Exec(context.Background(), query, userId, rewardId)
 
 	return err
 }
@@ -124,7 +124,7 @@ func (r *RewardPostgres) UpdateReward(rewardId int, input models.UpdateRewardInp
 	logrus.Debugf("updateQuerry: %s", query)
 	logrus.Debugf("args: %s", args)
 
-	_, err := r.db.Exec(context.Background(), query, args...)
+	_, err := r.dbpool.Exec(context.Background(), query, args...)
 	return err
 }
 
@@ -153,6 +153,6 @@ func (r *RewardPostgres) UpdateUserReward(userId, rewardId int, input models.Upd
 	logrus.Debugf("updateQuerry: %s", query)
 	logrus.Debugf("args: %s", args)
 
-	_, err := r.db.Exec(context.Background(), query, args...)
+	_, err := r.dbpool.Exec(context.Background(), query, args...)
 	return err
 }

@@ -20,6 +20,10 @@ RUN chmod +x build/wait-for-postgres.sh
 
 # build go app
 RUN go mod download
+
+# install migrate to do database migration
+# RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
 RUN go build -o habit-tracker ./cmd/habit/main.go
 
 CMD ["./habit-tracker"]
