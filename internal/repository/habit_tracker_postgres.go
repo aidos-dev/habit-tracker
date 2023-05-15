@@ -3,9 +3,11 @@ package repository
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
@@ -19,6 +21,38 @@ func NewHabitTrackerPostgres(dbpool *pgxpool.Pool) HabitTracker {
 	return &HabitTrackerPostgres{dbpool: dbpool}
 }
 
+func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker, error) {
+	var habitTracker models.HabitTracker
+
+	query := `SELECT 
+					tl.id, 
+					tl.habit_id, 
+					COALESCE(tl.unit_of_messure, '-') as unit_of_messure, 
+					COALESCE(tl.goal, '-') as goal,
+					COALESCE(tl.frequency, '-') as frequency,
+					tl.start_date,
+					COALESCE(tl.end_date, CURRENT_DATE + INTERVAL '12 MONTHS') as end_date,
+					COALESCE(tl.counter, 0) as counter,
+					tl.done 
+				FROM 
+					habit_tracker tl INNER JOIN user_habit ul on tl.id = ul.habit_tracker_id 
+				WHERE ul.user_id = $1 AND ul.habit_id = $2`
+
+	rowTracker, err := r.dbpool.Query(context.Background(), query, userId, habitId)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error from habit_tracker: GetById: QueryRow failed: %v\n", err)
+		return habitTracker, err
+	}
+
+	habitTracker, err = pgx.CollectOneRow(rowTracker, pgx.RowToStructByName[models.HabitTracker])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error from habit_tracker: GetById: Collect One Row failed: %v\n", err)
+		return habitTracker, err
+	}
+
+	return habitTracker, err
+}
+
 func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error) {
 	var trackers []models.HabitTracker
 	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
@@ -29,16 +63,6 @@ func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error)
 	}
 
 	return trackers, nil
-}
-
-func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker, error) {
-	var habitTracker models.HabitTracker
-
-	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2",
-		habitTrackerTable, usersHabitsTable)
-	err := r.dbpool.QueryRow(context.Background(), query, userId, habitId).Scan(&habitTracker)
-
-	return habitTracker, err
 }
 
 /*

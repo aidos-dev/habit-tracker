@@ -32,18 +32,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			habits.PUT("/:id", h.updateHabit)
 			habits.DELETE("/:id", h.deleteHabit)
 
-			trackers := habits.Group(":id/trackers")
+			tracker := habits.Group(":id/tracker")
 			{
-				// trackers.POST("/", h.createHabitTracker) // temporarily disabled
-				trackers.GET("/", h.getAllHabitTrackers)
+				tracker.GET("/", h.getHabitTrackerById)
+				tracker.PUT("/", h.updateHabitTracker)
 			}
-		}
-
-		trackers := api.Group("trackers")
-		{
-			trackers.GET("/:id", h.getHabitTrackerById)
-			trackers.PUT("/:id", h.updateHabitTracker)
-			// trackers.DELETE("/:id", h.deleteHabitTracker) // temporarily disabled
 		}
 
 		// admin := api.Group("/admin", h.adminAuth)
