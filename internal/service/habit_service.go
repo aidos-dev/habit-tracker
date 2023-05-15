@@ -9,7 +9,7 @@ type HabitService struct {
 	repo repository.Habit
 }
 
-func NewHabitService(repo repository.Habit) *HabitService {
+func NewHabitService(repo repository.Habit) Habit {
 	return &HabitService{repo: repo}
 }
 

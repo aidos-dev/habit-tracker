@@ -9,7 +9,7 @@ type RewardService struct {
 	repo repository.Reward
 }
 
-func NewRewardService(repo repository.Reward) *RewardService {
+func NewRewardService(repo repository.Reward) Reward {
 	return &RewardService{repo: repo}
 }
 

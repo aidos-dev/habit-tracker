@@ -9,7 +9,7 @@ type HabitTrackerService struct {
 	repo repository.HabitTracker
 }
 
-func NewHabitTrackerService(repo repository.HabitTracker) *HabitTrackerService {
+func NewHabitTrackerService(repo repository.HabitTracker) HabitTracker {
 	return &HabitTrackerService{repo: repo}
 }
 

@@ -14,7 +14,7 @@ type AuthPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewAuthPostgres(dbpool *pgxpool.Pool) *AuthPostgres {
+func NewAuthPostgres(dbpool *pgxpool.Pool) Authorization {
 	return &AuthPostgres{dbpool: dbpool}
 }
 

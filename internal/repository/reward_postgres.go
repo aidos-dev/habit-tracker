@@ -15,7 +15,7 @@ type RewardPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewRewardPostgres(dbpool *pgxpool.Pool) *RewardPostgres {
+func NewRewardPostgres(dbpool *pgxpool.Pool) Reward {
 	return &RewardPostgres{dbpool: dbpool}
 }
 

@@ -17,7 +17,7 @@ type HabitPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewHabitPostgres(dbpool *pgxpool.Pool) *HabitPostgres {
+func NewHabitPostgres(dbpool *pgxpool.Pool) Habit {
 	return &HabitPostgres{dbpool: dbpool}
 }
 
@@ -60,7 +60,6 @@ func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
 func (r *HabitPostgres) GetAll(userId int) ([]models.Habit, error) {
 	var habits []models.Habit
 	query := "SELECT tl.id, tl.title, tl.description FROM habit tl INNER JOIN user_habit ul on tl.id = ul.habit_id WHERE ul.user_id = $1"
-	// err := r.db.QueryRow(context.Background(), query, userId).Scan(&habits)
 
 	rowsHabits, err := r.dbpool.Query(context.Background(), query, userId)
 	if err != nil {
@@ -70,23 +69,11 @@ func (r *HabitPostgres) GetAll(userId int) ([]models.Habit, error) {
 
 	defer rowsHabits.Close()
 
-	for rowsHabits.Next() {
-		habits, err = pgx.CollectRows(rowsHabits, pgx.RowToStructByName[models.Habit])
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "rowsHabits CollectRows failed: %v\n", err)
-			return habits, err
-		}
+	habits, err = pgx.CollectRows(rowsHabits, pgx.RowToStructByName[models.Habit])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "rowsHabits CollectRows failed: %v\n", err)
+		return habits, err
 	}
-
-	// for rowHabit.Scan(
-	// 	&habits.Id,
-	// 	&habits.Title,
-	// 	&habits.Description,
-	// )
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-	// 	return habit, err
-	// }
 
 	return habits, err
 }
@@ -96,17 +83,15 @@ func (r *HabitPostgres) GetById(userId, habitId int) (models.Habit, error) {
 
 	query := "SELECT tl.id, tl.title, tl.description FROM habit tl INNER JOIN user_habit ul on tl.id = ul.habit_id WHERE ul.user_id = $1 AND ul.habit_id = $2"
 
-	// err := r.db.QueryRow(context.Background(), query, userId, habitId).Scan(&habit)
-
-	rowHabit := r.dbpool.QueryRow(context.Background(), query, userId, habitId)
-
-	err := rowHabit.Scan(
-		&habit.Id,
-		&habit.Title,
-		&habit.Description,
-	)
+	rowHabit, err := r.dbpool.Query(context.Background(), query, userId, habitId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error from GetById: QueryRow failed: %v\n", err)
+		return habit, err
+	}
+
+	habit, err = pgx.CollectOneRow(rowHabit, pgx.RowToStructByName[models.Habit])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error from GetById: Collect One Row failed: %v\n", err)
 		return habit, err
 	}
 

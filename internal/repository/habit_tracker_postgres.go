@@ -15,7 +15,7 @@ type HabitTrackerPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewHabitTrackerPostgres(dbpool *pgxpool.Pool) *HabitTrackerPostgres {
+func NewHabitTrackerPostgres(dbpool *pgxpool.Pool) HabitTracker {
 	return &HabitTrackerPostgres{dbpool: dbpool}
 }
 
