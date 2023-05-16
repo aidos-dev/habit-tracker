@@ -60,14 +60,15 @@ func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker
 func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error) {
 	var trackers []models.HabitTracker
 	query := `SELECT 
-					ti.id, 
-					ti.unit_of_messure, 
-					ti.goal, 
-					ti.frequency, 
-					ti.start_date, 
-					ti.end_date, 
-					ti.counter, 
-					ti.done 
+					tl.id, 
+					tl.habit_id, 
+					COALESCE(tl.unit_of_messure, '-') as unit_of_messure, 
+					COALESCE(tl.goal, '-') as goal,
+					COALESCE(tl.frequency, '-') as frequency,
+					tl.start_date,
+					COALESCE(tl.end_date, CURRENT_DATE) as end_date,
+					COALESCE(tl.counter, 0) as counter,
+					tl.done 
 				FROM 
 					habit_tracker tl INNER JOIN user_habit ul on tl.id = ul.habit_tracker_id 
 				WHERE 

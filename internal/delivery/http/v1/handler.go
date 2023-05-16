@@ -39,6 +39,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			}
 		}
 
+		trackers := api.Group("/trackers")
+		{
+			trackers.GET("/", h.getAllHabitTrackers)
+		}
+
 		// admin := api.Group("/admin", h.adminAuth)
 		// {
 		// }
