@@ -28,7 +28,7 @@ CREATE TABLE user_habit (
     id serial not null unique,
     user_id int references user_account (id) on delete cascade not null,
     habit_id int references habit (id) on delete cascade not null,
-    habit_tracker_id int references habit_tracker (id) on delete cascade not null
+    habit_tracker_id int 
 );
 
 

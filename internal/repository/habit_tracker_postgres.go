@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/jackc/pgx/v5"
@@ -31,12 +30,17 @@ func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker
 					COALESCE(tl.goal, '-') as goal,
 					COALESCE(tl.frequency, '-') as frequency,
 					tl.start_date,
-					COALESCE(tl.end_date, CURRENT_DATE + INTERVAL '12 MONTHS') as end_date,
+					COALESCE(tl.end_date, CURRENT_DATE) as end_date,
 					COALESCE(tl.counter, 0) as counter,
 					tl.done 
 				FROM 
 					habit_tracker tl INNER JOIN user_habit ul on tl.id = ul.habit_tracker_id 
 				WHERE ul.user_id = $1 AND ul.habit_id = $2`
+
+	/*
+		how to add interval to daterime:
+		https://www.commandprompt.com/education/postgresql-dateadd-equivalent-how-to-add-interval-to-datetime/
+	*/
 
 	rowTracker, err := r.dbpool.Query(context.Background(), query, userId, habitId)
 	if err != nil {
@@ -55,80 +59,56 @@ func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker
 
 func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error) {
 	var trackers []models.HabitTracker
-	query := fmt.Sprintf("SELECT ti.id, ti.unit_of_messure, ti.goal, ti.frequency, ti.start_date, ti.end_date, ti.counter, ti.done FROM %s tl INNER JOIN %s ul on tl.id = ul.habit_id WHERE ul.user_id = $1",
-		habitTrackerTable, usersHabitsTable)
+	query := `SELECT 
+					ti.id, 
+					ti.unit_of_messure, 
+					ti.goal, 
+					ti.frequency, 
+					ti.start_date, 
+					ti.end_date, 
+					ti.counter, 
+					ti.done 
+				FROM 
+					habit_tracker tl INNER JOIN user_habit ul on tl.id = ul.habit_tracker_id 
+				WHERE 
+					ul.user_id = $1`
 
-	if err := r.dbpool.QueryRow(context.Background(), query, userId).Scan(&trackers); err != nil {
-		return nil, err
+	rowsTrackers, err := r.dbpool.Query(context.Background(), query, userId)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "habit_tracker: GetAll: QueryRow failed: %v\n", err)
+		return trackers, err
 	}
 
-	return trackers, nil
-}
+	defer rowsTrackers.Close()
 
-/*
-trackerMapStruct and newTrackerMap are created to pass fields of HabitTracker as variables. We can't
-use variables to call struct fields. Struct fields can be called only with direct name specification.
-Therefore newTrackerMap func builds and returns a map of strings as keys and struct fields as values.
-*/
-type trackerMapStruct struct {
-	trackerMap map[string]any
-}
-
-func newTrackerMap() trackerMapStruct {
-	var tracker models.UpdateTrackerInput
-	updateTrackMap := map[string]any{
-		"unit_of_messure": tracker.UnitOfMessure,
-		"goal":            tracker.Goal,
-		"frequency":       tracker.Frequency,
-		"start_date":      tracker.StartDate,
-		"end_date":        tracker.EndDate,
-		"counter":         tracker.Counter,
-		"done":            tracker.Done,
+	trackers, err = pgx.CollectRows(rowsTrackers, pgx.RowToStructByName[models.HabitTracker])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "habit_tracker: GetAll: CollectRows failed: %v\n", err)
+		return trackers, err
 	}
 
-	return trackerMapStruct{
-		trackerMap: updateTrackMap,
-	}
+	return trackers, err
 }
 
 func (r *HabitTrackerPostgres) Update(userId, habitId int, input models.UpdateTrackerInput) error {
-	setValues := make([]string, 0)
-	args := make([]interface{}, 0)
-	argId := 1
-
-	updateInputs := newTrackerMap()
-
-	for key := range updateInputs.trackerMap {
-		setValues, args, argId = updateAppender(setValues, updateInputs, args, argId, key)
-	}
-
-	setQuery := strings.Join(setValues, ", ")
-
-	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.habit_id AND ul.habit_id=$%d AND ul.user_id=$%d",
-		habitTrackerTable, setQuery, usersHabitsTable, argId, argId+1)
-
-	args = append(args, habitId, userId)
+	query := `UPDATE 
+					habit_tracker tl 
+				SET 
+					unit_of_messure=COALESCE($3, unit_of_messure),
+					goal=COALESCE($4, goal),
+					frequency=COALESCE($5, frequency),
+					start_date=COALESCE($6, start_date),
+					end_date=COALESCE($7, end_date),
+					counter=COALESCE($8, counter),
+					done=COALESCE($9, done) 
+				FROM user_habit ul 
+					WHERE tl.id = ul.habit_tracker_id AND ul.habit_id=$2 AND ul.user_id=$1`
 
 	logrus.Debugf("updateQuerry: %s", query)
-	logrus.Debugf("args: %s", args)
 
-	_, err := r.dbpool.Exec(context.Background(), query, args...)
+	_, err := r.dbpool.Exec(context.Background(), query, userId, habitId, input.UnitOfMessure, input.Goal, input.Frequency, input.StartDate, input.EndDate, input.Counter, input.Done)
+
 	return err
-}
-
-/*
-updateAppender func helps to avoid code repetition. It checks and handles updates for each feild of
-UpdateTrackerInput.
-Example of standard implementation of this update handling in habit_postgres.go file (method Update)
-*/
-func updateAppender(setValues []string, updateInput trackerMapStruct, args []interface{}, argId int, fieldName string) ([]string, []interface{}, int) {
-	if updateInput.trackerMap[fieldName] != nil {
-		setValues = append(setValues, fmt.Sprintf("%s=$%d", fieldName, argId))
-		args = append(args, updateInput.trackerMap[fieldName])
-		argId++
-	}
-
-	return setValues, args, argId
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

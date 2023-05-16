@@ -46,7 +46,7 @@ func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
 										VALUES ($1) 
 									RETURNING id`
 
-	rowTracker := tx.QueryRow(context.Background(), createHabitTrackerQuery, userId)
+	rowTracker := tx.QueryRow(context.Background(), createHabitTrackerQuery, habitId)
 	err = rowTracker.Scan(&trackerId)
 	if err != nil {
 		tx.Rollback(context.Background())
@@ -128,9 +128,9 @@ func (r *HabitPostgres) Delete(userId, habitId int) error {
 
 	queryTracker := `DELETE FROM 
 							habit_tracker tl USING user_habit ul 
-						WHERE tl.habit_id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2`
+						WHERE tl.id = ul.habit_tracker_id AND ul.user_id=$1 AND ul.habit_id=$2`
 
-	_, err = r.dbpool.Exec(context.Background(), queryTracker, userId, habitId)
+	_, err = tx.Exec(context.Background(), queryTracker, userId, habitId)
 	if err != nil {
 		tx.Rollback(context.Background())
 		return err
@@ -140,7 +140,7 @@ func (r *HabitPostgres) Delete(userId, habitId int) error {
 					habit tl USING user_habit ul 
 				WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2`
 
-	_, err = r.dbpool.Exec(context.Background(), query, userId, habitId)
+	_, err = tx.Exec(context.Background(), query, userId, habitId)
 	if err != nil {
 		tx.Rollback(context.Background())
 		return err
@@ -154,7 +154,7 @@ func (r *HabitPostgres) Update(userId, habitId int, input models.UpdateHabitInpu
 					habit tl 
 				SET 
 					title=COALESCE($3, title), 
-					description=COALESCE($4, description) 
+					description=COALESCE($4, description)
 				FROM user_habit ul 
 					WHERE tl.id = ul.habit_id AND ul.habit_id=$2 AND ul.user_id=$1`
 
