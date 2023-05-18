@@ -5,10 +5,17 @@ import (
 	"github.com/aidos-dev/habit-tracker/internal/repository"
 )
 
+type Admin interface {
+	AssignRole(userId int, role string) (int, error)
+}
+
 type Authorization interface {
-	CreateUser(user models.User) (int, error)
 	GenerateToken(username, password string) (string, error)
-	ParseToken(token string) (int, error)
+	ParseToken(token string) (*tokenClaims, error)
+}
+
+type User interface {
+	CreateUser(user models.User) (int, error)
 }
 
 type Habit interface {
@@ -43,7 +50,9 @@ type UserReward interface {
 }
 
 type Service struct {
+	Admin
 	Authorization
+	User
 	Habit
 	HabitTracker
 	Reward
@@ -52,7 +61,9 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization: NewAuthService(repos.Authorization),
+		Admin:         NewAdminService(repos.Admin),
+		Authorization: NewAuthService(repos.User),
+		User:          NewUserService(repos.User),
 		Habit:         NewHabitService(repos.Habit),
 		HabitTracker:  NewHabitTrackerService(repos.HabitTracker),
 		Reward:        NewRewardService(repos.Reward),

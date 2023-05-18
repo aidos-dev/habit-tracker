@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/internal/repository"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 const (
@@ -19,20 +18,16 @@ const (
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	UserId int `json:"user_id"`
+	UserId   int    `json:"user_id"`
+	UserRole string `json:"role"`
 }
 
 type AuthService struct {
-	repo repository.Authorization
+	repo repository.User
 }
 
-func NewAuthService(repo repository.Authorization) Authorization {
+func NewAuthService(repo repository.User) Authorization {
 	return &AuthService{repo: repo}
-}
-
-func (s *AuthService) CreateUser(user models.User) (int, error) {
-	user.Password = generatePasswordHash(user.Password)
-	return s.repo.CreateUser(user)
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
@@ -47,12 +42,13 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 			IssuedAt:  time.Now().Unix(),
 		},
 		user.Id,
+		user.Role,
 	})
 
 	return token.SignedString([]byte(signingKey))
 }
 
-func (s *AuthService) ParseToken(accessToken string) (int, error) {
+func (s *AuthService) ParseToken(accessToken string) (*tokenClaims, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -61,15 +57,15 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 		return []byte(signingKey), nil
 	})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok {
-		return 0, errors.New("token claims are not of type *tokenClaims")
+		return nil, errors.New("token claims are not of type *tokenClaims")
 	}
 
-	return claims.UserId, nil
+	return claims, nil
 }
 
 func generatePasswordHash(password string) string {

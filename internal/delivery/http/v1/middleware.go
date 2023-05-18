@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 const (
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
+	roleCtx             = "role"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -21,18 +23,21 @@ func (h *Handler) userIdentity(c *gin.Context) {
 	}
 
 	headerParts := strings.Split(header, " ")
+	///////////////////
+	fmt.Println(headerParts)
+	////////////////////
 	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
 		return
 	}
 
-	userId, err := h.services.Authorization.ParseToken(headerParts[1])
+	claims, err := h.services.Authorization.ParseToken(headerParts[1])
 	if err != nil {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	c.Set(userCtx, userId)
+	fmt.Printf("Claims contect is: %v\n", *claims)
 }
 
 func getUserId(c *gin.Context) (int, error) {
@@ -49,4 +54,20 @@ func getUserId(c *gin.Context) (int, error) {
 	}
 
 	return idInt, nil
+}
+
+func getUserRole(c *gin.Context) (string, error) {
+	role, exists := c.Get(roleCtx)
+	if !exists {
+		newErrorResponse(c, http.StatusInternalServerError, "user role not found")
+		return "", errors.New("user role not found")
+	}
+
+	userRole, ok := role.(string)
+	if !ok {
+		newErrorResponse(c, http.StatusInternalServerError, "user role is of invalid type")
+		return "", errors.New("user id not found")
+	}
+
+	return userRole, nil
 }

@@ -6,7 +6,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Authorization interface {
+type Admin interface {
+	AssignRole(userId int, role string) (int, error)
+}
+
+type User interface {
 	CreateUser(user models.User) (int, error)
 	GetUser(username, password string) (models.User, error)
 }
@@ -43,7 +47,8 @@ type UserReward interface {
 }
 
 type Repository struct {
-	Authorization
+	Admin
+	User
 	Habit
 	HabitTracker
 	Reward
@@ -52,10 +57,11 @@ type Repository struct {
 
 func NewRepository(dbpool *pgxpool.Pool) *Repository {
 	return &Repository{
-		Authorization: NewAuthPostgres(dbpool),
-		Habit:         NewHabitPostgres(dbpool),
-		HabitTracker:  NewHabitTrackerPostgres(dbpool),
-		Reward:        NewRewardPostgres(dbpool),
-		UserReward:    NewUserRewardPostgres(dbpool),
+		Admin:        NewAdminPostgres(dbpool),
+		User:         NewUserPostgres(dbpool),
+		Habit:        NewHabitPostgres(dbpool),
+		HabitTracker: NewHabitTrackerPostgres(dbpool),
+		Reward:       NewRewardPostgres(dbpool),
+		UserReward:   NewUserRewardPostgres(dbpool),
 	}
 }

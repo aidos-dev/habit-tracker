@@ -4,7 +4,8 @@ CREATE TABLE user_account(
     first_name varchar(50) not null,
     last_name varchar(50) not null,
     email varchar(255) not null unique,
-    password_hash varchar(255) not null
+    password_hash varchar(255) not null,
+    role varchar (50) DEFAULT 'user_basic'
 );
 CREATE TABLE habit (
     id serial not null unique,
@@ -21,7 +22,7 @@ CREATE TABLE habit_tracker (
     start_date DATE DEFAULT CURRENT_DATE,
     end_date DATE,
     counter NUMERIC(10, 2),
-    done boolean default false
+    done boolean DEFAULT false
 );
 
 CREATE TABLE user_habit (
