@@ -12,7 +12,7 @@ import (
 const (
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
-	roleCtx             = "role"
+	roleCtx             = "userRole"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -24,7 +24,7 @@ func (h *Handler) userIdentity(c *gin.Context) {
 
 	headerParts := strings.Split(header, " ")
 	///////////////////
-	fmt.Println(headerParts)
+	fmt.Printf("Header parts are: %v\n", headerParts)
 	////////////////////
 	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
@@ -37,20 +37,35 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Claims contect is: %v\n", *claims)
+	fmt.Printf("Claims contect is: %v\n", claims)
+
+	data := claims["data"].(map[string]any)
+
+	fmt.Printf("parsed data is: %v\n", data)
+
+	userId := data["userId"].(float64)
+	userRole := data["userRole"].(string)
+
+	fmt.Printf("parsed userId is: %v\n", userId)
+	fmt.Printf("parsed userRole is: %v\n", userRole)
+
+	c.Set(roleCtx, userRole)
+	c.Set(userCtx, userId)
 }
 
 func getUserId(c *gin.Context) (int, error) {
 	id, ok := c.Get(userCtx)
 	if !ok {
-		newErrorResponse(c, http.StatusInternalServerError, "user id not found")
-		return 0, errors.New("user id not found")
+		newErrorResponse(c, http.StatusInternalServerError, "user id not found: doesn't exist")
+		return 0, errors.New("user id not found: doesn't exist")
 	}
+
+	idInt := int()
 
 	idInt, ok := id.(int)
 	if !ok {
 		newErrorResponse(c, http.StatusInternalServerError, "user id is of invalid type")
-		return 0, errors.New("user id not found")
+		return 0, errors.New("user id not found: user id is of invalid type")
 	}
 
 	return idInt, nil
@@ -59,14 +74,14 @@ func getUserId(c *gin.Context) (int, error) {
 func getUserRole(c *gin.Context) (string, error) {
 	role, exists := c.Get(roleCtx)
 	if !exists {
-		newErrorResponse(c, http.StatusInternalServerError, "user role not found")
-		return "", errors.New("user role not found")
+		newErrorResponse(c, http.StatusInternalServerError, "user role not found: : doesn't exist")
+		return "", errors.New("user role not found: : doesn't exist")
 	}
 
 	userRole, ok := role.(string)
 	if !ok {
 		newErrorResponse(c, http.StatusInternalServerError, "user role is of invalid type")
-		return "", errors.New("user id not found")
+		return "", errors.New("user role not found: user role is of invalid type")
 	}
 
 	return userRole, nil

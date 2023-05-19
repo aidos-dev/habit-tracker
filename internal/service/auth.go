@@ -16,11 +16,11 @@ const (
 	tokenTTL   = 12 * time.Hour
 )
 
-type tokenClaims struct {
-	jwt.StandardClaims
-	UserId   int    `json:"user_id"`
-	UserRole string `json:"role"`
-}
+// type tokenClaims struct {
+// 	jwt.StandardClaims
+// 	UserId   int    `json:"user_id"`
+// 	UserRole string `json:"role"`
+// }
 
 type AuthService struct {
 	repo repository.User
@@ -36,20 +36,37 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		return "", err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
+	claims := &jwt.MapClaims{
+		"iss":       "issuer",
+		"issuedAt":  time.Now().Unix(),
+		"expiresAt": time.Now().Add(tokenTTL).Unix(),
+		"data": map[string]any{
+			"userId":   user.Id,
+			"userRole": user.Role,
 		},
-		user.Id,
-		user.Role,
-	})
+	}
 
-	return token.SignedString([]byte(signingKey))
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+	// 	jwt.StandardClaims{
+	// 		ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+	// 		IssuedAt:  time.Now().Unix(),
+	// 	},
+	// 	user.Id,
+	// 	user.Role,
+	// })
+
+	token := jwt.NewWithClaims(
+		jwt.SigningMethodHS256,
+		claims,
+	)
+
+	tokenString, err := token.SignedString([]byte(signingKey))
+
+	return tokenString, err
 }
 
-func (s *AuthService) ParseToken(accessToken string) (*tokenClaims, error) {
-	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
@@ -60,10 +77,10 @@ func (s *AuthService) ParseToken(accessToken string) (*tokenClaims, error) {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*tokenClaims)
-	if !ok {
-		return nil, errors.New("token claims are not of type *tokenClaims")
-	}
+	claims := token.Claims.(jwt.MapClaims)
+	// if !valid {
+	// 	return nil, errors.New("token claims are not of type jwt.MapClaims")
+	// }
 
 	return claims, nil
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/internal/repository"
+	"github.com/golang-jwt/jwt"
 )
 
 type Admin interface {
@@ -11,7 +12,7 @@ type Admin interface {
 
 type Authorization interface {
 	GenerateToken(username, password string) (string, error)
-	ParseToken(token string) (*tokenClaims, error)
+	ParseToken(token string) (jwt.MapClaims, error)
 }
 
 type User interface {
