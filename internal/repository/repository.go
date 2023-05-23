@@ -7,7 +7,19 @@ import (
 )
 
 type Admin interface {
+	AdminRole
+	AdminReward
+}
+
+type AdminRole interface {
 	AssignRole(userId int, role string) (int, error)
+}
+
+type AdminReward interface {
+	Create(reward models.Reward) (int, error)
+	Delete(rewardId int) error
+	UpdateReward(rewardId int, input models.UpdateRewardInput) error
+	Reward
 }
 
 type User interface {
@@ -32,11 +44,8 @@ type HabitTracker interface {
 }
 
 type Reward interface {
-	Create(reward models.Reward) (int, error)
 	GetById(rewardId int) (models.Reward, error)
 	GetAllRewards() ([]models.Reward, error)
-	Delete(rewardId int) error
-	UpdateReward(rewardId int, input models.UpdateRewardInput) error
 }
 
 type UserReward interface {
@@ -48,6 +57,8 @@ type UserReward interface {
 
 type Repository struct {
 	Admin
+	AdminRole
+	AdminReward
 	User
 	Habit
 	HabitTracker
@@ -57,6 +68,8 @@ type Repository struct {
 
 func NewRepository(dbpool *pgxpool.Pool) *Repository {
 	return &Repository{
+		AdminRole:    NewAdminRolePostgres(dbpool),
+		AdminReward:  NewAdminRewardPostgres(dbpool),
 		Admin:        NewAdminPostgres(dbpool),
 		User:         NewUserPostgres(dbpool),
 		Habit:        NewHabitPostgres(dbpool),
