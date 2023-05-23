@@ -36,6 +36,8 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		return "", err
 	}
 
+	fmt.Printf("service: auth.go: GenerateToken: userRole content: %v\n", user.Role)
+
 	claims := &jwt.MapClaims{
 		"iss":       "issuer",
 		"issuedAt":  time.Now().Unix(),
@@ -45,6 +47,8 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 			"userRole": user.Role,
 		},
 	}
+
+	fmt.Printf("service: auth.go: GenerateToken: claims content: %v\n", claims)
 
 	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 	// 	jwt.StandardClaims{
@@ -62,6 +66,8 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(signingKey))
 
+	fmt.Printf("service: auth.go: GenerateToken: tokenString content: %v\n", tokenString)
+
 	return tokenString, err
 }
 
@@ -77,10 +83,14 @@ func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
+	fmt.Printf("service: auth.go: ParseToken: token content: %v\n", token)
+
 	claims := token.Claims.(jwt.MapClaims)
 	// if !valid {
 	// 	return nil, errors.New("token claims are not of type jwt.MapClaims")
 	// }
+
+	fmt.Printf("service: auth.go: ParseToken: claims content: %v\n", claims)
 
 	return claims, nil
 }

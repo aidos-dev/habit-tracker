@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,8 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		newErrorResponse(c, http.StatusUnauthorized, "empty auth header")
 		return
 	}
+
+	fmt.Printf("Header is: %v\n", header)
 
 	headerParts := strings.Split(header, " ")
 	///////////////////
@@ -60,10 +63,16 @@ func getUserId(c *gin.Context) (int, error) {
 		return 0, errors.New("user id not found: doesn't exist")
 	}
 
-	idInt := int()
+	idInt := int(id.(float64)) // converting float64 to int
 
-	idInt, ok := id.(int)
-	if !ok {
+	fmt.Printf("The data type of idInt is: %v, %v\n", idInt, reflect.TypeOf(idInt)) // check the type of idInt
+
+	var n int
+
+	intValue := reflect.TypeOf(idInt) == reflect.TypeOf(n)
+
+	// _, ok = id.(int) // checking if conversion to int was successful
+	if !intValue {
 		newErrorResponse(c, http.StatusInternalServerError, "user id is of invalid type")
 		return 0, errors.New("user id not found: user id is of invalid type")
 	}

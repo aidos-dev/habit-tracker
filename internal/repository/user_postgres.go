@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -36,14 +37,32 @@ func (r *UserPostgres) CreateUser(user models.User) (int, error) {
 func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 	var user models.User
 	query := `SELECT 
-					id 
+					id,
+					user_name, 
+					first_name, 
+					last_name, 
+					email, 
+					password_hash,
+					role 
 				FROM 
 					user_account 
 				WHERE user_name=$1 AND password_hash=$2`
 
-	err := r.dbpool.QueryRow(context.Background(), query, username, password).Scan(&user.Id)
+	// err := r.dbpool.QueryRow(context.Background(), query, username, password).Scan(&user)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+	// 	return user, err
+	// }
+
+	userHabit, err := r.dbpool.Query(context.Background(), query, username, password)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error from GetUser: QueryRow failed: %v\n", err)
+		return user, err
+	}
+
+	user, err = pgx.CollectOneRow(userHabit, pgx.RowToStructByName[models.User])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error from GetUser: Collect One Row failed: %v\n", err)
 		return user, err
 	}
 
