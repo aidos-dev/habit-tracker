@@ -41,18 +41,12 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 					user_name, 
 					first_name, 
 					last_name, 
-					email, 
-					password_hash,
+					email,
+					password_hash, 
 					role 
 				FROM 
 					user_account 
 				WHERE user_name=$1 AND password_hash=$2`
-
-	// err := r.dbpool.QueryRow(context.Background(), query, username, password).Scan(&user)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-	// 	return user, err
-	// }
 
 	userHabit, err := r.dbpool.Query(context.Background(), query, username, password)
 	if err != nil {

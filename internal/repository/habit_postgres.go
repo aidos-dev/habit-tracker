@@ -156,11 +156,20 @@ func (r *HabitPostgres) Update(userId, habitId int, input models.UpdateHabitInpu
 					title=COALESCE($3, title), 
 					description=COALESCE($4, description)
 				FROM user_habit ul 
-					WHERE tl.id = ul.habit_id AND ul.habit_id=$2 AND ul.user_id=$1`
+					WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2
+					RETURNING tl.id`
 
 	logrus.Debugf("updateQuerry: %s", query)
 
-	_, err := r.dbpool.Exec(context.Background(), query, userId, habitId, input.Title, input.Description)
+	var checkHabitId int
+
+	rowHabit := r.dbpool.QueryRow(context.Background(), query, userId, habitId, input.Title, input.Description)
+	err := rowHabit.Scan(&checkHabitId)
+	if err != nil {
+
+		fmt.Printf("err: repository: habit_postgres.go: Update: rowHabit.Scan: habit doesn't exist: %v\n", err)
+		return err
+	}
 
 	return err
 }

@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -23,11 +22,11 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Header is: %v\n", header)
+	// fmt.Printf("Header is: %v\n", header)
 
 	headerParts := strings.Split(header, " ")
 	///////////////////
-	fmt.Printf("Header parts are: %v\n", headerParts)
+	// fmt.Printf("Header parts are: %v\n", headerParts)
 	////////////////////
 	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
@@ -40,17 +39,17 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Claims contect is: %v\n", claims)
+	// fmt.Printf("Claims contect is: %v\n", claims)
 
 	data := claims["data"].(map[string]any)
 
-	fmt.Printf("parsed data is: %v\n", data)
+	// fmt.Printf("parsed data is: %v\n", data)
 
 	userId := data["userId"].(float64)
 	userRole := data["userRole"].(string)
 
-	fmt.Printf("parsed userId is: %v\n", userId)
-	fmt.Printf("parsed userRole is: %v\n", userRole)
+	// fmt.Printf("parsed userId is: %v\n", userId)
+	// fmt.Printf("parsed userRole is: %v\n", userRole)
 
 	c.Set(roleCtx, userRole)
 	c.Set(userCtx, userId)
@@ -65,7 +64,7 @@ func getUserId(c *gin.Context) (int, error) {
 
 	idInt := int(id.(float64)) // converting float64 to int
 
-	fmt.Printf("The data type of idInt is: %v, %v\n", idInt, reflect.TypeOf(idInt)) // check the type of idInt
+	// fmt.Printf("The data type of idInt is: %v, %v\n", idInt, reflect.TypeOf(idInt)) // check the type of idInt
 
 	var n int
 

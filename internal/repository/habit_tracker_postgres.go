@@ -103,11 +103,20 @@ func (r *HabitTrackerPostgres) Update(userId, habitId int, input models.UpdateTr
 					counter=COALESCE($8, counter),
 					done=COALESCE($9, done) 
 				FROM user_habit ul 
-					WHERE tl.id = ul.habit_tracker_id AND ul.habit_id=$2 AND ul.user_id=$1`
+					WHERE tl.id = ul.habit_tracker_id AND ul.habit_id=$2 AND ul.user_id=$1
+					RETURNING tl.id`
 
 	logrus.Debugf("updateQuerry: %s", query)
 
-	_, err := r.dbpool.Exec(context.Background(), query, userId, habitId, input.UnitOfMessure, input.Goal, input.Frequency, input.StartDate, input.EndDate, input.Counter, input.Done)
+	var checkTrackerId int
+
+	rowTracker := r.dbpool.QueryRow(context.Background(), query, userId, habitId, input.UnitOfMessure, input.Goal, input.Frequency, input.StartDate, input.EndDate, input.Counter, input.Done)
+	err := rowTracker.Scan(&checkTrackerId)
+	if err != nil {
+
+		fmt.Printf("err: repository: habit_tracker_postgres.go: Update: rowTracker.Scan: tracker doesn't exis:  %v\n", err)
+		return err
+	}
 
 	return err
 }
