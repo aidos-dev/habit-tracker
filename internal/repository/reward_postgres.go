@@ -17,7 +17,7 @@ func NewRewardPostgres(dbpool *pgxpool.Pool) Reward {
 	return &RewardPostgres{dbpool: dbpool}
 }
 
-func (r *RewardPostgres) GetById(rewardId int) (models.Reward, error) {
+func (r *RewardPostgres) GetRewardById(rewardId int) (models.Reward, error) {
 	var reward models.Reward
 
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s WHERE tl.id = $1",
@@ -27,7 +27,7 @@ func (r *RewardPostgres) GetById(rewardId int) (models.Reward, error) {
 	return reward, err
 }
 
-func (r *RewardPostgres) GetAllRewards() ([]models.Reward, error) {
+func (r *RewardPostgres) GetAllPersonalRewards(userId int) ([]models.Reward, error) {
 	var rewards []models.Reward
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s",
 		rewardTable)

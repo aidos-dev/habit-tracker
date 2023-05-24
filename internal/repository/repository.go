@@ -6,25 +6,32 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type AdminUser interface {
+	GetAllUsers() ([]models.User, error)
+	User
+}
+
 type AdminRole interface {
 	AssignRole(userId int, role string) (int, error)
 }
 
 type AdminReward interface {
 	Create(reward models.Reward) (int, error)
+	GetById(rewardId int) (models.Reward, error)
+	GetAllRewards() ([]models.Reward, error)
 	Delete(rewardId int) error
 	UpdateReward(rewardId int, input models.UpdateRewardInput) error
 }
 
 type AdminUserReward interface {
 	AssignReward(userId int, rewardId int, habitId int) (int, error)
-	GetByUserId(userId int) ([]models.Reward, error)
 	RemoveFromUser(userId, rewardId int) error
 	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
 	Reward
 }
 
 type Admin interface {
+	AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -52,11 +59,12 @@ type HabitTracker interface {
 }
 
 type Reward interface {
-	GetById(rewardId int) (models.Reward, error)
-	GetAllRewards() ([]models.Reward, error)
+	GetRewardById(rewardId int) (models.Reward, error)
+	GetAllPersonalRewards(userId int) ([]models.Reward, error)
 }
 
 type Repository struct {
+	AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -69,6 +77,7 @@ type Repository struct {
 
 func NewRepository(dbpool *pgxpool.Pool) *Repository {
 	return &Repository{
+		AdminUser:       NewAdminUserPostgres(dbpool),
 		AdminRole:       NewAdminRolePostgres(dbpool),
 		AdminReward:     NewAdminRewardPostgres(dbpool),
 		AdminUserReward: NewAdminUserRewardPostgres(dbpool),

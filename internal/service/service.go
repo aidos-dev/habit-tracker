@@ -6,17 +6,45 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type Admin interface {
-	AssignRole(userId int, role string) (int, error)
-}
-
 type Authorization interface {
 	GenerateToken(username, password string) (string, error)
 	ParseToken(token string) (jwt.MapClaims, error)
 }
 
+type AdminUser interface {
+	GetAllUsers() ([]models.User, error)
+	User
+}
+
+type AdminRole interface {
+	AssignRole(userId int, role string) (int, error)
+}
+
+type AdminReward interface {
+	Create(reward models.Reward) (int, error)
+	GetById(rewardId int) (models.Reward, error)
+	GetAllRewards() ([]models.Reward, error)
+	Delete(rewardId int) error
+	UpdateReward(rewardId int, input models.UpdateRewardInput) error
+}
+
+type AdminUserReward interface {
+	AssignReward(userId int, rewardId int, habitId int) (int, error)
+	RemoveFromUser(userId, rewardId int) error
+	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
+	Reward
+}
+
+type Admin interface {
+	AdminUser
+	AdminRole
+	AdminReward
+	AdminUserReward
+}
+
 type User interface {
 	CreateUser(user models.User) (int, error)
+	GetUser(username, password string) (models.User, error)
 }
 
 type Habit interface {
@@ -36,38 +64,34 @@ type HabitTracker interface {
 }
 
 type Reward interface {
-	Create(reward models.Reward) (int, error)
-	GetById(rewardId int) (models.Reward, error)
-	GetAllRewards() ([]models.Reward, error)
-	Delete(rewardId int) error
-	UpdateReward(rewardId int, input models.UpdateRewardInput) error
-}
-
-type UserReward interface {
-	AssignReward(userId int, rewardId int, habitId int) (int, error)
-	GetByUserId(userId int) ([]models.Reward, error)
-	RemoveFromUser(userId, rewardId int) error
-	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
+	GetRewardById(rewardId int) (models.Reward, error)
+	GetAllPersonalRewards(userId int) ([]models.Reward, error)
 }
 
 type Service struct {
-	Admin
 	Authorization
+	AdminUser
+	AdminRole
+	AdminReward
+	AdminUserReward
+	Admin
 	User
 	Habit
 	HabitTracker
 	Reward
-	UserReward
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Admin:         NewAdminService(repos.Admin),
-		Authorization: NewAuthService(repos.User),
-		User:          NewUserService(repos.User),
-		Habit:         NewHabitService(repos.Habit),
-		HabitTracker:  NewHabitTrackerService(repos.HabitTracker),
-		Reward:        NewRewardService(repos.Reward),
-		UserReward:    NewUserRewardPostgres(repos.UserReward),
+		Authorization:   NewAuthService(repos.User),
+		AdminUser:       NewAdminUserService(repos.AdminUser),
+		AdminRole:       NewAdminRoleService(repos.AdminRole),
+		AdminReward:     NewAdminRewardService(repos.AdminReward),
+		AdminUserReward: NewAdminUserRewardService(repos.AdminUserReward),
+		Admin:           NewAdminService(repos.Admin),
+		User:            NewUserService(repos.User),
+		Habit:           NewHabitService(repos.Habit),
+		HabitTracker:    NewHabitTrackerService(repos.HabitTracker),
+		Reward:          NewRewardService(repos.Reward),
 	}
 }

@@ -17,3 +17,7 @@ func (s *UserService) CreateUser(user models.User) (int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user)
 }
+
+func (s *UserService) GetUser(username, password string) (models.User, error) {
+	return s.repo.GetUser(username, password)
+}
