@@ -8,6 +8,7 @@ type AdminPostgres struct {
 	dbpool *pgxpool.Pool
 	AdminRole
 	AdminReward
+	AdminUserReward
 }
 
 func NewAdminPostgres(dbpool *pgxpool.Pool) Admin {

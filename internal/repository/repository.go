@@ -6,11 +6,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Admin interface {
-	AdminRole
-	AdminReward
-}
-
 type AdminRole interface {
 	AssignRole(userId int, role string) (int, error)
 }
@@ -19,7 +14,20 @@ type AdminReward interface {
 	Create(reward models.Reward) (int, error)
 	Delete(rewardId int) error
 	UpdateReward(rewardId int, input models.UpdateRewardInput) error
+}
+
+type AdminUserReward interface {
+	AssignReward(userId int, rewardId int, habitId int) (int, error)
+	GetByUserId(userId int) ([]models.Reward, error)
+	RemoveFromUser(userId, rewardId int) error
+	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
 	Reward
+}
+
+type Admin interface {
+	AdminRole
+	AdminReward
+	AdminUserReward
 }
 
 type User interface {
@@ -48,33 +56,26 @@ type Reward interface {
 	GetAllRewards() ([]models.Reward, error)
 }
 
-type UserReward interface {
-	AssignReward(userId int, rewardId int, habitId int) (int, error)
-	GetByUserId(userId int) ([]models.Reward, error)
-	RemoveFromUser(userId, rewardId int) error
-	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
-}
-
 type Repository struct {
-	Admin
 	AdminRole
 	AdminReward
+	AdminUserReward
+	Admin
 	User
 	Habit
 	HabitTracker
 	Reward
-	UserReward
 }
 
 func NewRepository(dbpool *pgxpool.Pool) *Repository {
 	return &Repository{
-		AdminRole:    NewAdminRolePostgres(dbpool),
-		AdminReward:  NewAdminRewardPostgres(dbpool),
-		Admin:        NewAdminPostgres(dbpool),
-		User:         NewUserPostgres(dbpool),
-		Habit:        NewHabitPostgres(dbpool),
-		HabitTracker: NewHabitTrackerPostgres(dbpool),
-		Reward:       NewRewardPostgres(dbpool),
-		UserReward:   NewUserRewardPostgres(dbpool),
+		AdminRole:       NewAdminRolePostgres(dbpool),
+		AdminReward:     NewAdminRewardPostgres(dbpool),
+		AdminUserReward: NewAdminUserRewardPostgres(dbpool),
+		Admin:           NewAdminPostgres(dbpool),
+		User:            NewUserPostgres(dbpool),
+		Habit:           NewHabitPostgres(dbpool),
+		HabitTracker:    NewHabitTrackerPostgres(dbpool),
+		Reward:          NewRewardPostgres(dbpool),
 	}
 }

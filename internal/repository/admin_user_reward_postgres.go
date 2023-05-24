@@ -10,15 +10,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type UserRewardPostgres struct {
+type AdminUserRewardPostgres struct {
 	dbpool *pgxpool.Pool
+	Reward
 }
 
-func NewUserRewardPostgres(dbpool *pgxpool.Pool) UserReward {
-	return &UserRewardPostgres{dbpool: dbpool}
+func NewAdminUserRewardPostgres(dbpool *pgxpool.Pool) AdminUserReward {
+	return &AdminUserRewardPostgres{dbpool: dbpool}
 }
 
-func (r *UserRewardPostgres) AssignReward(userId int, rewardId int, habitId int) (int, error) {
+func (r *AdminUserRewardPostgres) AssignReward(userId int, rewardId int, habitId int) (int, error) {
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
 		return 0, err
@@ -36,7 +37,7 @@ func (r *UserRewardPostgres) AssignReward(userId int, rewardId int, habitId int)
 	return id, tx.Commit(context.Background())
 }
 
-func (r *UserRewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
+func (r *AdminUserRewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
 	var rewards []models.Reward
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, ul.habit_id FROM %s tl INNER JOIN %s ul on tl.id = ul.reward_id WHERE ul.user_id = $1",
 		rewardTable, userRewardTable)
@@ -46,7 +47,7 @@ func (r *UserRewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
 }
 
 // Take away from user
-func (r *UserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
+func (r *AdminUserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
 	query := fmt.Sprintf("DELETE FROM %s tl WHERE tl.user_id = $1 AND tl.reward_id=$2",
 		userRewardTable)
 	_, err := r.dbpool.Exec(context.Background(), query, userId, rewardId)
@@ -54,7 +55,7 @@ func (r *UserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
 	return err
 }
 
-func (r *UserRewardPostgres) UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error {
+func (r *AdminUserRewardPostgres) UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
