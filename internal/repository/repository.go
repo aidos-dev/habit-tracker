@@ -24,7 +24,7 @@ type AdminReward interface {
 }
 
 type AdminUserReward interface {
-	AssignReward(userId int, rewardId int, habitId int) (int, error)
+	AssignReward(userId, rewardId, habitId int) (int, error)
 	RemoveFromUser(userId, rewardId int) error
 	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
 	Reward
@@ -59,7 +59,7 @@ type HabitTracker interface {
 }
 
 type Reward interface {
-	GetRewardById(rewardId int) (models.Reward, error)
+	GetPersonalRewardById(userId, rewardId int) (models.Reward, error)
 	GetAllPersonalRewards(userId int) ([]models.Reward, error)
 }
 

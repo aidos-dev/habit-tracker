@@ -13,8 +13,8 @@ func NewRewardService(repo repository.Reward) Reward {
 	return &RewardService{repo: repo}
 }
 
-func (r *RewardService) GetRewardById(rewardId int) (models.Reward, error) {
-	return r.repo.GetRewardById(rewardId)
+func (r *RewardService) GetPersonalRewardById(userId, rewardId int) (models.Reward, error) {
+	return r.repo.GetPersonalRewardById(userId, rewardId)
 }
 
 func (r *RewardService) GetAllPersonalRewards(userId int) ([]models.Reward, error) {

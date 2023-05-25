@@ -33,7 +33,7 @@ func (h *Handler) assignReward(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.UserReward.AssignReward(userId, rewardId, habitId)
+	id, err := h.services.AdminUserReward.AssignReward(userId, rewardId, habitId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: assignReward: %v", err.Error()))
 		return
@@ -42,23 +42,6 @@ func (h *Handler) assignReward(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
-}
-
-// get all rewards of a certain user
-func (h *Handler) getRewardsByUserId(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardsByUserId: %v", err.Error()))
-		return
-	}
-
-	rewards, err := h.services.UserReward.GetByUserId(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardsByUserId: %v", err.Error()))
-		return
-	}
-
-	c.JSON(http.StatusOK, rewards)
 }
 
 // take away a reward from a certain user
@@ -75,7 +58,7 @@ func (h *Handler) removeRewardFromUser(c *gin.Context) {
 		return
 	}
 
-	err = h.services.UserReward.RemoveFromUser(userId, rewardId)
+	err = h.services.AdminUserReward.RemoveFromUser(userId, rewardId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: removeRewardFromUser: %v", err.Error()))
 		return
@@ -103,7 +86,7 @@ func (h *Handler) updateUserReward(c *gin.Context) {
 		return
 	}
 
-	if err := h.services.UserReward.UpdateUserReward(userId, rewardId, input); err != nil {
+	if err := h.services.AdminUserReward.UpdateUserReward(userId, rewardId, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateUserReward: %v", err.Error()))
 		return
 	}

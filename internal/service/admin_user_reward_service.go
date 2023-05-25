@@ -14,7 +14,7 @@ func NewAdminUserRewardService(repo repository.AdminUserReward) AdminUserReward 
 	return &AdminUserRewardService{repo: repo}
 }
 
-func (s *AdminUserRewardService) AssignReward(userId int, rewardId int, habitId int) (int, error) {
+func (s *AdminUserRewardService) AssignReward(userId, rewardId, habitId int) (int, error) {
 	return s.repo.AssignReward(userId, rewardId, habitId)
 }
 

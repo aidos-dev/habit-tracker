@@ -37,6 +37,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				tracker.GET("/", h.getHabitTrackerById)
 				tracker.PUT("/", h.updateHabitTracker)
 			}
+
+			reward := habits.Group(":id/reward")
+			{
+				reward.GET("/", h.getPersonalRewardById)
+			}
 		}
 
 		trackers := api.Group("/trackers")
@@ -44,10 +49,16 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			trackers.GET("/", h.getAllHabitTrackers)
 		}
 
-		// admin := api.Group("/admin", h.adminAuth)
-		// {
-		// }
+		rewards := api.Group("/rewards")
+		{
+			rewards.GET("/", h.getAllPersonalRewards)
+		}
+
 	}
+
+	// admin := api.Group("/admin", h.adminAuth)
+	// {
+	// }
 
 	return router
 }

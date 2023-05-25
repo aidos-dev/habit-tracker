@@ -19,7 +19,7 @@ func NewAdminUserRewardPostgres(dbpool *pgxpool.Pool) AdminUserReward {
 	return &AdminUserRewardPostgres{dbpool: dbpool}
 }
 
-func (r *AdminUserRewardPostgres) AssignReward(userId int, rewardId int, habitId int) (int, error) {
+func (r *AdminUserRewardPostgres) AssignReward(userId, rewardId, habitId int) (int, error) {
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
 		return 0, err
@@ -35,15 +35,6 @@ func (r *AdminUserRewardPostgres) AssignReward(userId int, rewardId int, habitId
 	}
 
 	return id, tx.Commit(context.Background())
-}
-
-func (r *AdminUserRewardPostgres) GetByUserId(userId int) ([]models.Reward, error) {
-	var rewards []models.Reward
-	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, ul.habit_id FROM %s tl INNER JOIN %s ul on tl.id = ul.reward_id WHERE ul.user_id = $1",
-		rewardTable, userRewardTable)
-	err := r.dbpool.QueryRow(context.Background(), query, userId).Scan(&rewards)
-
-	return rewards, err
 }
 
 // Take away from user

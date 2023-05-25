@@ -17,6 +17,18 @@ func (r *AdminRewardPostgres) Create(reward models.Reward) (int, error) {
 	return 0, nil
 }
 
+func (r *AdminRewardPostgres) GetById(rewardId int) (models.Reward, error) {
+	var tempVar models.Reward
+
+	return tempVar, nil
+}
+
+func (r *AdminRewardPostgres) GetAllRewards() ([]models.Reward, error) {
+	var tempVar []models.Reward
+
+	return tempVar, nil
+}
+
 func (r *AdminRewardPostgres) Delete(rewardId int) error {
 	return nil
 }

@@ -22,12 +22,8 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		return
 	}
 
-	// fmt.Printf("Header is: %v\n", header)
-
 	headerParts := strings.Split(header, " ")
-	///////////////////
-	// fmt.Printf("Header parts are: %v\n", headerParts)
-	////////////////////
+
 	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
 		return
@@ -39,20 +35,16 @@ func (h *Handler) userIdentity(c *gin.Context) {
 		return
 	}
 
-	// fmt.Printf("Claims contect is: %v\n", claims)
-
 	data := claims["data"].(map[string]any)
-
-	// fmt.Printf("parsed data is: %v\n", data)
 
 	userId := data["userId"].(float64)
 	userRole := data["userRole"].(string)
 
-	// fmt.Printf("parsed userId is: %v\n", userId)
-	// fmt.Printf("parsed userRole is: %v\n", userRole)
-
 	c.Set(roleCtx, userRole)
 	c.Set(userCtx, userId)
+}
+
+func (h *Handler) adminPass(c *gin.Context) {
 }
 
 func getUserId(c *gin.Context) (int, error) {
@@ -63,8 +55,6 @@ func getUserId(c *gin.Context) (int, error) {
 	}
 
 	idInt := int(id.(float64)) // converting float64 to int
-
-	// fmt.Printf("The data type of idInt is: %v, %v\n", idInt, reflect.TypeOf(idInt)) // check the type of idInt
 
 	var n int
 
@@ -82,7 +72,7 @@ func getUserId(c *gin.Context) (int, error) {
 func getUserRole(c *gin.Context) (string, error) {
 	role, exists := c.Get(roleCtx)
 	if !exists {
-		newErrorResponse(c, http.StatusInternalServerError, "user role not found: : doesn't exist")
+		newErrorResponse(c, http.StatusInternalServerError, "user role not found: doesn't exist")
 		return "", errors.New("user role not found: : doesn't exist")
 	}
 
