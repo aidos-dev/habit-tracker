@@ -54,11 +54,15 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			rewards.GET("/", h.getAllPersonalRewards)
 		}
 
-	}
+		admin := api.Group("/admin", h.adminPass)
+		{
+			users := admin.Group("/users")
+			{
+				users.POST("/", h.getAllUsers)
+			}
+		}
 
-	// admin := api.Group("/admin", h.adminAuth)
-	// {
-	// }
+	}
 
 	return router
 }
