@@ -7,7 +7,7 @@ import (
 )
 
 type AdminUser interface {
-	GetAllUsers() ([]models.User, error)
+	GetAllUsers() ([]models.GetUser, error)
 	User
 }
 

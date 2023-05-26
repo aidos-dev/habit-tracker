@@ -19,15 +19,14 @@ func NewAdminUserPostgres(dbpool *pgxpool.Pool) AdminUser {
 	return &AdminUserPostgres{dbpool: dbpool}
 }
 
-func (r *AdminUserPostgres) GetAllUsers() ([]models.User, error) {
-	var users []models.User
+func (r *AdminUserPostgres) GetAllUsers() ([]models.GetUser, error) {
+	var users []models.GetUser
 	query := `SELECT 
 					id,
 					user_name, 
 					first_name, 
 					last_name, 
 					email,
-					password_hash, 
 					role 
 				FROM 
 					user_account`
@@ -40,7 +39,7 @@ func (r *AdminUserPostgres) GetAllUsers() ([]models.User, error) {
 
 	defer rowsUsers.Close()
 
-	users, err = pgx.CollectRows(rowsUsers, pgx.RowToStructByName[models.User])
+	users, err = pgx.CollectRows(rowsUsers, pgx.RowToStructByName[models.GetUser])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "rowsHabits CollectRows failed: %v\n", err)
 		return users, err

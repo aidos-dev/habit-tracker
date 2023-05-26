@@ -9,7 +9,7 @@ import (
 )
 
 type getAllUsersResponse struct {
-	Data []models.User `json:"data"`
+	Data []models.GetUser `json:"data"`
 }
 
 func (h *Handler) getAllUsers(c *gin.Context) {

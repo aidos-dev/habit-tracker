@@ -14,6 +14,6 @@ func NewAdminUserService(repo repository.AdminUser) AdminUser {
 	return &AdminUserService{repo: repo}
 }
 
-func (r *AdminUserService) GetAllUsers() ([]models.User, error) {
+func (r *AdminUserService) GetAllUsers() ([]models.GetUser, error) {
 	return r.repo.GetAllUsers()
 }
