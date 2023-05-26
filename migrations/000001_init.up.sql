@@ -44,4 +44,4 @@ CREATE TABLE user_reward {
     user_id int references user_account (id) on delete cascade not null,
     reward_id int references reward (id) on delete cascade not null,
     habit_id int references habit (id) on delete cascade not null
-}
+};

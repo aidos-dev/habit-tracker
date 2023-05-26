@@ -58,7 +58,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			users := admin.Group("/users")
 			{
-				users.POST("/", h.getAllUsers)
+				users.GET("/", h.getAllUsers)
 			}
 		}
 

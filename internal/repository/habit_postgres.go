@@ -128,21 +128,31 @@ func (r *HabitPostgres) Delete(userId, habitId int) error {
 
 	queryTracker := `DELETE FROM 
 							habit_tracker tl USING user_habit ul 
-						WHERE tl.id = ul.habit_tracker_id AND ul.user_id=$1 AND ul.habit_id=$2`
+						WHERE tl.id = ul.habit_tracker_id AND ul.user_id=$1 AND ul.habit_id=$2
+						RETURNING tl.id`
 
-	_, err = tx.Exec(context.Background(), queryTracker, userId, habitId)
+	var checkTrackerId int
+
+	rowTracker := tx.QueryRow(context.Background(), queryTracker, userId, habitId)
+	err = rowTracker.Scan(&checkTrackerId)
 	if err != nil {
 		tx.Rollback(context.Background())
+		fmt.Printf("err: repository: habit_postgres.go: Delete: rowTracker.Scan: habit tracker doesn't exist: %v\n", err)
 		return err
 	}
 
 	query := `DELETE FROM 
 					habit tl USING user_habit ul 
-				WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2`
+				WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2
+				RETURNING tl.id`
 
-	_, err = tx.Exec(context.Background(), query, userId, habitId)
+	var checkHabitId int
+
+	rowHabit := tx.QueryRow(context.Background(), query, userId, habitId)
+	err = rowHabit.Scan(&checkHabitId)
 	if err != nil {
 		tx.Rollback(context.Background())
+		fmt.Printf("err: repository: habit_postgres.go: Delete: rowHabit.Scan: habit doesn't exist: %v\n", err)
 		return err
 	}
 
