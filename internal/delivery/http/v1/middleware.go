@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,22 +42,6 @@ func (h *Handler) userIdentity(c *gin.Context) {
 
 	c.Set(roleCtx, userRole)
 	c.Set(userCtx, userId)
-}
-
-/*
-adminPass ensures that only admin users have access to admin functionality
-*/
-func (h *Handler) adminPass(c *gin.Context) {
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "user role not found: doesn't exist")
-		return
-	}
-
-	if userRole != models.Administrator {
-		newErrorResponse(c, http.StatusBadRequest, "error: not an admin user: access denied")
-		return
-	}
 }
 
 func getUserId(c *gin.Context) (int, error) {

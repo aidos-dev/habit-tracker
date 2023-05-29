@@ -59,6 +59,42 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			users := admin.Group("/users")
 			{
 				users.GET("/", h.getAllUsers)
+				// users.GET("/:id", h.getUserById)
+				// users.DELETE("/:id", h.deleteUserById)
+
+				userApi := users.Group("/:id", h.adminUserPass)
+				{
+					habits := userApi.Group("/habits")
+					{
+						habits.POST("/", h.createHabit)
+						habits.GET("/", h.getAllHabits)
+						habits.GET("/:id", h.getHabitById)
+						habits.PUT("/:id", h.updateHabit)
+						habits.DELETE("/:id", h.deleteHabit)
+
+						tracker := habits.Group(":id/tracker")
+						{
+							tracker.GET("/", h.getHabitTrackerById)
+							tracker.PUT("/", h.updateHabitTracker)
+						}
+
+						reward := habits.Group(":id/reward")
+						{
+							reward.GET("/", h.getPersonalRewardById)
+						}
+					}
+
+					trackers := userApi.Group("/trackers")
+					{
+						trackers.GET("/", h.getAllHabitTrackers)
+					}
+
+					rewards := userApi.Group("/rewards")
+					{
+						rewards.GET("/", h.getAllPersonalRewards)
+					}
+				}
+
 			}
 		}
 
