@@ -28,30 +28,26 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			habits.POST("/", h.createHabit)
 			habits.GET("/", h.getAllHabits)
-			habits.GET("/:id", h.getHabitById)
-			habits.PUT("/:id", h.updateHabit)
-			habits.DELETE("/:id", h.deleteHabit)
+			habits.GET("/:habitId", h.getHabitById)
+			habits.PUT("/:habitId", h.updateHabit)
+			habits.DELETE("/:habitId", h.deleteHabit)
 
-			tracker := habits.Group(":id/tracker")
+			tracker := habits.Group(":habitId/tracker")
 			{
 				tracker.GET("/", h.getHabitTrackerById)
 				tracker.PUT("/", h.updateHabitTracker)
 			}
 
-			reward := habits.Group(":id/reward")
+			rewards := habits.Group("/rewards")
 			{
-				reward.GET("/", h.getPersonalRewardById)
+				rewards.GET("/", h.getAllPersonalRewards)
+				rewards.GET("/:rewardId", h.getPersonalRewardById)
 			}
 		}
 
 		trackers := api.Group("/trackers")
 		{
 			trackers.GET("/", h.getAllHabitTrackers)
-		}
-
-		rewards := api.Group("/rewards")
-		{
-			rewards.GET("/", h.getAllPersonalRewards)
 		}
 
 		admin := api.Group("/admin", h.adminPass)
@@ -62,25 +58,26 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				// users.GET("/:id", h.getUserById)
 				// users.DELETE("/:id", h.deleteUserById)
 
-				userApi := users.Group("/:id", h.adminUserPass)
+				userApi := users.Group("/:userId", h.adminUserPass)
 				{
 					habits := userApi.Group("/habits")
 					{
 						habits.POST("/", h.createHabit)
 						habits.GET("/", h.getAllHabits)
-						habits.GET("/:id", h.getHabitById)
-						habits.PUT("/:id", h.updateHabit)
-						habits.DELETE("/:id", h.deleteHabit)
+						habits.GET("/:habitIdAdmin", h.getHabitById)
+						habits.PUT("/:habitIdAdmin", h.updateHabit)
+						habits.DELETE("/:habitIdAdmin", h.deleteHabit)
 
-						tracker := habits.Group(":id/tracker")
+						tracker := habits.Group(":habitIdAdmin/tracker")
 						{
 							tracker.GET("/", h.getHabitTrackerById)
 							tracker.PUT("/", h.updateHabitTracker)
 						}
 
-						reward := habits.Group(":id/reward")
+						rewards := habits.Group("/rewards")
 						{
-							reward.GET("/", h.getPersonalRewardById)
+							rewards.GET("/", h.getAllPersonalRewards)
+							rewards.GET("/:rewardIdAdmin", h.getPersonalRewardById)
 						}
 					}
 
@@ -89,10 +86,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 						trackers.GET("/", h.getAllHabitTrackers)
 					}
 
-					rewards := userApi.Group("/rewards")
-					{
-						rewards.GET("/", h.getAllPersonalRewards)
-					}
 				}
 
 			}

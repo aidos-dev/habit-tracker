@@ -4,8 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -80,4 +82,24 @@ func getUserRole(c *gin.Context) (string, error) {
 	}
 
 	return userRole, nil
+}
+
+/*
+getHabitId returns a habit id depending on the role of a user
+(sipmple user or admin). This function is required since parsing
+user id and habit id is confusing for c.Param function
+*/
+func getHabitId(c *gin.Context) (int, error) {
+	userRole, err := getUserRole(c)
+
+	var habitId int
+
+	switch userRole {
+	case models.UserGeneral:
+		habitId, err = strconv.Atoi(c.Param("habitId"))
+	case models.Administrator:
+		habitId, err = strconv.Atoi(c.Param("habitIdAdmin"))
+	}
+
+	return habitId, err
 }

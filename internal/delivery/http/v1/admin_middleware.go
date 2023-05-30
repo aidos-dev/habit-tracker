@@ -32,7 +32,7 @@ so it can have access and manage users accounts
 */
 
 func (h *Handler) adminUserPass(c *gin.Context) {
-	userId, err := strconv.ParseFloat(strings.TrimSpace(c.Param("id")), 64)
+	userId, err := strconv.ParseFloat(strings.TrimSpace(c.Param("userId")), 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:adminUserIdentity: invalid id param: %v", userId))
 		return

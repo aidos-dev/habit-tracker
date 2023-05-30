@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/gin-gonic/gin"
@@ -59,7 +58,7 @@ func (h *Handler) getHabitById(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := getHabitId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:getHabitById: invalid id param: %v", habitId))
 		return
@@ -80,7 +79,7 @@ func (h *Handler) deleteHabit(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := getHabitId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:deleteHabit: invalid id param: %v", habitId))
 		return
@@ -103,7 +102,7 @@ func (h *Handler) updateHabit(c *gin.Context) {
 		return
 	}
 
-	habitId, err := strconv.Atoi(c.Param("id"))
+	habitId, err := getHabitId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:updateHabit: invalid id param: %v", habitId))
 		return

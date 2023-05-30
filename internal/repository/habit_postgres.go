@@ -111,6 +111,8 @@ func (r *HabitPostgres) GetById(userId, habitId int) (models.Habit, error) {
 		return habit, err
 	}
 
+	defer rowHabit.Close()
+
 	habit, err = pgx.CollectOneRow(rowHabit, pgx.RowToStructByName[models.Habit])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error from GetById: Collect One Row failed: %v\n", err)
