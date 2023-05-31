@@ -6,14 +6,13 @@ type Reward struct {
 	Id          int    `json:"rewardId" db:"id"`
 	Title       string `json:"title" db:"title" binding:"required"`
 	Description string `json:"description" db:"description"`
-	HabitId     int    `json:"habitId" db:"habitId"`
 }
 
 type UserReward struct {
-	Id       int
-	UserId   int
-	RewardId int
-	HabitId  int
+	Id       int `json:"userRewardId" db:"id"`
+	UserId   int `json:"title" db:"title" binding:"required"`
+	RewardId int `json:"rewardId" db:"rewardId"`
+	HabitId  int `json:"habitId" db:"habitId"`
 }
 
 type UpdateRewardInput struct {

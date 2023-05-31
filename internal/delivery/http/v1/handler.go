@@ -38,10 +38,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				tracker.PUT("/", h.updateHabitTracker)
 			}
 
-			rewards := habits.Group("/rewards")
+			rewardsUser := habits.Group("/rewardsUser")
 			{
-				rewards.GET("/", h.getAllPersonalRewards)
-				rewards.GET("/:rewardId", h.getPersonalRewardById)
+				rewardsUser.GET("/", h.getAllPersonalRewards)
+				rewardsUser.GET("/:rewardId", h.getPersonalRewardById)
 			}
 		}
 
@@ -74,11 +74,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 							tracker.PUT("/", h.updateHabitTracker)
 						}
 
-						rewards := habits.Group("/rewards")
+						rewardsUserAdmin := habits.Group(":habitIdAdmin/rewardsUserAdmin")
 						{
-							rewards.GET("/", h.getAllPersonalRewards)
-							rewards.GET("/:rewardIdAdmin", h.getPersonalRewardById)
+							rewardsUserAdmin.POST("/:rewardIdAdmin", h.assignReward)
+							rewardsUserAdmin.PUT("/:rewardIdAdmin", h.updateUserReward)
+							rewardsUserAdmin.DELETE("/:rewardIdAdmin", h.removeRewardFromUser)
 						}
+
 					}
 
 					trackers := userApi.Group("/trackers")
@@ -86,8 +88,24 @@ func (h *Handler) InitRoutes() *gin.Engine {
 						trackers.GET("/", h.getAllHabitTrackers)
 					}
 
+					rewardsUser := userApi.Group("/rewardsUser")
+					{
+						rewardsUser.GET("/", h.getAllPersonalRewards)
+						rewardsUser.GET("/:rewardIdAdmin", h.getPersonalRewardById)
+
+					}
+
 				}
 
+			}
+
+			rewardsAdmin := admin.Group("/rewardsAdmin")
+			{
+				rewardsAdmin.POST("/", h.createReward)
+				rewardsAdmin.GET("/", h.getAllRewards)
+				rewardsAdmin.GET("/:rewardId", h.getRewardById)
+				rewardsAdmin.PUT("/:rewardId", h.updateReward)
+				rewardsAdmin.DELETE("/:rewardId", h.deleteReward)
 			}
 		}
 

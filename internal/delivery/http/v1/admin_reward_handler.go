@@ -37,7 +37,7 @@ func (h *Handler) createReward(c *gin.Context) {
 func (h *Handler) getRewardById(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardById: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardById: user not found: %v", err.Error()))
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) getRewardById(c *gin.Context) {
 func (h *Handler) getAllRewards(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllRewards: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllRewards: user not found: %v", err.Error()))
 		return
 	}
 
@@ -79,7 +79,7 @@ func (h *Handler) getAllRewards(c *gin.Context) {
 func (h *Handler) deleteReward(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteReward: user not found: %v", err.Error()))
 		return
 	}
 
@@ -103,6 +103,7 @@ func (h *Handler) deleteReward(c *gin.Context) {
 func (h *Handler) updateReward(c *gin.Context) {
 	_, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateReward: user not found: %v", err.Error()))
 		return
 	}
 

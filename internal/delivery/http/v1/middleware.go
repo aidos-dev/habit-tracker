@@ -103,3 +103,23 @@ func getHabitId(c *gin.Context) (int, error) {
 
 	return habitId, err
 }
+
+/*
+getRewardId returns a reward id depending on the role of a user
+(sipmple user or admin). This function is required since parsing
+user id and reward id is confusing for c.Param function
+*/
+func getRewardId(c *gin.Context) (int, error) {
+	userRole, err := getUserRole(c)
+
+	var rewardId int
+
+	switch userRole {
+	case models.UserGeneral:
+		rewardId, err = strconv.Atoi(c.Param("rewardId"))
+	case models.Administrator:
+		rewardId, err = strconv.Atoi(c.Param("rewardIdAdmin"))
+	}
+
+	return rewardId, err
+}
