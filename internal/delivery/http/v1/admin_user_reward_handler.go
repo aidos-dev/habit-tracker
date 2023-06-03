@@ -26,15 +26,9 @@ func (h *Handler) assignReward(c *gin.Context) {
 		return
 	}
 
-	var input models.Reward
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: assignReward: %v", err.Error()))
-		return
-	}
-
 	id, err := h.services.AdminUserReward.AssignReward(userId, rewardId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: assignReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: assignReward: calling from service: %v", err.Error()))
 		return
 	}
 
