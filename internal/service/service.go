@@ -17,7 +17,7 @@ type AdminUser interface {
 }
 
 type AdminRole interface {
-	AssignRole(userId int, role string) (int, error)
+	AssignRole(userId int, role models.UpdateRoleInput) (int, error)
 }
 
 type AdminReward interface {

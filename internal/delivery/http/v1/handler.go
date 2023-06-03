@@ -95,6 +95,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 					}
 
+					roles := userApi.Group("/roles")
+					{
+						roles.PUT("/", h.assignRole)
+					}
+
 				}
 
 			}
