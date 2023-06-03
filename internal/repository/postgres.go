@@ -7,15 +7,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const (
-	usersTable        = "user_account"
-	habitsTable       = "habit"
-	usersHabitsTable  = "user_habit"
-	habitTrackerTable = "habit_tracker"
-	rewardTable       = "reward"
-	userRewardTable   = "user_reward"
-)
-
 type Config struct {
 	Host     string
 	Port     string

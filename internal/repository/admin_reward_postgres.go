@@ -16,7 +16,7 @@ type AdminRewardPostgres struct {
 }
 
 func NewAdminRewardPostgres(dbpool *pgxpool.Pool) AdminReward {
-	return &AdminPostgres{dbpool: dbpool}
+	return &AdminRewardPostgres{dbpool: dbpool}
 }
 
 func (r *AdminRewardPostgres) Create(reward models.Reward) (int, error) {
@@ -38,9 +38,9 @@ func (r *AdminRewardPostgres) GetById(rewardId int) (models.Reward, error) {
 	var reward models.Reward
 
 	query := `SELECT 
-					tl.id, 
-					tl.title, 
-					tl.description 
+					id, 
+					title, 
+					description 
 				FROM 
 					reward
 				WHERE id = $1`
@@ -66,9 +66,9 @@ func (r *AdminRewardPostgres) GetAllRewards() ([]models.Reward, error) {
 	var rewards []models.Reward
 
 	query := `SELECT 
-					tl.id, 
-					tl.title, 
-					tl.description 
+					id, 
+					title, 
+					description 
 				FROM 
 					reward`
 
