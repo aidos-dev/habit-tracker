@@ -38,7 +38,7 @@ CREATE TABLE reward (
     id serial not null unique,
     title varchar(255) not null,
     description varchar(255),
-    UNIQUE (id, title, description)
+    UNIQUE (title, description)
 );
 
 CREATE TABLE user_reward (
