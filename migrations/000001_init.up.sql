@@ -30,7 +30,8 @@ CREATE TABLE user_habit (
     user_id int references user_account (id) on delete cascade not null,
     habit_id int references habit (id) on delete cascade not null,
     habit_tracker_id int,
-    UNIQUE (user_id, habit_id, habit_tracker_id)
+    UNIQUE (user_id, habit_id, habit_tracker_id),
+    PRIMARY KEY (user_id, habit_id)
 );
 
 
@@ -44,9 +45,9 @@ CREATE TABLE reward (
 CREATE TABLE user_reward (
     id serial not null unique,
     user_id int references user_account (id) on delete cascade not null,
-    reward_id int references reward (id) on delete cascade not null,
     habit_id int references habit (id) on delete cascade not null,
-    UNIQUE (user_id, reward_id, habit_id)
+    reward_id int references reward (id) on delete cascade not null,
+    UNIQUE (user_id, habit_id, reward_id)
 );
 
 
