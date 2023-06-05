@@ -45,42 +45,6 @@ func (r *AdminUserRewardPostgres) AssignReward(userId, habitId, rewardId int) (i
 		return 0, err
 	}
 
-	// var preparedRowId int
-
-	// /*
-	// 	reward assignment is implemented in two steps.
-	// 	step 1 is required to check if a user has a habit to get a reward for.
-	// 	step 2 does assignment of reward
-	// */
-	// prepareRowQuery := `INSERT INTO
-	// 							user_reward (user_id, habit_id, reward_id)
-	// 						SELECT
-	// 							ul.user_id,
-	// 							ul.habit_id
-	// 						FROM user_habit AS ul
-	// 						WHERE ul.user_id=$1 AND ul.habit_id=$2
-	// 						RETURNING id`
-
-	// rowPrepared := tx.QueryRow(context.Background(), prepareRowQuery, userId, habitId)
-	// if err := rowPrepared.Scan(&preparedRowId); err != nil {
-	// 	tx.Rollback(context.Background())
-	// 	return 0, err
-	// }
-
-	// var userRewardId int
-
-	// assignRewardQuery := `UPDATE
-	// 							user_reward
-	// 						SET reward_id=$4
-	// 						WHERE id=$1 AND user_id=$2 AND habit_id=$3
-	// 						RETURNING id`
-
-	// rowUserReward := tx.QueryRow(context.Background(), assignRewardQuery, preparedRowId, userId, habitId, rewardId)
-	// if err := rowUserReward.Scan(&userRewardId); err != nil {
-	// 	tx.Rollback(context.Background())
-	// 	return 0, err
-	// }
-
 	return userRewardId, tx.Commit(context.Background())
 }
 
@@ -91,21 +55,33 @@ func (r *AdminUserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
 		return err
 	}
 
-	var checkUserRewardId int
-
 	queryUserReward := `DELETE FROM 
 							user_reward 
 						WHERE user_id = $1 AND reward_id=$2
 						RETURNING id`
 
-	rowUserReward := tx.QueryRow(context.Background(), queryUserReward, userId, rewardId)
-
-	err = rowUserReward.Scan(&checkUserRewardId)
+	_, err = tx.Exec(context.Background(), queryUserReward, userId, rewardId)
 	if err != nil {
 		tx.Rollback(context.Background())
 		fmt.Printf("err: repository: admin_user_reward_postgres.go: RemoveFromUser: rowUserReward.Scan: user_reward doesn't exist: %v\n", err)
 		return err
 	}
+
+	// var checkUserRewardId int
+
+	// queryUserReward := `DELETE FROM
+	// 						user_reward
+	// 					WHERE user_id = $1 AND reward_id=$2
+	// 					RETURNING id`
+
+	// rowUserReward := tx.QueryRow(context.Background(), queryUserReward, userId, rewardId)
+
+	// err = rowUserReward.Scan(&checkUserRewardId)
+	// if err != nil {
+	// 	tx.Rollback(context.Background())
+	// 	fmt.Printf("err: repository: admin_user_reward_postgres.go: RemoveFromUser: rowUserReward.Scan: user_reward doesn't exist: %v\n", err)
+	// 	return err
+	// }
 
 	return tx.Commit(context.Background())
 }
