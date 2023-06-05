@@ -14,19 +14,19 @@ func (h *Handler) assignReward(c *gin.Context) {
 		return
 	}
 
-	rewardId, err := getRewardId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
-		return
-	}
-
 	habitId, err := getHabitId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
-	id, err := h.services.AdminUserReward.AssignReward(userId, rewardId, habitId)
+	rewardId, err := getRewardId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	id, err := h.services.AdminUserReward.AssignReward(userId, habitId, rewardId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: assignReward: calling from service: %v", err.Error()))
 		return

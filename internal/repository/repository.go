@@ -24,7 +24,7 @@ type AdminReward interface {
 }
 
 type AdminUserReward interface {
-	AssignReward(userId, rewardId, habitId int) (int, error)
+	AssignReward(userId, habitId, rewardId int) (int, error)
 	RemoveFromUser(userId, rewardId int) error
 	UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error
 	Reward
