@@ -45,47 +45,11 @@ func (r *AdminUserRewardPostgres) AssignReward(userId, habitId, rewardId int) (i
 		return 0, err
 	}
 
-	// var preparedRowId int
-
-	// /*
-	// 	reward assignment is implemented in two steps.
-	// 	step 1 is required to check if a user has a habit to get a reward for.
-	// 	step 2 does assignment of reward
-	// */
-	// prepareRowQuery := `INSERT INTO
-	// 							user_reward (user_id, habit_id, reward_id)
-	// 						SELECT
-	// 							ul.user_id,
-	// 							ul.habit_id
-	// 						FROM user_habit AS ul
-	// 						WHERE ul.user_id=$1 AND ul.habit_id=$2
-	// 						RETURNING id`
-
-	// rowPrepared := tx.QueryRow(context.Background(), prepareRowQuery, userId, habitId)
-	// if err := rowPrepared.Scan(&preparedRowId); err != nil {
-	// 	tx.Rollback(context.Background())
-	// 	return 0, err
-	// }
-
-	// var userRewardId int
-
-	// assignRewardQuery := `UPDATE
-	// 							user_reward
-	// 						SET reward_id=$4
-	// 						WHERE id=$1 AND user_id=$2 AND habit_id=$3
-	// 						RETURNING id`
-
-	// rowUserReward := tx.QueryRow(context.Background(), assignRewardQuery, preparedRowId, userId, habitId, rewardId)
-	// if err := rowUserReward.Scan(&userRewardId); err != nil {
-	// 	tx.Rollback(context.Background())
-	// 	return 0, err
-	// }
-
 	return userRewardId, tx.Commit(context.Background())
 }
 
 // Take away from user
-func (r *AdminUserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
+func (r *AdminUserRewardPostgres) RemoveFromUser(userId, habitId, rewardId int) error {
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
 		return err
@@ -93,12 +57,12 @@ func (r *AdminUserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
 
 	var checkUserRewardId int
 
-	queryUserReward := `DELETE FROM 
-							user_reward 
-						WHERE user_id = $1 AND reward_id=$2
-						RETURNING id`
+	queryUserReward := `DELETE FROM
+								user_reward
+							WHERE user_id = $1 AND habit_id = $2 AND reward_id=$3
+							RETURNING id`
 
-	rowUserReward := tx.QueryRow(context.Background(), queryUserReward, userId, rewardId)
+	rowUserReward := tx.QueryRow(context.Background(), queryUserReward, userId, habitId, rewardId)
 
 	err = rowUserReward.Scan(&checkUserRewardId)
 	if err != nil {
@@ -107,10 +71,35 @@ func (r *AdminUserRewardPostgres) RemoveFromUser(userId, rewardId int) error {
 		return err
 	}
 
+	// queryUserReward := `IF EXISTS (
+	// 						SELECT 1
+	// 						FROM
+	// 							user_reward
+	// 						WHERE
+	// 							(user_id=$1) AND (reward_id=$2)
+	// 					)
+	// 					BEGIN
+	// 					DELETE FROM
+	// 						user_reward
+	// 					WHERE
+	// 						(user_id=$1) AND (reward_id=$2)
+	// 					END
+	// 					ELSE
+	// 					BEGIN
+	// 						RAISERROR ('No rows found', 16, 1)
+	// 					END`
+
+	// _, err = tx.Exec(context.Background(), queryUserReward, userId, rewardId)
+	// if err != nil {
+	// 	tx.Rollback(context.Background())
+	// 	fmt.Printf("err: repository: admin_user_reward_postgres.go: RemoveFromUser: rowUserReward.Scan: user_reward doesn't exist: %v\n", err)
+	// 	return err
+	// }
+
 	return tx.Commit(context.Background())
 }
 
-func (r *AdminUserRewardPostgres) UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error {
+func (r *AdminUserRewardPostgres) UpdateUserReward(userId, habitId, rewardId int, input models.UpdateUserRewardInput) error {
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
 		return err
@@ -121,12 +110,12 @@ func (r *AdminUserRewardPostgres) UpdateUserReward(userId, rewardId int, input m
 	query := `UPDATE 
 					user_reward
 				SET 
-					reward_id = COALESCE($3, reward_id), 
-					habit_id = COALESCE($4, habit_id)
-				WHERE user_id = $1 AND reward_id = $2
+					habit_id = COALESCE($4, habit_id),
+					reward_id = COALESCE($5, reward_id) 
+				WHERE user_id = $1 AND habit_id = $2 AND reward_id=$3
 				RETURNING id`
 
-	rowUserReward := r.dbpool.QueryRow(context.Background(), query, userId, rewardId, input.RewardId, input.HabitId)
+	rowUserReward := r.dbpool.QueryRow(context.Background(), query, userId, habitId, rewardId, input.HabitId, input.RewardId)
 	err = rowUserReward.Scan(&userRewardId)
 
 	if err != nil {

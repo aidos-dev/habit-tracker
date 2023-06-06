@@ -11,8 +11,8 @@ type Reward struct {
 type UserReward struct {
 	Id       int `json:"userRewardId" db:"id"`
 	UserId   int `json:"title" db:"title" binding:"required"`
-	RewardId int `json:"rewardId" db:"rewardId"`
 	HabitId  int `json:"habitId" db:"habitId"`
+	RewardId int `json:"rewardId" db:"rewardId"`
 }
 
 type UpdateRewardInput struct {
@@ -28,8 +28,8 @@ func (i UpdateRewardInput) Validate() error {
 }
 
 type UpdateUserRewardInput struct {
-	RewardId *string `json:"rewardId"`
-	HabitId  *string `json:"habitId"`
+	HabitId  *int `json:"habitId"`
+	RewardId *int `json:"rewardId"`
 }
 
 func (i UpdateUserRewardInput) Validate() error {

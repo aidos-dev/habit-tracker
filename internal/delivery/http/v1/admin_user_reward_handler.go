@@ -45,13 +45,19 @@ func (h *Handler) removeRewardFromUser(c *gin.Context) {
 		return
 	}
 
+	habitId, err := getHabitId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
 	rewardId, err := getRewardId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
 		return
 	}
 
-	err = h.services.AdminUserReward.RemoveFromUser(userId, rewardId)
+	err = h.services.AdminUserReward.RemoveFromUser(userId, habitId, rewardId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: removeRewardFromUser: %v", err.Error()))
 		return
@@ -67,6 +73,12 @@ func (h *Handler) updateUserReward(c *gin.Context) {
 		return
 	}
 
+	habitId, err := getHabitId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
 	rewardId, err := getRewardId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
@@ -79,7 +91,7 @@ func (h *Handler) updateUserReward(c *gin.Context) {
 		return
 	}
 
-	if err := h.services.AdminUserReward.UpdateUserReward(userId, rewardId, input); err != nil {
+	if err := h.services.AdminUserReward.UpdateUserReward(userId, habitId, rewardId, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateUserReward: %v", err.Error()))
 		return
 	}

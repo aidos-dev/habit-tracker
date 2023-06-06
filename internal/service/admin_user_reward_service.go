@@ -18,10 +18,10 @@ func (s *AdminUserRewardService) AssignReward(userId, habitId, rewardId int) (in
 	return s.repo.AssignReward(userId, habitId, rewardId)
 }
 
-func (s *AdminUserRewardService) RemoveFromUser(userId, rewardId int) error {
-	return s.repo.RemoveFromUser(userId, rewardId)
+func (s *AdminUserRewardService) RemoveFromUser(userId, habitId, rewardId int) error {
+	return s.repo.RemoveFromUser(userId, habitId, rewardId)
 }
 
-func (s *AdminUserRewardService) UpdateUserReward(userId, rewardId int, input models.UpdateUserRewardInput) error {
-	return s.repo.UpdateUserReward(userId, rewardId, input)
+func (s *AdminUserRewardService) UpdateUserReward(userId, habitId, rewardId int, input models.UpdateUserRewardInput) error {
+	return s.repo.UpdateUserReward(userId, habitId, rewardId, input)
 }
