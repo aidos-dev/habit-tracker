@@ -64,7 +64,7 @@ type HabitTracker interface {
 }
 
 type Reward interface {
-	GetPersonalRewardById(userId, rewardId int) (models.Reward, error)
+	GetPersonalRewardsByHabitId(userId, habitId int) ([]models.Reward, error)
 	GetAllPersonalRewards(userId int) ([]models.Reward, error)
 }
 
