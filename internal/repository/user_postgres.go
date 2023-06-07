@@ -62,3 +62,27 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 
 	return user, err
 }
+
+func (r *UserPostgres) DeleteUser(userId int) (int, error) {
+	tx, err := r.dbpool.Begin(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	var checkUserId int
+
+	query := `DELETE FROM
+						user_account
+					WHERE id=$1
+					RETURNING id`
+
+	rowUser := tx.QueryRow(context.Background(), query, userId)
+	err = rowUser.Scan(&checkUserId)
+	if err != nil {
+		tx.Rollback(context.Background())
+		fmt.Printf("err: repository: user_postgres.go: DeleteUser: rowUser.Scan: user doesn't exist: %v\n", err)
+		return 0, err
+	}
+
+	return checkUserId, tx.Commit(context.Background())
+}

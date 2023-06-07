@@ -17,3 +17,7 @@ func NewAdminUserService(repo repository.AdminUser) AdminUser {
 func (r *AdminUserService) GetAllUsers() ([]models.GetUser, error) {
 	return r.repo.GetAllUsers()
 }
+
+func (r *AdminUserService) GetUserById(userId int) (models.GetUser, error) {
+	return r.repo.GetUserById(userId)
+}

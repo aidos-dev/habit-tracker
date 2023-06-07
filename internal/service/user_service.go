@@ -21,3 +21,7 @@ func (s *UserService) CreateUser(user models.User) (int, error) {
 func (s *UserService) GetUser(username, password string) (models.User, error) {
 	return s.repo.GetUser(username, password)
 }
+
+func (s *UserService) DeleteUser(userId int) (int, error) {
+	return s.repo.DeleteUser(userId)
+}

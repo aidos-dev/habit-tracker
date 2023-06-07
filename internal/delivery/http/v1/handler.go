@@ -54,13 +54,16 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			rewardsUserAll.GET("/", h.getAllPersonalRewards)
 		}
 
+		userAccount := api.Group("/account")
+		{
+			userAccount.DELETE("/", h.deleteUser)
+		}
+
 		admin := api.Group("/admin", h.adminPass)
 		{
 			users := admin.Group("/users")
 			{
 				users.GET("/", h.getAllUsers)
-				// users.GET("/:id", h.getUserById)
-				// users.DELETE("/:id", h.deleteUserById)
 
 				userApi := users.Group("/:userId", h.adminUserPass)
 				{
@@ -105,6 +108,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 					roles := userApi.Group("/roles")
 					{
 						roles.PUT("/", h.assignRole)
+					}
+
+					userAccount := userApi.Group("/account")
+					{
+						userAccount.GET("/", h.getUserById)
+						userAccount.DELETE("/", h.deleteUser)
+
 					}
 
 				}

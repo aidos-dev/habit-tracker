@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
@@ -48,4 +49,31 @@ func (h *Handler) signIn(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"token": token,
 	})
+}
+
+func (h *Handler) deleteUser(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		return
+	}
+
+	deletedUserId, err := h.services.User.DeleteUser(userId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: delete user: %v", err.Error()))
+		return
+	}
+
+	// c.JSON(http.StatusOK, map[string]interface{}{
+	// 	"Status": statusResponse{
+	// 		Status: "ok",
+	// 	},
+	// 	"deletedUserId": deletedUserId,
+	// })
+
+	response := map[string]any{
+		"Status":         "ok",
+		"deleted userId": deletedUserId,
+	}
+
+	c.JSON(http.StatusOK, response)
 }

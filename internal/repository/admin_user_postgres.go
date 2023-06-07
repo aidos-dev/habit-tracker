@@ -41,9 +41,39 @@ func (r *AdminUserPostgres) GetAllUsers() ([]models.GetUser, error) {
 
 	users, err = pgx.CollectRows(rowsUsers, pgx.RowToStructByName[models.GetUser])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "rowsHabits CollectRows failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "rowsUsers CollectRows failed: %v\n", err)
 		return users, err
 	}
 
 	return users, err
+}
+
+func (r *AdminUserPostgres) GetUserById(userId int) (models.GetUser, error) {
+	var user models.GetUser
+	query := `SELECT 
+					id,
+					user_name, 
+					first_name, 
+					last_name, 
+					email,
+					role 
+				FROM 
+					user_account
+				WHERE id=$1`
+
+	rowUser, err := r.dbpool.Query(context.Background(), query, userId)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		return user, err
+	}
+
+	defer rowUser.Close()
+
+	user, err = pgx.CollectOneRow(rowUser, pgx.RowToStructByName[models.GetUser])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "rowUser CollectOneRow failed: %v\n", err)
+		return user, err
+	}
+
+	return user, err
 }

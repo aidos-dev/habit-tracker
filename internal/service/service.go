@@ -13,6 +13,7 @@ type Authorization interface {
 
 type AdminUser interface {
 	GetAllUsers() ([]models.GetUser, error)
+	GetUserById(userId int) (models.GetUser, error)
 	User
 }
 
@@ -45,6 +46,7 @@ type Admin interface {
 type User interface {
 	CreateUser(user models.User) (int, error)
 	GetUser(username, password string) (models.User, error)
+	DeleteUser(userId int) (int, error)
 }
 
 type Habit interface {
