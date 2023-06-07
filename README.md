@@ -1,7 +1,7 @@
 # Habit tracker
 
 <details>
-<summary>Data Base<summary>
+<summary>Data Base</summary>
 <br>
 
 In this project a PostgreSQL data base is applied. In order to start data base from docker container it is required to download a PostgreSQL docker image with the command:
@@ -65,7 +65,7 @@ update schema_migrations set dirty =false where version=XXXX;
 </details>
 
 <details>
-<summary>Docker-compose<summary>
+<summary>Docker-compose</summary>
 <br>
 
 To start the docker compose for the first time run the command:
