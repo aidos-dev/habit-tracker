@@ -1,4 +1,7 @@
-FROM golang:1.20.1-alpine3.17
+# Build stage
+FROM golang:1.20.1-alpine3.17 AS build
+
+LABEL build=temp
 
 RUN go version
 
@@ -6,15 +9,12 @@ WORKDIR /app
 
 COPY ./ ./
 
-RUN ls -li
-
-# install psql
+RUN ls -lah
 
 
-RUN apk add postgresql-client
 
-# make wait-for-postgres.sh executable
-RUN chmod +x build/wait-for-postgres.sh
+
+
 
 
 
@@ -25,5 +25,29 @@ RUN go mod download
 # RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 RUN go build -o habit-tracker ./cmd/habit/main.go
+
+
+
+# Final stage
+FROM alpine:3.17
+
+RUN apk update
+
+# install psql
+RUN apk add --no-cache postgresql-client
+
+WORKDIR /app
+
+COPY --from=build /app/habit-tracker .
+COPY build/wait-for-postgres.sh /app/build/
+COPY build/.env /app/build/
+COPY configs/config.yml /app/configs/
+
+RUN ls -lah
+RUN ls -lah build
+RUN ls -lah configs
+
+# make wait-for-postgres.sh executable
+RUN chmod +x /app/build/wait-for-postgres.sh
 
 CMD ["./habit-tracker"]
