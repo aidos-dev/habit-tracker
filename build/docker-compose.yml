@@ -9,10 +9,14 @@ services:
     - "8000:8000"
     command: build/wait-for-postgres.sh db ./habit-tracker 
 
+    env_file:
+    - .env
+    
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
     depends_on:
       - db
-    environment:
-      - DB_PASSWORD=qwerty
     links:
       - db
     
@@ -23,9 +27,11 @@ services:
     volumes:
       # - ./.database/postgres/data:/var/lib/postgresql/data
       - ../migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/create_tables.sql
+
     environment:
-      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
       - "5432:5432"
+
 
   

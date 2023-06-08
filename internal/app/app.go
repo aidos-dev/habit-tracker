@@ -32,7 +32,7 @@ func Run() {
 		return
 	}
 
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("build/.env"); err != nil {
 		logrus.Printf("error loading env variables: %s", err.Error())
 		return
 	}
