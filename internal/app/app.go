@@ -27,6 +27,9 @@ func initConfig() error {
 func Run() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
+	// get the telegram token
+	token := MustToken()
+
 	if err := initConfig(); err != nil {
 		logrus.Printf("error occured while running initConfig: %s", err.Error())
 		return
