@@ -2,3 +2,4 @@
 .env
 .database
 migrate
+/cmd/testing
