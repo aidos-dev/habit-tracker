@@ -12,12 +12,6 @@ COPY ./ ./
 RUN ls -lah
 
 
-
-
-
-
-
-
 # build go app
 RUN go mod download
 
@@ -25,6 +19,7 @@ RUN go mod download
 # RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 RUN go build -o habit-tracker ./cmd/habit/main.go
+
 
 
 
@@ -49,5 +44,6 @@ RUN ls -lah configs
 
 # make wait-for-postgres.sh executable
 RUN chmod +x /app/build/wait-for-postgres.sh
+
 
 CMD ["./habit-tracker"]

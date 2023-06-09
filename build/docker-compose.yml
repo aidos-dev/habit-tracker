@@ -7,7 +7,7 @@ services:
       dockerfile: build/Dockerfile
     ports:
     - "8000:8000"
-    command: build/wait-for-postgres.sh db ./habit-tracker
+    command: build/wait-for-postgres.sh db ./habit-tracker 
     
     env_file:
     - .env
@@ -32,3 +32,6 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
       - "5432:5432"
+
+
+

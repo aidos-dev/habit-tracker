@@ -9,8 +9,10 @@ migrate-down:
 
 compose:
 	docker-compose -f build/docker-compose.yml up --build habit-tracker
+	docker image prune -f
 
 recompose:
 	docker rm build_habit-tracker_1
 	docker rmi build_habit-tracker:latest
+	docker image prune -f
 	docker-compose -f build/docker-compose.yml up --build habit-tracker
