@@ -6,7 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/aidos-dev/habit-tracker/internal/clients/telegram"
 	v1 "github.com/aidos-dev/habit-tracker/internal/delivery/http/v1"
+	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/internal/repository"
 	"github.com/aidos-dev/habit-tracker/internal/server"
 	"github.com/aidos-dev/habit-tracker/internal/service"
@@ -27,8 +29,7 @@ func initConfig() error {
 func Run() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
-	// get the telegram token
-	token := MustToken()
+	tgClient := telegram.New(models.TgBotHost, MustToken())
 
 	if err := initConfig(); err != nil {
 		logrus.Printf("error occured while running initConfig: %s", err.Error())
