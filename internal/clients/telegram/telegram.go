@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/aidos-dev/habit-tracker/internal/models"
-	"github.com/aidos-dev/habit-tracker/pkg/errors"
+	"github.com/aidos-dev/habit-tracker/pkg/errs"
 )
 
 type Client struct {
@@ -19,7 +19,7 @@ type Client struct {
 }
 
 const (
-	getUpdatesMethod = "getUpdates"
+	getUpdatesMethod  = "getUpdates"
 	sendMessageMethod = "sendMessage"
 )
 
@@ -35,8 +35,8 @@ func newBasePath(token string) string {
 	return "bot" + token
 }
 
-func (c *Client) Updates(offset, limit int) ([]models.Update, error) {
-	defer func() {err = errors.WrapIfErr("can't do updates", err)} ()
+func (c *Client) Updates(offset, limit int) (updates []models.Update, err error) {
+	defer func() { err = errs.WrapIfErr("can't get updates", err) }()
 
 	q := url.Values{}
 	q.Add("offset", strconv.Itoa(offset))
@@ -54,28 +54,23 @@ func (c *Client) Updates(offset, limit int) ([]models.Update, error) {
 	}
 
 	return res.Result, nil
-
 }
 
 func (c *Client) SendMessage(chatID int, text string) error {
-
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("text", text)
 
 	_, err := c.doRequest(sendMessageMethod, q)
 	if err != nil {
-		return errors.Wrap("can't send message", err)
+		return errs.Wrap("can't send message", err)
 	}
 
 	return nil
 }
 
-
 func (c *Client) doRequest(method string, query url.Values) (data []byte, err error) {
-	defer func() {err = errors.WrapIfErr("can't do request", err)} ()
-	
-	const errMsg = 
+	defer func() { err = errs.WrapIfErr("can't do request", err) }()
 
 	u := url.URL{
 		Scheme: "https",
@@ -95,7 +90,7 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 		return nil, err
 	}
 
-	defer func() {_=resp.Body.Close()}()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -104,5 +99,3 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 
 	return body, nil
 }
-
- 

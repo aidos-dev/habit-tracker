@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/aidos-dev/habit-tracker/internal/clients/telegram"
@@ -8,6 +9,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/internal/repository"
 	"github.com/aidos-dev/habit-tracker/pkg/errors"
+	"github.com/aidos-dev/habit-tracker/pkg/errs"
 )
 
 type Processor struct {
@@ -21,6 +23,11 @@ type Meta struct {
 	Username string
 }
 
+var (
+	ErrUnknownEventType = errors.New("unknown event type")
+	ErrUnknownMetaType  = errors.New("unknown meta type")
+)
+
 func New(client *telegram.Client, storage repository.Repository) *Processor {
 	return &Processor{
 		tg:      client,
@@ -31,7 +38,7 @@ func New(client *telegram.Client, storage repository.Repository) *Processor {
 func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	updates, err := p.tg.Updates(p.offset, limit)
 	if err != nil {
-		return nil, errors.Wrap("can't get events", err)
+		return nil, errs.Wrap("can't get events", err)
 	}
 
 	if len(updates) == 0 {
@@ -45,6 +52,31 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	}
 
 	p.offset = updates[len(updates)-1].ID + 1
+
+	return res, nil
+}
+
+func (p *Processor) Process(event events.Event) error {
+	switch event.Type {
+	case events.Message:
+		p.processMessage(event)
+	default:
+		return errs.Wrap("can't process message", ErrUnknownEventType)
+	}
+}
+
+func (p *Processor) processMessage(event events.Event) error {
+	meta, err := meta(event)
+	if err != nil {
+		return errs.Wrap("can't process message", err)
+	}
+}
+
+func meta(event events.Event) (Meta, error) {
+	res, ok := event.Meta.(Meta)
+	if !ok {
+		return Meta{}, errs.Wrap("can't get meta", ErrUnknownMetaType)
+	}
 
 	return res, nil
 }
