@@ -6,8 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/aidos-dev/habit-tracker/internal/clients/telegram"
+	"github.com/aidos-dev/habit-tracker/internal/clients/tgClient"
 	v1 "github.com/aidos-dev/habit-tracker/internal/delivery/http/v1"
+	"github.com/aidos-dev/habit-tracker/internal/events/telegram"
 	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/internal/repository"
 	"github.com/aidos-dev/habit-tracker/internal/server"
@@ -29,7 +30,7 @@ func initConfig() error {
 func Run() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
-	tgClient := telegram.New(models.TgBotHost, MustToken())
+	tgClient := tgClient.NewClient(models.TgBotHost, MustToken())
 
 	if err := initConfig(); err != nil {
 		logrus.Printf("error occured while running initConfig: %s", err.Error())
@@ -57,6 +58,7 @@ func Run() {
 	repos := repository.NewRepository(dbpool)
 	services := service.NewService(repos)
 	handlers := v1.NewHandler(services)
+	tgProcessor := telegram.NewProcessor(&tgClient, handlers)
 
 	srv := new(server.Server)
 

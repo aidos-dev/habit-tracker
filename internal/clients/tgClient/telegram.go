@@ -1,4 +1,4 @@
-package telegram
+package tgClient
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ const (
 	sendMessageMethod = "sendMessage"
 )
 
-func New(host, token string) Client {
+func NewClient(host, token string) Client {
 	return Client{
 		host:     host,
 		basePath: newBasePath(token),
