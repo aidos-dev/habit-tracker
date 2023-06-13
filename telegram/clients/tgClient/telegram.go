@@ -8,8 +8,8 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/aidos-dev/habit-tracker/internal/models"
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
+	"github.com/aidos-dev/habit-tracker/telegram/models"
 )
 
 type Client struct {

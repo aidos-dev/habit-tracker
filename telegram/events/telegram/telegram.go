@@ -4,18 +4,19 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aidos-dev/habit-tracker/internal/clients/tgClient"
-	v1 "github.com/aidos-dev/habit-tracker/internal/delivery/http/v1"
-	"github.com/aidos-dev/habit-tracker/internal/events"
-	"github.com/aidos-dev/habit-tracker/internal/models"
-	"github.com/aidos-dev/habit-tracker/pkg/errors"
+	"github.com/aidos-dev/habit-tracker/telegram/clients/tgClient"
+
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
+	"github.com/aidos-dev/habit-tracker/telegram/events"
+	"github.com/aidos-dev/habit-tracker/telegram/models"
+	"github.com/aidos-dev/habit-tracker/telegram/storage"
 )
 
 type Processor struct {
 	tg      *tgClient.Client
 	offset  int
-	handler v1.Handler
+	storage storage.Storage
+	// handler v1.Handler
 	// storage repository.Repository
 }
 
@@ -29,10 +30,10 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(client *tgClient.Client, handler *v1.Handler) *Processor {
+func NewProcessor(client *tgClient.Client, storage storage.Storage) *Processor {
 	return &Processor{
 		tg:      client,
-		handler: handler,
+		storage: storage,
 	}
 }
 
@@ -86,7 +87,7 @@ func event(upd models.Update) events.Event {
 	updType := fetchType(upd)
 
 	res := events.Event{
-		Type: fetchType(upd),
+		Type: updType,
 		Text: fetchText(upd),
 	}
 
