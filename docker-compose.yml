@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  habit-tracker:
+    build:
+      context: ./
+      dockerfile: backend/build/Dockerfile
+    ports:
+    - "8000:8000"
+    command: build/wait-for-postgres.sh db ./habit-tracker 
+    
+    env_file:
+    - backend/build/.env
+
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+    depends_on:
+      - db
+    links:
+      - db
+    
+  db:
+    image: postgres
+    restart: always
+    
+    volumes:
+      # - ./.database/postgres/data:/var/lib/postgresql/data
+      - ./backend/migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/create_tables.sql
+
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+
+
+

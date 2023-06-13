@@ -1,4 +1,4 @@
-include build/.env
+include backend/build/.env
 export DB_PASSWORD
 
 migrate:
@@ -8,7 +8,7 @@ migrate-down:
 	migrate -path ./migrations -database 'postgres://postgres:${DB_PASSWORD}@localhost:5432/postgres?sslmode=disable' down
 
 compose:
-	docker-compose -f build/docker-compose.yml up --build habit-tracker
+	docker-compose -f docker-compose.yml up --build habit-tracker
 	docker image prune -f
 
 recompose:
