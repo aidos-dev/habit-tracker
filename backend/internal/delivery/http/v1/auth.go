@@ -9,12 +9,26 @@ import (
 )
 
 func (h *Handler) signUp(c *gin.Context) {
-	var input models.User
+	var authStruct models.Auth
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.BindJSON(&authStruct); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	fmt.Printf("Parsed JSON content: %v\n", authStruct)
+
+	clientType := authStruct.Client.ClientType
+
+	input := authStruct.User
+
+	fmt.Printf("The client type is: %v\n", clientType)
+
+	fmt.Printf("The user name is: %v\n", input)
+
+	input = prepareUserByClient(c, input, clientType)
+
+	fmt.Printf("The TG prepared user is: %v\n", input)
 
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
@@ -76,4 +90,54 @@ func (h *Handler) deleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func prepareUserByClient(c *gin.Context, user models.User, clientType string) models.User {
+	switch clientType {
+	case webClient:
+		user = webUserFormat(c, user)
+	case telegramClient:
+		user = telegramUserFormat(c, user)
+	}
+
+	return user
+}
+
+func webUserFormat(c *gin.Context, user models.User) models.User {
+	user.TgUsername = fmt.Sprintf("copy_u: %s", user.TgUsername)
+
+	return user
+}
+
+/*
+telegramUserFormat prepares user input to be
+registered as a telegram user, using only
+user name. Otherwise the repository layer will not
+allow to create a user without other credentials
+*/
+func telegramUserFormat(c *gin.Context, user models.User) models.User {
+	var emptyUser models.User // emptyUser created only to return it in case of error
+
+	if user.TgUsername == "" {
+		newErrorResponse(c, http.StatusBadRequest, "error: user name is not specified")
+		return emptyUser
+	}
+
+	if user.Username == "" {
+		user.Username = user.TgUsername
+	}
+
+	if user.FirstName == "" {
+		user.FirstName = user.TgUsername
+	}
+
+	if user.LastName == "" {
+		user.LastName = user.TgUsername
+	}
+
+	if user.Email == "" {
+		user.Email = user.TgUsername
+	}
+
+	return user
 }

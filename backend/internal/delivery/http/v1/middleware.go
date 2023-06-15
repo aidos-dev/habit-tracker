@@ -12,10 +12,24 @@ import (
 )
 
 const (
+	webClient      = "webClient"
+	telegramClient = "telegramClient"
+	// clientCtx           = "client"
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
 	roleCtx             = "userRole"
 )
+
+// func (h *Handler) clientType(c *gin.Context) {
+// 	var client models.Client
+
+// 	if err := c.BindJSON(&client); err != nil {
+// 		newErrorResponse(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+
+// 	c.Set(clientCtx, client.ClientType)
+// }
 
 func (h *Handler) userIdentity(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)
@@ -45,6 +59,25 @@ func (h *Handler) userIdentity(c *gin.Context) {
 	c.Set(roleCtx, userRole)
 	c.Set(userCtx, userId)
 }
+
+// func getClientType(c *gin.Context) (string, error) {
+// 	clienCtx, exists := c.Get(clientCtx)
+// 	if !exists {
+// 		newErrorResponse(c, http.StatusInternalServerError, "client type not found: doesn't exist")
+// 		return "", errors.New("client type not found: doesn't exist")
+// 	}
+
+// 	fmt.Printf("the data type of clientCtx: %v\n", reflect.TypeOf(clienCtx))
+
+// 	clientType, stringValue := clienCtx.(string)
+// 	fmt.Printf("the data type of clientType: %v\n", reflect.TypeOf(clientType))
+// 	if !stringValue {
+// 		newErrorResponse(c, http.StatusInternalServerError, "client type is of invalid type")
+// 		return "", errors.New("error: client type is of invalid type")
+// 	}
+
+// 	return clientType, nil
+// }
 
 func getUserId(c *gin.Context) (int, error) {
 	id, ok := c.Get(userCtx)

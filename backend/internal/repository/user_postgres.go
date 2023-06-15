@@ -22,11 +22,11 @@ func NewUserPostgres(dbpool *pgxpool.Pool) User {
 func (r *UserPostgres) CreateUser(user models.User) (int, error) {
 	var id int
 	query := `INSERT INTO 
-						user_account (user_name, first_name, last_name, email, password_hash) 
-						VALUES ($1, $2, $3, $4, $5) 
+						user_account (user_name, tg_user_name, first_name, last_name, email, password_hash) 
+						VALUES ($1, $2, $3, $4, $5,	$6) 
 					RETURNING id`
 
-	row := r.dbpool.QueryRow(context.Background(), query, user.Username, user.FirstName, user.LastName, user.Email, user.Password)
+	row := r.dbpool.QueryRow(context.Background(), query, user.Username, user.TgUsername, user.FirstName, user.LastName, user.Email, user.Password)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
