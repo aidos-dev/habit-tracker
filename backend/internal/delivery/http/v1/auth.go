@@ -103,8 +103,15 @@ func prepareUserByClient(c *gin.Context, user models.User, clientType string) mo
 	return user
 }
 
+/*
+webUserFormat prepares user input to be
+registered as a web user, using all required credentials. Also
+it created a telegram userName as a copy of web
+userName just as a placeholder. In the future a web user
+will be able to replace it with real telegram userName
+*/
 func webUserFormat(c *gin.Context, user models.User) models.User {
-	user.TgUsername = fmt.Sprintf("copy_u: %s", user.TgUsername)
+	user.TgUsername = fmt.Sprintf("copy_u:%s", user.Username)
 
 	return user
 }
@@ -124,19 +131,19 @@ func telegramUserFormat(c *gin.Context, user models.User) models.User {
 	}
 
 	if user.Username == "" {
-		user.Username = user.TgUsername
+		user.Username = fmt.Sprintf("copy_tg:%s", user.TgUsername)
 	}
 
 	if user.FirstName == "" {
-		user.FirstName = user.TgUsername
+		user.FirstName = fmt.Sprintf("c_tg:%s", user.TgUsername)
 	}
 
 	if user.LastName == "" {
-		user.LastName = user.TgUsername
+		user.LastName = fmt.Sprintf("c_tg:%s", user.TgUsername)
 	}
 
 	if user.Email == "" {
-		user.Email = user.TgUsername
+		user.Email = fmt.Sprintf("c_tg:%s", user.TgUsername)
 	}
 
 	return user

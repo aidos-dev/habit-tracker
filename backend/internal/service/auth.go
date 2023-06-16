@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	salt       = "lk6vm9vkf437#b817h^n3@7kdn4nv"
-	signingKey = "436k@5*6lklj24t6^k4$#$lk4(kt54#(*&$"
+	salt       = "lk6vm9vkf47#b@7kdn4nv"
+	signingKey = "436k@5*6lklj4t6^k4$4#(*&$"
 	tokenTTL   = 12 * time.Hour
 )
 
@@ -30,8 +30,6 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		return "", err
 	}
 
-	// fmt.Printf("service: auth.go: GenerateToken: userRole content: %v\n", user.Role)
-
 	claims := &jwt.MapClaims{
 		"iss":       "issuer",
 		"issuedAt":  time.Now().Unix(),
@@ -42,25 +40,12 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		},
 	}
 
-	// fmt.Printf("service: auth.go: GenerateToken: claims content: %v\n", claims)
-
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-	// 	jwt.StandardClaims{
-	// 		ExpiresAt: time.Now().Add(tokenTTL).Unix(),
-	// 		IssuedAt:  time.Now().Unix(),
-	// 	},
-	// 	user.Id,
-	// 	user.Role,
-	// })
-
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		claims,
 	)
 
 	tokenString, err := token.SignedString([]byte(signingKey))
-
-	// fmt.Printf("service: auth.go: GenerateToken: tokenString content: %v\n", tokenString)
 
 	return tokenString, err
 }
