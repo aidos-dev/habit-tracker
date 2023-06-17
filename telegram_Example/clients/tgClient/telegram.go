@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
-	"github.com/aidos-dev/habit-tracker/telegram/models"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/models"
 )
 
 type Client struct {

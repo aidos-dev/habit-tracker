@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aidos-dev/habit-tracker/telegram/clients/tgClient"
-
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
-	"github.com/aidos-dev/habit-tracker/telegram/events"
-	"github.com/aidos-dev/habit-tracker/telegram/models"
-	"github.com/aidos-dev/habit-tracker/telegram/storage"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/clients/tgClient"
+
+	"github.com/aidos-dev/habit-tracker/telegram_Example/events"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/models"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/storage"
 )
 
 type Processor struct {

@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/aidos-dev/habit-tracker/telegram/clients/tgClient"
-	"github.com/aidos-dev/habit-tracker/telegram/config"
-	event_consumer "github.com/aidos-dev/habit-tracker/telegram/consumer/event-consumer"
-	"github.com/aidos-dev/habit-tracker/telegram/events/telegram"
-	"github.com/aidos-dev/habit-tracker/telegram/models"
-	"github.com/aidos-dev/habit-tracker/telegram/storage/files"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/clients/tgClient"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/config"
+	event_consumer "github.com/aidos-dev/habit-tracker/telegram_Example/consumer/event-consumer"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/events/telegram"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/models"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/storage/files"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
-	"github.com/aidos-dev/habit-tracker/telegram/storage"
+	"github.com/aidos-dev/habit-tracker/telegram_Example/storage"
 )
 
 type Storage struct {
