@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/aidos-dev/habit-tracker/telegram/events"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/events"
 )
 
 type Consumer struct {

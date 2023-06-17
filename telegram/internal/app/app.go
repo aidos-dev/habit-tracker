@@ -1,14 +1,14 @@
-package main
+package app
 
 import (
 	"log"
 
-	"github.com/aidos-dev/habit-tracker/telegram/clients/tgClient"
 	"github.com/aidos-dev/habit-tracker/telegram/config"
-	event_consumer "github.com/aidos-dev/habit-tracker/telegram/consumer/event-consumer"
-	"github.com/aidos-dev/habit-tracker/telegram/events/telegram"
-	"github.com/aidos-dev/habit-tracker/telegram/models"
-	"github.com/aidos-dev/habit-tracker/telegram/storage/files"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/clients/tgClient"
+	event_consumer "github.com/aidos-dev/habit-tracker/telegram/internal/consumer/event-consumer"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/events/telegram"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/storage/files"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 	batchSize   = 100
 )
 
-func main() {
+func Run() {
 	// get telegram token
 	telegramToken := config.MustToken()
 

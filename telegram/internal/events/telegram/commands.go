@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
-	"github.com/aidos-dev/habit-tracker/telegram/storage"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/storage"
 )
 
 const (
