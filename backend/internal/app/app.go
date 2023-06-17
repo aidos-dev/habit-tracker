@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	v1 "github.com/aidos-dev/habit-tracker/backend/internal/delivery/http/v1"
-	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository/postgres"
 	"github.com/aidos-dev/habit-tracker/backend/internal/server"
 	"github.com/aidos-dev/habit-tracker/backend/internal/service"
 	_ "github.com/jackc/pgx/v5"
@@ -37,7 +37,7 @@ func Run() {
 		return
 	}
 
-	dbpool, err := repository.NewPostgresDB(repository.Config{
+	dbpool, err := postgres.NewPostgresDB(postgres.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -50,7 +50,7 @@ func Run() {
 		return
 	}
 
-	repos := repository.NewRepository(dbpool)
+	repos := postgres.NewPostgresRepository(dbpool)
 	services := service.NewService(repos)
 	handlers := v1.NewHandler(services)
 
@@ -74,10 +74,6 @@ func Run() {
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shutting down: %s", err.Error())
 	}
-
-	// if err := dbpool.Close(); err != nil {
-	// 	logrus.Errorf("error occured on dbpool connection close: %s", err.Error())
-	// }
 
 	defer dbpool.Close()
 }

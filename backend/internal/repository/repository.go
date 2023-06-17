@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+
 	_ "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AdminUser interface {
@@ -75,18 +75,4 @@ type Repository struct {
 	Habit
 	HabitTracker
 	Reward
-}
-
-func NewRepository(dbpool *pgxpool.Pool) *Repository {
-	return &Repository{
-		AdminUser:       NewAdminUserPostgres(dbpool),
-		AdminRole:       NewAdminRolePostgres(dbpool),
-		AdminReward:     NewAdminRewardPostgres(dbpool),
-		AdminUserReward: NewAdminUserRewardPostgres(dbpool),
-		Admin:           NewAdminPostgres(dbpool),
-		User:            NewUserPostgres(dbpool),
-		Habit:           NewHabitPostgres(dbpool),
-		HabitTracker:    NewHabitTrackerPostgres(dbpool),
-		Reward:          NewRewardPostgres(dbpool),
-	}
 }

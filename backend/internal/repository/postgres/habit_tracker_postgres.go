@@ -1,4 +1,4 @@
-package repository
+package postgres
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,7 +17,7 @@ type HabitTrackerPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewHabitTrackerPostgres(dbpool *pgxpool.Pool) HabitTracker {
+func NewHabitTrackerPostgres(dbpool *pgxpool.Pool) repository.HabitTracker {
 	return &HabitTrackerPostgres{dbpool: dbpool}
 }
 

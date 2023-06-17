@@ -1,9 +1,10 @@
-package repository
+package postgres
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,4 +36,18 @@ func NewPostgresDB(cfg Config) (*pgxpool.Pool, error) {
 	}
 
 	return dbpool, nil
+}
+
+func NewPostgresRepository(dbpool *pgxpool.Pool) *repository.Repository {
+	return &repository.Repository{
+		AdminUser:       NewAdminUserPostgres(dbpool),
+		AdminRole:       NewAdminRolePostgres(dbpool),
+		AdminReward:     NewAdminRewardPostgres(dbpool),
+		AdminUserReward: NewAdminUserRewardPostgres(dbpool),
+		Admin:           NewAdminPostgres(dbpool),
+		User:            NewUserPostgres(dbpool),
+		Habit:           NewHabitPostgres(dbpool),
+		HabitTracker:    NewHabitTrackerPostgres(dbpool),
+		Reward:          NewRewardPostgres(dbpool),
+	}
 }

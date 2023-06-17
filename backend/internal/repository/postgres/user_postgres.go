@@ -1,4 +1,4 @@
-package repository
+package postgres
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,7 +16,7 @@ type UserPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewUserPostgres(dbpool *pgxpool.Pool) User {
+func NewUserPostgres(dbpool *pgxpool.Pool) repository.User {
 	return &UserPostgres{dbpool: dbpool}
 }
 

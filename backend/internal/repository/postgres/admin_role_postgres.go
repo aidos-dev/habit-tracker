@@ -1,9 +1,10 @@
-package repository
+package postgres
 
 import (
 	"context"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +13,7 @@ type AdminRolePostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewAdminRolePostgres(dbpool *pgxpool.Pool) AdminRole {
+func NewAdminRolePostgres(dbpool *pgxpool.Pool) repository.AdminRole {
 	return &AdminRolePostgres{dbpool: dbpool}
 }
 

@@ -1,4 +1,4 @@
-package repository
+package postgres
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,7 +16,7 @@ type RewardPostgres struct {
 	dbpool *pgxpool.Pool
 }
 
-func NewRewardPostgres(dbpool *pgxpool.Pool) Reward {
+func NewRewardPostgres(dbpool *pgxpool.Pool) repository.Reward {
 	return &RewardPostgres{dbpool: dbpool}
 }
 

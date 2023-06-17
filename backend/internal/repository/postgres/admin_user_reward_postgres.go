@@ -1,19 +1,20 @@
-package repository
+package postgres
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AdminUserRewardPostgres struct {
 	dbpool *pgxpool.Pool
-	Reward
+	repository.Reward
 }
 
-func NewAdminUserRewardPostgres(dbpool *pgxpool.Pool) AdminUserReward {
+func NewAdminUserRewardPostgres(dbpool *pgxpool.Pool) repository.AdminUserReward {
 	return &AdminUserRewardPostgres{dbpool: dbpool}
 }
 
