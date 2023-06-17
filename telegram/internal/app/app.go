@@ -1,14 +1,22 @@
 package app
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/aidos-dev/habit-tracker/telegram/config"
+	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
+	server "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/server/httpServer"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/clients/tgClient"
 	event_consumer "github.com/aidos-dev/habit-tracker/telegram/internal/consumer/event-consumer"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/events/telegram"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage/files"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -26,10 +34,23 @@ func Run() {
 
 	storage := files.New(storagePath)
 
+	adapter := v1.NewAdapterHandler()
+
+	srv := new(server.Server)
+
+	go func() {
+		if err := srv.Run(viper.GetString("port"), adapter.InitRoutes()); err != nil {
+			logrus.Printf("error occured while running backend adapter http server: %s", err.Error())
+			return
+		}
+	}()
+
+	logrus.Println("telegram backend adapter Started")
+
 	// fetcher
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage)
+	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter)
 
 	log.Print("service started")
 
@@ -37,7 +58,20 @@ func Run() {
 
 	consumer := event_consumer.NewConsumer(eventsProcessor, eventsProcessor, batchSize)
 
-	if err := consumer.Start(); err != nil {
-		log.Fatal("service is stopped", err)
+	go func() {
+		if err := consumer.Start(); err != nil {
+			logrus.Printf("error occured while running telegram consumer service: %s", err.Error())
+			return
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	logrus.Println("telegram service Shutting Down")
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		logrus.Errorf("error occured on server shutting down: %s", err.Error())
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	v1 "github.com/aidos-dev/habit-tracker/backend/internal/delivery/http/v1"
+	v1 "github.com/aidos-dev/habit-tracker/backend/internal/delivery/web/http/v1"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository/postgres"
 	"github.com/aidos-dev/habit-tracker/backend/internal/server"
 	"github.com/aidos-dev/habit-tracker/backend/internal/service"
