@@ -6,6 +6,7 @@ import (
 
 	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/clients/tgClient"
+	"github.com/gin-gonic/gin"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/events"
@@ -18,6 +19,7 @@ type Processor struct {
 	offset  int
 	storage storage.Storage
 	adapter *v1.AdapterHandler
+	ginEng  *gin.Engine
 }
 
 type Meta struct {
@@ -30,11 +32,12 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler) *Processor {
+func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, ginEng *gin.Engine) *Processor {
 	return &Processor{
 		tg:      client,
 		storage: storage,
 		adapter: adapter,
+		ginEng:  ginEng,
 	}
 }
 

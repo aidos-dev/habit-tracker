@@ -38,8 +38,10 @@ func Run() {
 
 	srv := new(server.Server)
 
+	ginEng := adapter.InitRoutes()
+
 	go func() {
-		if err := srv.Run(viper.GetString("port"), adapter.InitRoutes()); err != nil {
+		if err := srv.Run(viper.GetString("port"), ginEng); err != nil {
 			logrus.Printf("error occured while running backend adapter http server: %s", err.Error())
 			return
 		}
@@ -50,7 +52,7 @@ func Run() {
 	// fetcher
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter)
+	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, ginEng)
 
 	log.Print("service started")
 

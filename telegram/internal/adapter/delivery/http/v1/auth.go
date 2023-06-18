@@ -8,60 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) signUp(c *gin.Context) {
-	var authStruct models.Auth
-
-	if err := c.BindJSON(&authStruct); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	fmt.Printf("Parsed JSON content: %v\n", authStruct)
-
-	clientType := authStruct.Client.ClientType
-
-	input := authStruct.User
-
-	fmt.Printf("The client type is: %v\n", clientType)
-
-	fmt.Printf("The user name is: %v\n", input)
-
-	input = prepareUserByClient(c, input, clientType)
-
-	fmt.Printf("The TG prepared user is: %v\n", input)
-
-	id, err := h.services.User.CreateUser(input)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
+func (a *AdapterHandler) SignUp(c *gin.Context, username string) {
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
-}
-
-type signInInput struct {
-	Username string `json:"userName" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-func (h *Handler) signIn(c *gin.Context) {
-	var input signInInput
-
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+		"tg_username": username,
 	})
 }
 
@@ -76,13 +25,6 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: delete user: %v", err.Error()))
 		return
 	}
-
-	// c.JSON(http.StatusOK, map[string]interface{}{
-	// 	"Status": statusResponse{
-	// 		Status: "ok",
-	// 	},
-	// 	"deletedUserId": deletedUserId,
-	// })
 
 	response := map[string]any{
 		"Status":         "ok",

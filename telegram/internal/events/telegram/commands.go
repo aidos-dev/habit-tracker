@@ -3,40 +3,31 @@ package telegram
 import (
 	"errors"
 	"log"
-	"net/url"
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage"
+	"github.com/gin-gonic/gin"
 )
 
 const (
-	RndCmd   = "/rnd"
-	HelpCmd  = "/help"
 	StartCmd = "/start"
-	// Habit   = "/habit"
+	HelpCmd  = "/help"
+	Habit    = "/habit"
 )
 
-func (p *Processor) doCmd(text string, chatID int, username string) error {
+func (p *Processor) doCmd(c *gin.Context, text string, chatID int, username string) error {
 	text = strings.TrimSpace(text)
 
 	log.Printf("got new command %s from %s", text, username)
 
-	if isAddCmd(text) {
-		return p.savePage(chatID, text, username)
-	}
-
-	// start: /start: hi + help
-	// help: /help
-	// habit: /habit
-
 	switch text {
-	case RndCmd:
-		return p.sendRandom(chatID, username)
-	case HelpCmd:
-		return p.sendHelp(chatID)
 	case StartCmd:
 		return p.sendHello(chatID)
+	case HelpCmd:
+		return p.sendHelp(chatID)
+	case Habit:
+		return p.sendRandom(chatID, username)
 	default:
 		return p.tg.SendMessage(chatID, msgUnknownCommand)
 	}
@@ -95,14 +86,9 @@ func (p *Processor) sendHello(chatID int) error {
 	return p.tg.SendMessage(chatID, msgHello)
 }
 
-func isAddCmd(text string) bool {
-	return isURL(text)
-}
-
-func isURL(text string) bool {
-	u, err := url.Parse(text)
-
-	return err == nil && u.Host != ""
+func (p *Processor) signUp(c *gin.Context, chatID int, username string) (err error) {
+	defer func() { err = errs.WrapIfErr("can't do command: can't sign up", err) }()
+	p.ginEng.POST("/sign-up", p.adapter.SignUp(c, username))
 }
 
 // func (p *Processor) createHabit(chatID int, text string, username string) (err error) {
@@ -113,8 +99,4 @@ func isURL(text string) bool {
 // 	}
 
 // 	p.handler.
-// }
-
-// func isAddCmd(text string) bool {
-
 // }

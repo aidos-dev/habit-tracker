@@ -20,7 +20,7 @@ const (
 	roleCtx             = "userRole"
 )
 
-func (a *AdapterHandler) userIdentity(c *gin.Context) {
+func (a *AdapterHandler) UserIdentity(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)
 	if header == "" {
 		newErrorResponse(c, http.StatusUnauthorized, "empty auth header")
