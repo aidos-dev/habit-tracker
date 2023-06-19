@@ -25,5 +25,10 @@ type Chat struct {
 }
 
 const (
-	TgBotHost = "api.telegram.org"
+	TgBotHost   = "api.telegram.org"
+	CtxUsername = "username"
 )
+
+type TgUserName struct {
+	Username string `json:"tg_user_name"`
+}

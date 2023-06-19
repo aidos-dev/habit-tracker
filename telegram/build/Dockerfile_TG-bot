@@ -14,6 +14,7 @@ COPY go.sum ./
 # COPY migrate ./
 
 COPY /telegram ./telegram
+COPY /pkg ./pkg
 
 RUN ls -lah
 
@@ -24,7 +25,7 @@ RUN go mod download
 # install migrate to do database migration
 # RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
-RUN go build -o tg-bot-habit ./telegram/main.go
+RUN go build -o tg-bot-habit ./telegram/cmd/main.go
 
 
 
@@ -42,14 +43,17 @@ WORKDIR /app
 COPY --from=build /app/tg-bot-habit .
 # COPY telegram/build/wait-for-postgres.sh /app/build/
 COPY telegram/build/.env /app/build/
-# COPY telegram/configs/config.yml /app/configs/
+# COPY telegram/config/telegramToken.go /app/config/
+
+# Set the environment variable from the .env file
+ENV TG_TOKEN=$TG_TOKEN
 
 RUN ls -lah
 RUN ls -lah build
-RUN ls -lah configs
+# RUN ls -lah configs
 
 # make wait-for-postgres.sh executable
 # RUN chmod +x /app/build/wait-for-postgres.sh
 
 
-CMD ["./tg-bot-habit"]
+CMD ["./tg-bot-habit", "-tg-bot-token", "$TG_TOKEN"]

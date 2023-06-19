@@ -22,6 +22,7 @@ func NewConsumer(fetcher events.Fetcher, processor events.Processor, batchSize i
 }
 
 func (c Consumer) Start() error {
+	log.Print("event consumer started")
 	for {
 		gotEvents, err := c.fetcher.Fetch(c.batchSize)
 		if err != nil {

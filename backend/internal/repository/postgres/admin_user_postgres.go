@@ -53,7 +53,8 @@ func (r *AdminUserPostgres) GetUserById(userId int) (models.GetUser, error) {
 	var user models.GetUser
 	query := `SELECT 
 					id,
-					user_name, 
+					user_name,
+					tg_user_name, 
 					first_name, 
 					last_name, 
 					email,
@@ -63,6 +64,37 @@ func (r *AdminUserPostgres) GetUserById(userId int) (models.GetUser, error) {
 				WHERE id=$1`
 
 	rowUser, err := r.dbpool.Query(context.Background(), query, userId)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		return user, err
+	}
+
+	defer rowUser.Close()
+
+	user, err = pgx.CollectOneRow(rowUser, pgx.RowToStructByName[models.GetUser])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "rowUser CollectOneRow failed: %v\n", err)
+		return user, err
+	}
+
+	return user, err
+}
+
+func (r *AdminUserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
+	var user models.GetUser
+	query := `SELECT 
+					id,
+					user_name,
+					tg_user_name, 
+					first_name, 
+					last_name, 
+					email,
+					role 
+				FROM 
+					user_account
+				WHERE tg_user_name=$1`
+
+	rowUser, err := r.dbpool.Query(context.Background(), query, TGusername)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return user, err

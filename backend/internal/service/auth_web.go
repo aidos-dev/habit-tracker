@@ -17,10 +17,10 @@ const (
 )
 
 type AuthService struct {
-	repo repository.User
+	repo repository.AdminUser
 }
 
-func NewAuthService(repo repository.User) Authorization {
+func NewAuthService(repo repository.AdminUser) Authorization {
 	return &AuthService{repo: repo}
 }
 

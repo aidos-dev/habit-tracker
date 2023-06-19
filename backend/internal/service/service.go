@@ -9,11 +9,13 @@ import (
 type Authorization interface {
 	GenerateToken(username, password string) (string, error)
 	ParseToken(token string) (jwt.MapClaims, error)
+	FindTgUser(tgUsername string) (models.GetUser, error)
 }
 
 type AdminUser interface {
 	GetAllUsers() ([]models.GetUser, error)
 	GetUserById(userId int) (models.GetUser, error)
+	GetUserByTgUsername(TGusername string) (models.GetUser, error)
 	User
 }
 
@@ -85,7 +87,7 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization:   NewAuthService(repos.User),
+		Authorization:   NewAuthService(repos.AdminUser),
 		AdminUser:       NewAdminUserService(repos.AdminUser),
 		AdminRole:       NewAdminRoleService(repos.AdminRole),
 		AdminReward:     NewAdminRewardService(repos.AdminReward),

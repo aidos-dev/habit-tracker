@@ -82,4 +82,16 @@ docker-compose -f build/docker-compose.yml up habit-tracker
 
 </details>
 
+<details>
+<summary>TG-bot</summary>
+<br>
+
+To run the telegram-bot service run the command:
+
+```
+./tg-bot-habit -tg-bot-token 'token'
+```
+
+</details>
+
 

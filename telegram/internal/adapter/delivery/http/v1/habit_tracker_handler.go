@@ -1,76 +1,76 @@
 package v1
 
-import (
-	"fmt"
-	"net/http"
+// import (
+// 	"fmt"
+// 	"net/http"
 
-	"github.com/aidos-dev/habit-tracker/backend/internal/models"
-	"github.com/gin-gonic/gin"
-)
+// 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+// 	"github.com/gin-gonic/gin"
+// )
 
-func (h *Handler) getAllHabitTrackers(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+// func (h *Handler) getAllHabitTrackers(c *gin.Context) {
+// 	userId, err := getUserId(c)
+// 	if err != nil {
+// 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
 
-	trackers, err := h.services.HabitTracker.GetAll(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabitTrackers: %v", err.Error()))
-		return
-	}
+// 	trackers, err := h.services.HabitTracker.GetAll(userId)
+// 	if err != nil {
+// 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabitTrackers: %v", err.Error()))
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, trackers)
-}
+// 	c.JSON(http.StatusOK, trackers)
+// }
 
-func (h *Handler) getHabitTrackerById(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+// func (h *Handler) getHabitTrackerById(c *gin.Context) {
+// 	userId, err := getUserId(c)
+// 	if err != nil {
+// 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
 
-	habitId, err := getHabitId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
-		return
-	}
+// 	habitId, err := getHabitId(c)
+// 	if err != nil {
+// 		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
+// 		return
+// 	}
 
-	tracker, err := h.services.HabitTracker.GetById(userId, habitId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitTrackerById: %v", err.Error()))
-		return
-	}
+// 	tracker, err := h.services.HabitTracker.GetById(userId, habitId)
+// 	if err != nil {
+// 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitTrackerById: %v", err.Error()))
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, tracker)
-}
+// 	c.JSON(http.StatusOK, tracker)
+// }
 
-func (h *Handler) updateHabitTracker(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		return
-	}
+// func (h *Handler) updateHabitTracker(c *gin.Context) {
+// 	userId, err := getUserId(c)
+// 	if err != nil {
+// 		return
+// 	}
 
-	habitId, err := getHabitId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
-		return
-	}
+// 	habitId, err := getHabitId(c)
+// 	if err != nil {
+// 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+// 		return
+// 	}
 
-	var input models.UpdateTrackerInput
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
+// 	var input models.UpdateTrackerInput
+// 	if err := c.BindJSON(&input); err != nil {
+// 		newErrorResponse(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	if err := h.services.HabitTracker.Update(userId, habitId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateHabitTracker: %v", err.Error()))
-		return
-	}
+// 	if err := h.services.HabitTracker.Update(userId, habitId, input); err != nil {
+// 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateHabitTracker: %v", err.Error()))
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, statusResponse{"ok"})
-}
+// 	c.JSON(http.StatusOK, statusResponse{"ok"})
+// }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////

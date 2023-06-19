@@ -1,6 +1,20 @@
 version: '3.8'
 
 services:
+
+  telegram:
+    build:
+      context: ./
+      dockerfile: telegram/build/Dockerfile_TG-bot
+    ports:
+    - "8080:8080"
+    
+    env_file:
+    - telegram/build/.env
+
+    links:
+    - habit-tracker
+
   habit-tracker:
     build:
       context: ./

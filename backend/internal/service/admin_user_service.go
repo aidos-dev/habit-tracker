@@ -21,3 +21,7 @@ func (r *AdminUserService) GetAllUsers() ([]models.GetUser, error) {
 func (r *AdminUserService) GetUserById(userId int) (models.GetUser, error) {
 	return r.repo.GetUserById(userId)
 }
+
+func (r *AdminUserService) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
+	return r.repo.GetUserByTgUsername(TGusername)
+}

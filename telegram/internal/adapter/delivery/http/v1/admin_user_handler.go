@@ -4,37 +4,23 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
-type getAllUsersResponse struct {
-	Data []models.GetUser `json:"data"`
-}
+func (a *AdapterHandler) FindTgUser(c *gin.Context, username string, userExists *bool) {
+	c.String(http.StatusOK, username)
 
-func (h *Handler) getAllUsers(c *gin.Context) {
-	users, err := h.services.AdminUser.GetAllUsers()
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllUsers: %v", err.Error()))
+	var TgUserName models.TgUserName
+
+	if err := c.BindJSON(&TgUserName); err != nil {
+		fmt.Printf("error: FindTgUser: %v\n", err.Error())
+		*userExists = false
+	}
+	fmt.Printf("Parsed JSON content: %v\n", TgUserName)
+
+	if TgUserName.Username != "" {
+		*userExists = true
 		return
 	}
-
-	c.JSON(http.StatusOK, getAllUsersResponse{
-		Data: users,
-	})
-}
-
-func (h *Handler) getUserById(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		return
-	}
-
-	user, err := h.services.AdminUser.GetUserById(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getUserById: %v", err.Error()))
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
 }

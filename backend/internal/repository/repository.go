@@ -9,6 +9,7 @@ import (
 type AdminUser interface {
 	GetAllUsers() ([]models.GetUser, error)
 	GetUserById(userId int) (models.GetUser, error)
+	GetUserByTgUsername(TGusername string) (models.GetUser, error)
 	User
 }
 

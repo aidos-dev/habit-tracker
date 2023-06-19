@@ -2,6 +2,7 @@ package vTG1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -19,6 +20,24 @@ const (
 	userCtx             = "userId"
 	roleCtx             = "userRole"
 )
+
+func (h *Handler) TgUserIdentity(c *gin.Context) {
+	var TgUserName models.TgUser
+
+	if err := c.BindJSON(&TgUserName); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	fmt.Printf("Parsed JSON content: %v\n", TgUserName)
+
+	user, err := h.services.Authorization.FindTgUser(TgUserName.TgUsername)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getUserByTgUsername: %v", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
 
 func (h *Handler) userIdentity(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)

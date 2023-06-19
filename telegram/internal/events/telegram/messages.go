@@ -14,3 +14,11 @@ const (
 	// msgCreated            = "Habit created! 😄"
 	// msgHabitAlreadyExists = "This habit already exists 😬"
 )
+
+/*
+
+setting menu commands:
+start - Start the bot
+help - What can this bot do?
+
+*/

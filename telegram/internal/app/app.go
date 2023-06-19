@@ -38,7 +38,9 @@ func Run() {
 
 	srv := new(server.Server)
 
-	ginEng := adapter.InitRoutes()
+	ginEng := adapter.Engine
+
+	adapter.Router = ginEng.Group("/tgClient")
 
 	go func() {
 		if err := srv.Run(viper.GetString("port"), ginEng); err != nil {
@@ -52,7 +54,7 @@ func Run() {
 	// fetcher
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, ginEng)
+	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter)
 
 	log.Print("service started")
 
