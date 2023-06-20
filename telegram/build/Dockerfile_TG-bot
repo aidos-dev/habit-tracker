@@ -46,7 +46,12 @@ COPY telegram/build/.env /app/build/
 # COPY telegram/config/telegramToken.go /app/config/
 
 # Set the environment variable from the .env file
-ENV TG_TOKEN=$TG_TOKEN
+# ARG value will be passed with CLI command and then passed from ARG to ENV
+# ARG TG_TOKEN
+# ENV TG_TOKEN=$TG_TOKEN
+ENV $(cat .env | grep -v '#' | xargs)
+
+RUN cat ${TG_TOKEN}
 
 RUN ls -lah
 RUN ls -lah build
@@ -56,4 +61,5 @@ RUN ls -lah build
 # RUN chmod +x /app/build/wait-for-postgres.sh
 
 
-CMD ["./tg-bot-habit", "-tg-bot-token", "$TG_TOKEN"]
+# CMD ["./tg-bot-habit", "-tg-bot-token", "${TG_TOKEN}"]
+CMD ["/bin/sh", "-c", "./tg-bot-habit -tg-bot-token \"$TG_TOKEN\""]
