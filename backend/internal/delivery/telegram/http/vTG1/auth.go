@@ -2,6 +2,7 @@ package vTG1
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
@@ -16,19 +17,19 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Parsed JSON content: %v\n", authStruct)
+	log.Printf("Parsed JSON content: %v\n", authStruct)
 
 	clientType := authStruct.Client.ClientType
 
 	input := authStruct.User
 
-	fmt.Printf("The client type is: %v\n", clientType)
+	log.Printf("The client type is: %v\n", clientType)
 
-	fmt.Printf("The user name is: %v\n", input)
+	log.Printf("The user name is: %v\n", input)
 
 	input = prepareUserByClient(c, input, clientType)
 
-	fmt.Printf("The TG prepared user is: %v\n", input)
+	log.Printf("The TG prepared user is: %v\n", input)
 
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {

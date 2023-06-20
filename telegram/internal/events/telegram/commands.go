@@ -20,7 +20,7 @@ const (
 func (p *Processor) doCmd(text string, chatID int, username string) error {
 	text = strings.TrimSpace(text)
 
-	log.Printf("got new command %s from %s", text, username)
+	log.Printf("got new command [%s] from [%s]", text, username)
 
 	switch text {
 	case StartCmd:
@@ -88,7 +88,7 @@ func (p *Processor) sendHello(chatID int, username string) error {
 		p.signUp(chatID, username)
 	}
 
-	log.Printf("user %v started bot\n", username)
+	log.Printf("user [%v] started bot\n", username)
 
 	return p.tg.SendMessage(chatID, msgHello)
 }
@@ -96,9 +96,16 @@ func (p *Processor) sendHello(chatID int, username string) error {
 func (p *Processor) userExists(username string) bool {
 	// p.adapter.FindTgUser(username)
 	// p.ginEng.GET("tg_user_name", p.adapter.FindTgUser)
+
+	log.Print("method userExists called")
+
 	var userExists bool
 
-	p.adapter.Router.GET("tg_user_name", func(c *gin.Context) {
+	log.Printf("userExists value: %v", userExists)
+
+	urlPath := "/tgUser"
+
+	p.adapter.Router.GET(urlPath, func(c *gin.Context) {
 		p.adapter.FindTgUser(c, username, &userExists)
 		name := c.Query("tg_user_name")
 
@@ -111,7 +118,11 @@ func (p *Processor) userExists(username string) bool {
 func (p *Processor) signUp(chatID int, username string) {
 	// defer func() { err = errs.WrapIfErr("can't do command: can't sign up", err) }()
 
-	p.adapter.Router.POST("/sign-up", func(c *gin.Context) {
+	log.Print("method signUp called")
+
+	urlPath := "/auth/sign-up"
+
+	p.adapter.Router.POST(urlPath, func(c *gin.Context) {
 		p.adapter.SignUp(c, username)
 	})
 }

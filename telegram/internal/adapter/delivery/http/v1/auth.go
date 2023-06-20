@@ -1,12 +1,14 @@
 package v1
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (a *AdapterHandler) SignUp(c *gin.Context, username string) {
+	log.Print("adapter SignUp method called")
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"tg_user_name": username,
 	})

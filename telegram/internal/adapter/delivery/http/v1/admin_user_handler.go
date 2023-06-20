@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
@@ -14,10 +14,10 @@ func (a *AdapterHandler) FindTgUser(c *gin.Context, username string, userExists 
 	var TgUserName models.TgUserName
 
 	if err := c.BindJSON(&TgUserName); err != nil {
-		fmt.Printf("error: FindTgUser: %v\n", err.Error())
+		log.Printf("error: FindTgUser: %v\n", err.Error())
 		*userExists = false
 	}
-	fmt.Printf("Parsed JSON content: %v\n", TgUserName)
+	log.Printf("Parsed JSON content: %v\n", TgUserName)
 
 	if TgUserName.Username != "" {
 		*userExists = true

@@ -3,7 +3,6 @@ package telegram
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/clients/tgClient"
@@ -40,7 +39,7 @@ func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.
 }
 
 func (p *Processor) Fetch(limit int) ([]events.Event, error) {
-	log.Print("Fetch method called")
+	// log.Print("Fetch method called")
 	updates, err := p.tg.Updates(p.offset, limit)
 	if err != nil {
 		return nil, errs.Wrap("can't get events", err)
@@ -76,7 +75,7 @@ func (p *Processor) processMessage(event events.Event) error {
 		return errs.Wrap("can't process message", err)
 	}
 
-	fmt.Printf("Event content is: \n%v\n", event)
+	fmt.Printf("Event content is: [%v]\n", event)
 
 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
 		return errs.Wrap("can't process message", err)

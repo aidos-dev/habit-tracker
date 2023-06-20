@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	v1 "github.com/aidos-dev/habit-tracker/backend/internal/delivery/web/http/v1"
+	"github.com/aidos-dev/habit-tracker/backend/internal/delivery/telegram/http/vTG1"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository/postgres"
 	"github.com/aidos-dev/habit-tracker/backend/internal/server"
 	"github.com/aidos-dev/habit-tracker/backend/internal/service"
@@ -52,7 +52,8 @@ func Run() {
 
 	repos := postgres.NewPostgresRepository(dbpool)
 	services := service.NewService(repos)
-	handlers := v1.NewHandler(services)
+	// handlers := v1.NewHandler(services)
+	handlers := vTG1.NewHandler(services)
 
 	srv := new(server.Server)
 

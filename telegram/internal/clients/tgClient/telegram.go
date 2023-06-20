@@ -3,7 +3,6 @@ package tgClient
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -39,8 +38,6 @@ func newBasePath(token string) string {
 func (c *Client) Updates(offset, limit int) (updates []models.Update, err error) {
 	defer func() { err = errs.WrapIfErr("can't get updates", err) }()
 
-	log.Print("Client.Updates method called")
-
 	q := url.Values{}
 	q.Add("offset", strconv.Itoa(offset))
 	q.Add("limit", strconv.Itoa(limit))
@@ -75,33 +72,31 @@ func (c *Client) SendMessage(chatID int, text string) error {
 func (c *Client) doRequest(method string, query url.Values) (data []byte, err error) {
 	defer func() { err = errs.WrapIfErr("can't do request", err) }()
 
-	log.Print("doRequest method called")
-
 	u := url.URL{
 		Scheme: "https",
 		Host:   c.host,
 		Path:   path.Join(c.basePath, method),
 	}
 
-	log.Printf("url params: %v", u)
+	// log.Printf("url params: %v", u)
 
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("http request is: %v", req)
+	// log.Printf("http request is: %v", req)
 
 	req.URL.RawQuery = query.Encode()
 
-	log.Printf("request row query: %v", req.URL.RawQuery)
+	// log.Printf("request row query: %v", req.URL.RawQuery)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("response is: %v", resp)
+	// log.Printf("response is: %v", resp)
 
 	defer func() { _ = resp.Body.Close() }()
 
@@ -110,7 +105,7 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 		return nil, err
 	}
 
-	log.Printf("body read result: %v", body)
+	// log.Printf("body read result: %v", body)
 
 	return body, nil
 }

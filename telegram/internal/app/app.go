@@ -40,7 +40,7 @@ func Run() {
 
 	ginEng := adapter.Engine
 
-	adapter.Router = ginEng.Group("/tgClient")
+	adapter.Router = ginEng.Group("http://localhost:8000")
 
 	go func() {
 		if err := srv.Run(viper.GetString("port"), ginEng); err != nil {
@@ -48,8 +48,6 @@ func Run() {
 			return
 		}
 	}()
-
-	logrus.Println("telegram backend adapter Started")
 
 	// fetcher
 
