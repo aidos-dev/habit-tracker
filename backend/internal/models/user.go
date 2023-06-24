@@ -29,3 +29,10 @@ type GetUser struct {
 type TgUser struct {
 	TgUsername string `json:"tg_user_name" db:"tg_user_name"`
 }
+
+const Empty = "NULL"
+
+const (
+	WebClintPath      = "/web"
+	TelegramClintPath = "/telegram"
+)

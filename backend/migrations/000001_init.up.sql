@@ -1,11 +1,11 @@
 CREATE TABLE user_account(
     id serial not null unique,
-    user_name varchar (50) not null unique,
-    tg_user_name varchar (50) not null unique,
-    first_name varchar(50) not null,
-    last_name varchar(50) not null,
-    email varchar(255) not null unique,
-    password_hash varchar(255) not null,
+    user_name varchar (50) unique,
+    tg_user_name varchar (50) unique,
+    first_name varchar(50),
+    last_name varchar(50),
+    email varchar(255) unique,
+    password_hash varchar(255),
     role varchar (50) DEFAULT 'user_basic'
 );
 CREATE TABLE habit (

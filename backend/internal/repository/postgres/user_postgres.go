@@ -24,7 +24,14 @@ func (r *UserPostgres) CreateUser(user models.User) (int, error) {
 	var id int
 	query := `INSERT INTO 
 						user_account (user_name, tg_user_name, first_name, last_name, email, password_hash) 
-						VALUES ($1, $2, $3, $4, $5,	$6) 
+						VALUES (
+							COALESCE(NULLIF($1, ''), NULL),
+							COALESCE(NULLIF($2, ''), NULL),
+							COALESCE(NULLIF($3, ''), NULL),
+							COALESCE(NULLIF($4, ''), NULL),
+							COALESCE(NULLIF($5, ''), NULL),
+							COALESCE(NULLIF($6, ''), NULL)
+							) 
 					RETURNING id`
 
 	row := r.dbpool.QueryRow(context.Background(), query, user.Username, user.TgUsername, user.FirstName, user.LastName, user.Email, user.Password)

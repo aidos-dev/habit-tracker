@@ -1,4 +1,4 @@
-package vTG1
+package v1
 
 import (
 	"errors"
@@ -13,15 +13,23 @@ import (
 )
 
 const (
-	webClient      = "webClient"
-	telegramClient = "telegramClient"
-	// clientCtx           = "client"
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
 	roleCtx             = "userRole"
 )
 
-func (h *Handler) TgUserIdentity(c *gin.Context) {
+func (h *Handler) userIdentity(c *gin.Context) {
+	client := c.Param("client")
+
+	switch client {
+	case models.WebClient:
+		h.webUserIdentity(c)
+	case models.TelegramClient:
+		h.tgUserIdentity(c)
+	}
+}
+
+func (h *Handler) tgUserIdentity(c *gin.Context) {
 	var TgUserName models.TgUser
 
 	if err := c.BindJSON(&TgUserName); err != nil {
@@ -32,14 +40,20 @@ func (h *Handler) TgUserIdentity(c *gin.Context) {
 
 	user, err := h.services.Authorization.FindTgUser(TgUserName.TgUsername)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getUserByTgUsername: %v", err.Error()))
+		newErrorResponse(c, http.StatusUnauthorized, fmt.Sprintf("error from handler: getUserByTgUsername: %v", err.Error()))
 		return
 	}
+
+	userId := user.Id
+	userRole := user.Role
+
+	c.Set(roleCtx, userRole)
+	c.Set(userCtx, userId)
 
 	c.JSON(http.StatusOK, user)
 }
 
-func (h *Handler) userIdentity(c *gin.Context) {
+func (h *Handler) webUserIdentity(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)
 	if header == "" {
 		newErrorResponse(c, http.StatusUnauthorized, "empty auth header")
