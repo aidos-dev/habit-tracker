@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
-	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -84,43 +83,43 @@ func (p *Processor) sendHelp(chatID int) error {
 }
 
 func (p *Processor) sendHello(chatID int, username string) error {
-	if !p.userExists(username) {
-		p.signUp(chatID, username)
-	}
+	// if !p.userExists(username) {
+	// 	p.signUp(chatID, username)
+	// }
+
+	p.signUp(chatID, username)
 
 	log.Printf("user [%v] started bot\n", username)
 
 	return p.tg.SendMessage(chatID, msgHello)
 }
 
-func (p *Processor) userExists(username string) bool {
-	// p.adapter.FindTgUser(username)
-	// p.ginEng.GET("tg_user_name", p.adapter.FindTgUser)
+// func (p *Processor) userExists(username string) bool {
 
-	log.Print("method userExists called")
+// 	log.Print("method userExists called")
 
-	var userExists bool
+// 	var userExists bool
 
-	log.Printf("userExists value: %v", userExists)
+// 	log.Printf("userExists value: %v", userExists)
 
-	urlPath := "/tgUser"
+// 	urlPath := "/auth/exist"
 
-	p.adapter.Router.GET(urlPath, func(c *gin.Context) {
-		p.adapter.FindTgUser(c, username, &userExists)
-		name := c.Query("tg_user_name")
+// 	p.adapter.Router.GET(urlPath, func(c *gin.Context) {
+// 		p.adapter.FindTgUser(c, username, &userExists)
+// 		name := c.Query("tg_user_name")
 
-		c.Set(models.CtxUsername, name)
-	})
+// 		c.Set(models.CtxUsername, name)
+// 	})
 
-	return userExists
-}
+// 	return userExists
+// }
 
 func (p *Processor) signUp(chatID int, username string) {
 	// defer func() { err = errs.WrapIfErr("can't do command: can't sign up", err) }()
 
 	log.Print("method signUp called")
 
-	urlPath := "/auth/sign-up"
+	urlPath := "auth/sign-up"
 
 	p.adapter.Router.POST(urlPath, func(c *gin.Context) {
 		p.adapter.SignUp(c, username)

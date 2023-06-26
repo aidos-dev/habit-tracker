@@ -25,6 +25,7 @@ func (h *Handler) signUpTelegram(c *gin.Context) {
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		log.Println(err.Error())
 		return
 	}
 

@@ -3,6 +3,7 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -36,7 +37,7 @@ func (h *Handler) tgUserIdentity(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	fmt.Printf("Parsed JSON content: %v\n", TgUserName)
+	log.Printf("Parsed JSON content: %v\n", TgUserName)
 
 	user, err := h.services.Authorization.FindTgUser(TgUserName.TgUsername)
 	if err != nil {

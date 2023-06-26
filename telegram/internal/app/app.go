@@ -40,7 +40,7 @@ func Run() {
 
 	ginEng := adapter.Engine
 
-	adapter.Router = ginEng.Group("http://localhost:8000")
+	adapter.Router = ginEng.Group("telegram/")
 
 	go func() {
 		if err := srv.Run(viper.GetString("port"), ginEng); err != nil {
