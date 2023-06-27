@@ -1,18 +1,41 @@
 package v1
 
-import (
-	"log"
-	"net/http"
+// func (a *AdapterHandler) SignUp(c *gin.Context, username string) {
+// 	log.Print("adapter SignUp method called")
 
-	"github.com/gin-gonic/gin"
-)
+// 	type Request struct {
+// 		Name string `json:"tg_user_name"`
+// 	}
 
-func (a *AdapterHandler) SignUp(c *gin.Context, username string) {
-	log.Print("adapter SignUp method called")
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"tg_user_name": username,
-	})
-}
+// 	requestData := Request{Name: username}
+
+// 	requestBody, err := json.Marshal(requestData)
+// 	if err != nil {
+// 		c.String(http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+
+// 	resp, err := http.Post("http://localhost:8000/telegram/auth/sign-up", "application/json", bytes.NewBuffer(requestBody))
+// 	if err != nil {
+// 		c.String(http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+// 	defer resp.Body.Close()
+
+// 	body, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {
+// 		c.String(http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+
+// 	log.Printf("response body: %v", body)
+
+// 	c.String(http.StatusOK, string(body))
+
+// 	// c.JSON(http.StatusOK, map[string]interface{}{
+// 	// 	"tg_user_name": username,
+// 	// })
+// }
 
 // func (h *Handler) deleteUser(c *gin.Context) {
 // 	userId, err := getUserId(c)

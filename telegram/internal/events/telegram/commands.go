@@ -1,13 +1,16 @@
 package telegram
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage"
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -86,8 +89,48 @@ func (p *Processor) sendHello(chatID int, username string) error {
 	// if !p.userExists(username) {
 	// 	p.signUp(chatID, username)
 	// }
+	log.Print("sendHello method called")
 
-	p.signUp(chatID, username)
+	// p.signUp(chatID, username)
+
+	// urlPath := "auth/sign-up"
+
+	// p.adapter.Router.POST(urlPath, func(c *gin.Context) {
+	// p.adapter.SignUp(c, username)
+	log.Print("processor SignUp method called")
+
+	type Request struct {
+		Name string `json:"tg_user_name"`
+	}
+
+	requestData := Request{Name: username}
+
+	requestBody, err := json.Marshal(requestData)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return err
+	}
+
+	resp, err := http.Post("http://habit-tracker:8000/telegram/auth/sign-up", "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return err
+	}
+
+	log.Printf("response body: %v", string(body))
+
+	// c.String(http.StatusOK, string(body))
+	// })
 
 	log.Printf("user [%v] started bot\n", username)
 
@@ -114,14 +157,14 @@ func (p *Processor) sendHello(chatID int, username string) error {
 // 	return userExists
 // }
 
-func (p *Processor) signUp(chatID int, username string) {
-	// defer func() { err = errs.WrapIfErr("can't do command: can't sign up", err) }()
+// func (p *Processor) signUp(chatID int, username string) {
+// 	// defer func() { err = errs.WrapIfErr("can't do command: can't sign up", err) }()
 
-	log.Print("method signUp called")
+// 	log.Print("method signUp called")
 
-	urlPath := "auth/sign-up"
+// 	urlPath := "auth/sign-up"
 
-	p.adapter.Router.POST(urlPath, func(c *gin.Context) {
-		p.adapter.SignUp(c, username)
-	})
-}
+// 	p.adapter.Router.POST(urlPath, func(c *gin.Context) {
+// 		p.adapter.SignUp(c, username)
+// 	})
+// }
