@@ -1,12 +1,8 @@
 package telegram
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
@@ -99,38 +95,40 @@ func (p *Processor) sendHello(chatID int, username string) error {
 	// p.adapter.SignUp(c, username)
 	log.Print("processor SignUp method called")
 
-	type Request struct {
-		Name string `json:"tg_user_name"`
-	}
+	// type Request struct {
+	// 	Name string `json:"tg_user_name"`
+	// }
 
-	requestData := Request{Name: username}
+	// requestData := Request{Name: username}
 
-	requestBody, err := json.Marshal(requestData)
-	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
-		return err
-	}
+	// requestBody, err := json.Marshal(requestData)
+	// if err != nil {
+	// 	// c.String(http.StatusInternalServerError, err.Error())
+	// 	log.Printf("error: %v", err.Error())
+	// 	return err
+	// }
 
-	resp, err := http.Post("http://habit-tracker:8000/telegram/auth/sign-up", "application/json", bytes.NewBuffer(requestBody))
-	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
-		return err
-	}
-	defer resp.Body.Close()
+	// resp, err := http.Post("http://habit-tracker:8000/telegram/auth/sign-up", "application/json", bytes.NewBuffer(requestBody))
+	// if err != nil {
+	// 	// c.String(http.StatusInternalServerError, err.Error())
+	// 	log.Printf("error: %v", err.Error())
+	// 	return err
+	// }
+	// defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
-		return err
-	}
+	// body, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	// c.String(http.StatusInternalServerError, err.Error())
+	// 	log.Printf("error: %v", err.Error())
+	// 	return err
+	// }
 
-	log.Printf("response body: %v", string(body))
+	// log.Printf("response body: %v", string(body))
 
 	// c.String(http.StatusOK, string(body))
 	// })
+
+	p.adapter.SignUp(username)
 
 	log.Printf("user [%v] started bot\n", username)
 

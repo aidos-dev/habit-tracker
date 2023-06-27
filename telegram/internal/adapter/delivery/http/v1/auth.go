@@ -1,41 +1,58 @@
 package v1
 
-// func (a *AdapterHandler) SignUp(c *gin.Context, username string) {
-// 	log.Print("adapter SignUp method called")
+import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
 
-// 	type Request struct {
-// 		Name string `json:"tg_user_name"`
-// 	}
+func (a *AdapterHandler) SignUp(username string) {
+	log.Print("adapter SignUp method called")
 
-// 	requestData := Request{Name: username}
+	// Perform the necessary logic for command1
+	log.Println("Executing SignUp with text:", username)
 
-// 	requestBody, err := json.Marshal(requestData)
-// 	if err != nil {
-// 		c.String(http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
+	// Make an HTTP request to the backend service
+	requestURL := a.BackendUrl + "/telegram/auth/sign-up"
 
-// 	resp, err := http.Post("http://localhost:8000/telegram/auth/sign-up", "application/json", bytes.NewBuffer(requestBody))
-// 	if err != nil {
-// 		c.String(http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
-// 	defer resp.Body.Close()
+	type Request struct {
+		Name string `json:"tg_user_name"`
+	}
 
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		c.String(http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
+	requestData := Request{Name: username}
 
-// 	log.Printf("response body: %v", body)
+	requestBody, err := json.Marshal(requestData)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: failed to send request: %v", err.Error())
+		return
+	}
 
-// 	c.String(http.StatusOK, string(body))
+	// Send a POST request
+	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return
+	}
+	defer resp.Body.Close()
 
-// 	// c.JSON(http.StatusOK, map[string]interface{}{
-// 	// 	"tg_user_name": username,
-// 	// })
-// }
+	// Read the response body
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return
+	}
+
+	log.Printf("response body: %v", string(responseBody))
+
+	// c.JSON(http.StatusOK, map[string]interface{}{
+	// 	"tg_user_name": username,
+	// })
+}
 
 // func (h *Handler) deleteUser(c *gin.Context) {
 // 	userId, err := getUserId(c)
