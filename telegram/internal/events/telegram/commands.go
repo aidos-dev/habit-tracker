@@ -60,6 +60,33 @@ func (p *Processor) savePage(chatID int, pageURL string, username string) (err e
 	return nil
 }
 
+func (p *Processor) createHabit(chatID int, username string) (err error) {
+	defer func() { err = errs.WrapIfErr("can't do command: save page", err) }()
+
+	page := &storage.Page{
+		URL:      pageURL,
+		UserName: username,
+	}
+
+	isExists, err := p.storage.IsExists(page)
+	if err != nil {
+		return err
+	}
+	if isExists {
+		return p.tg.SendMessage(chatID, msgAlreadyExists)
+	}
+
+	if err := p.storage.Save(page); err != nil {
+		return err
+	}
+
+	if err := p.tg.SendMessage(chatID, msgSaved); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *Processor) sendRandom(chatID int, username string) (err error) {
 	defer func() { err = errs.WrapIfErr("can't do command: can't send random", err) }()
 
