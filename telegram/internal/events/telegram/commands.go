@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	StartCmd = "/start"
-	HelpCmd  = "/help"
-	Habit    = "/habit"
+	StartCmd    = "/start"
+	HelpCmd     = "/help"
+	Habit       = "/new habit"
+	DeleteHabit = "/delete habit"
 )
 
 func (p *Processor) doCmd(text string, chatID int, username string) error {
@@ -82,51 +83,9 @@ func (p *Processor) sendHelp(chatID int) error {
 }
 
 func (p *Processor) sendHello(chatID int, username string) error {
-	// if !p.userExists(username) {
-	// 	p.signUp(chatID, username)
-	// }
 	log.Print("sendHello method called")
 
-	// p.signUp(chatID, username)
-
-	// urlPath := "auth/sign-up"
-
-	// p.adapter.Router.POST(urlPath, func(c *gin.Context) {
-	// p.adapter.SignUp(c, username)
 	log.Print("processor SignUp method called")
-
-	// type Request struct {
-	// 	Name string `json:"tg_user_name"`
-	// }
-
-	// requestData := Request{Name: username}
-
-	// requestBody, err := json.Marshal(requestData)
-	// if err != nil {
-	// 	// c.String(http.StatusInternalServerError, err.Error())
-	// 	log.Printf("error: %v", err.Error())
-	// 	return err
-	// }
-
-	// resp, err := http.Post("http://habit-tracker:8000/telegram/auth/sign-up", "application/json", bytes.NewBuffer(requestBody))
-	// if err != nil {
-	// 	// c.String(http.StatusInternalServerError, err.Error())
-	// 	log.Printf("error: %v", err.Error())
-	// 	return err
-	// }
-	// defer resp.Body.Close()
-
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	// c.String(http.StatusInternalServerError, err.Error())
-	// 	log.Printf("error: %v", err.Error())
-	// 	return err
-	// }
-
-	// log.Printf("response body: %v", string(body))
-
-	// c.String(http.StatusOK, string(body))
-	// })
 
 	p.adapter.SignUp(username)
 
@@ -134,35 +93,3 @@ func (p *Processor) sendHello(chatID int, username string) error {
 
 	return p.tg.SendMessage(chatID, msgHello)
 }
-
-// func (p *Processor) userExists(username string) bool {
-
-// 	log.Print("method userExists called")
-
-// 	var userExists bool
-
-// 	log.Printf("userExists value: %v", userExists)
-
-// 	urlPath := "/auth/exist"
-
-// 	p.adapter.Router.GET(urlPath, func(c *gin.Context) {
-// 		p.adapter.FindTgUser(c, username, &userExists)
-// 		name := c.Query("tg_user_name")
-
-// 		c.Set(models.CtxUsername, name)
-// 	})
-
-// 	return userExists
-// }
-
-// func (p *Processor) signUp(chatID int, username string) {
-// 	// defer func() { err = errs.WrapIfErr("can't do command: can't sign up", err) }()
-
-// 	log.Print("method signUp called")
-
-// 	urlPath := "auth/sign-up"
-
-// 	p.adapter.Router.POST(urlPath, func(c *gin.Context) {
-// 		p.adapter.SignUp(c, username)
-// 	})
-// }

@@ -1,12 +1,76 @@
 package v1
 
-// import (
-// 	"fmt"
-// 	"net/http"
+import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"time"
 
-// 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
-// 	"github.com/gin-gonic/gin"
-// )
+	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
+)
+
+func (a *AdapterHandler) UpdateHabitTracker(username string, habitId string, habitTracker models.HabitTracker) {
+	log.Print("adapter UpdateHabitTracker method called")
+
+	// Perform the necessary logic for command1
+	log.Println("Executing UpdateHabitTracker with text:", username)
+
+	// Make an HTTP request to the backend service
+	requestURL := a.BackendUrl + "/api/habits/" + habitId + "/tracker"
+
+	type Request struct {
+		UnitOfMessure string    `json:"unit_of_messure"`
+		Goal          string    `json:"goal"`
+		Frequency     string    `json:"frequency"`
+		StartDate     time.Time `json:"start_date"`
+		EndDate       time.Time `json:"end_date"`
+	}
+
+	requestData := Request{
+		UnitOfMessure: habitTracker.UnitOfMessure,
+		Goal:          habitTracker.Goal,
+		Frequency:     habitTracker.Frequency,
+		StartDate:     habitTracker.StartDate,
+		EndDate:       habitTracker.EndDate,
+	}
+
+	requestBody, err := json.Marshal(requestData)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: failed to send request: %v", err.Error())
+		return
+	}
+
+	// Send a PUT request
+	req, err := http.NewRequest("PUT", requestURL, bytes.NewBuffer(requestBody))
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("error executing request: %v", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	// Read the response body
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return
+	}
+
+	log.Printf("response body: %v", string(responseBody))
+}
 
 // func (h *Handler) getAllHabitTrackers(c *gin.Context) {
 // 	userId, err := getUserId(c)

@@ -1,35 +1,60 @@
 package v1
 
-// import (
-// 	"fmt"
-// 	"net/http"
+import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
 
-// 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
-// 	"github.com/gin-gonic/gin"
-// )
+	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
+)
 
-// func (h *Handler) createHabit(c *gin.Context) {
-// 	userId, err := getUserId(c)
-// 	if err != nil {
-// 		return
-// 	}
+func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) {
+	log.Print("adapter CreateHabit method called")
 
-// 	var input models.Habit
-// 	if err := c.BindJSON(&input); err != nil {
-// 		newErrorResponse(c, http.StatusBadRequest, err.Error())
-// 		return
-// 	}
+	// Perform the necessary logic for command1
+	log.Println("Executing CreateHabit with text:", username)
 
-// 	habitId, err := h.services.Habit.Create(userId, input)
-// 	if err != nil {
-// 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
+	// Make an HTTP request to the backend service
+	requestURL := a.BackendUrl + "/api/habits"
 
-// 	c.JSON(http.StatusOK, map[string]interface{}{
-// 		"habitId": habitId,
-// 	})
-// }
+	type Request struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+
+	requestData := Request{
+		Title:       habit.Title,
+		Description: habit.Description,
+	}
+
+	requestBody, err := json.Marshal(requestData)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: failed to send request: %v", err.Error())
+		return
+	}
+
+	// Send a POST request
+	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// c.String(http.StatusInternalServerError, err.Error())
+		log.Printf("error: %v", err.Error())
+		return
+	}
+
+	log.Printf("response body: %v", string(responseBody))
+}
 
 // type getAllHabitsResponse struct {
 // 	Data []models.Habit `json:"data"`
