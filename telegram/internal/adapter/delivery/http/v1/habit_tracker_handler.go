@@ -6,19 +6,20 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 )
 
-func (a *AdapterHandler) UpdateHabitTracker(username string, habitId string, habitTracker models.HabitTracker) {
+func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitTracker models.HabitTracker) {
 	log.Print("adapter UpdateHabitTracker method called")
 
 	// Perform the necessary logic for command1
 	log.Println("Executing UpdateHabitTracker with text:", username)
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + "/api/habits/" + habitId + "/tracker"
+	requestURL := a.BackendUrl + "/api/habits/" + strconv.Itoa(habitId) + "/tracker"
 
 	type Request struct {
 		UnitOfMessure string    `json:"unit_of_messure"`

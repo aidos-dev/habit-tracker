@@ -10,7 +10,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 )
 
-func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) {
+func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	log.Print("adapter CreateHabit method called")
 
 	// Perform the necessary logic for command1
@@ -33,7 +33,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) {
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
 		log.Printf("error: failed to send request: %v", err.Error())
-		return
+		return 0
 	}
 
 	// Send a POST request
@@ -41,7 +41,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) {
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
 		log.Printf("error: %v", err.Error())
-		return
+		return 0
 	}
 	defer resp.Body.Close()
 
@@ -50,10 +50,13 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) {
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
 		log.Printf("error: %v", err.Error())
-		return
+		return 0
 	}
 
 	log.Printf("response body: %v", string(responseBody))
+
+	// temporarily returning random number 121212. just for testing as a placeholder
+	return 121212
 }
 
 // type getAllHabitsResponse struct {

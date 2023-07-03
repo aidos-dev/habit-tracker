@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/aidos-dev/habit-tracker/telegram/config"
@@ -51,8 +52,12 @@ func Run() {
 
 	// fetcher
 
+	// wait group
+	var wg *sync.WaitGroup
+	var mu *sync.Mutex
+
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter)
+	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, wg, mu)
 
 	log.Print("service started")
 

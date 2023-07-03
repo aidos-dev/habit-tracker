@@ -3,6 +3,7 @@ package telegram
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/clients/tgClient"
@@ -18,6 +19,8 @@ type Processor struct {
 	offset  int
 	storage storage.Storage
 	adapter *v1.AdapterHandler
+	wg      *sync.WaitGroup
+	mu      *sync.Mutex
 }
 
 type Meta struct {
@@ -30,11 +33,13 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler) *Processor {
+func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, wg *sync.WaitGroup, mu *sync.Mutex) *Processor {
 	return &Processor{
 		tg:      client,
 		storage: storage,
 		adapter: adapter,
+		wg:      wg,
+		mu:      mu,
 	}
 }
 
