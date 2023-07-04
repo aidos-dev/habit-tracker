@@ -15,12 +15,18 @@ import (
 )
 
 type Processor struct {
-	tg      *tgClient.Client
-	offset  int
-	storage storage.Storage
-	adapter *v1.AdapterHandler
-	wg      *sync.WaitGroup
-	mu      *sync.Mutex
+	tg           *tgClient.Client
+	offset       int
+	storage      storage.Storage
+	adapter      *v1.AdapterHandler
+	wg           *sync.WaitGroup
+	mu           *sync.Mutex
+	EventCh      chan models.Event
+	startHelloCh chan bool
+	StartHabitCh chan bool
+	errChan      chan error
+	// HabitCh      chan models.Habit
+	// TrackerCh    chan models.HabitTracker
 }
 
 type Meta struct {
@@ -33,13 +39,18 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, wg *sync.WaitGroup, mu *sync.Mutex) *Processor {
+func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, wg *sync.WaitGroup, mu *sync.Mutex, eventCh chan models.Event, startHabitCh chan bool, errChan chan error) *Processor {
 	return &Processor{
-		tg:      client,
-		storage: storage,
-		adapter: adapter,
-		wg:      wg,
-		mu:      mu,
+		tg:           client,
+		storage:      storage,
+		adapter:      adapter,
+		wg:           wg,
+		mu:           mu,
+		EventCh:      eventCh,
+		StartHabitCh: startHabitCh,
+		errChan:      errChan,
+		// HabitCh:      habitCh,
+		// TrackerCh:    trackerCh,
 	}
 }
 

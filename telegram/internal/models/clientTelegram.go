@@ -32,3 +32,9 @@ const (
 type TgUserName struct {
 	Username string `json:"tg_user_name"`
 }
+
+type Event struct {
+	ChatId   int
+	UserName string
+	Text     string
+}

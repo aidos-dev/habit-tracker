@@ -35,7 +35,15 @@ func Run() {
 
 	storage := files.New(storagePath)
 
-	adapter := v1.NewAdapterHandler()
+	var (
+		eventCh      chan models.Event
+		startHabitCh chan bool
+		errChan      chan error
+		// habitCh      chan models.Habit
+		// trackerCh    chan models.HabitTracker
+	)
+
+	adapter := v1.NewAdapterHandler(eventCh, startHabitCh)
 
 	srv := new(server.Server)
 
@@ -57,7 +65,14 @@ func Run() {
 	var mu *sync.Mutex
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, wg, mu)
+	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, wg, mu, eventCh, startHabitCh, errChan)
+
+	/*
+		method CreateHabit runs in a separate goroutine and keeps listening
+		for chanels. This way it can handle a "dialog" with a user while
+		a user is in process of habit creation
+	*/
+	go eventsProcessor.CreateHabit()
 
 	log.Print("service started")
 
