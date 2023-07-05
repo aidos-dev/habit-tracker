@@ -36,14 +36,16 @@ func Run() {
 	storage := files.New(storagePath)
 
 	var (
-		eventCh      chan models.Event
-		startHabitCh chan bool
-		errChan      chan error
+		eventCh            = make(chan models.Event)
+		startSendHelloCh   = make(chan bool)
+		startSendHelpCh    = make(chan bool)
+		startCreateHabitCh = make(chan bool)
+		errChan            = make(chan error)
 		// habitCh      chan models.Habit
 		// trackerCh    chan models.HabitTracker
 	)
 
-	adapter := v1.NewAdapterHandler(eventCh, startHabitCh)
+	adapter := v1.NewAdapterHandler()
 
 	srv := new(server.Server)
 
@@ -61,11 +63,16 @@ func Run() {
 	// fetcher
 
 	// wait group
-	var wg *sync.WaitGroup
-	var mu *sync.Mutex
+	// var wg *sync.WaitGroup
+	// mutex
+	mu := &sync.Mutex{}
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, wg, mu, eventCh, startHabitCh, errChan)
+	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, mu, eventCh, startSendHelloCh, startSendHelpCh, startCreateHabitCh, errChan)
+
+	go eventsProcessor.SendHello()
+
+	go eventsProcessor.SendHelp()
 
 	/*
 		method CreateHabit runs in a separate goroutine and keeps listening

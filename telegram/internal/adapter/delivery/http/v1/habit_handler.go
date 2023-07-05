@@ -11,10 +11,10 @@ import (
 )
 
 func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
-	log.Print("adapter CreateHabit method called")
+	log.Print("adapter: CreateHabit method called")
 
 	// Perform the necessary logic for command1
-	log.Println("Executing CreateHabit with text:", username)
+	log.Println("adapter: CreateHabit: Executing CreateHabit with text:", username)
 
 	// Make an HTTP request to the backend service
 	requestURL := a.BackendUrl + "/api/habits"
@@ -32,7 +32,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: failed to send request: %v", err.Error())
+		log.Printf("error: adapter: CreateHabit: failed to send request: %v", err.Error())
 		return 0
 	}
 
@@ -40,7 +40,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
+		log.Printf("error: adapter: CreateHabit: %v", err.Error())
 		return 0
 	}
 	defer resp.Body.Close()
@@ -49,11 +49,11 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
+		log.Printf("error: adapter: CreateHabit: %v", err.Error())
 		return 0
 	}
 
-	log.Printf("response body: %v", string(responseBody))
+	log.Printf("adapter: CreateHabit: response body: %v", string(responseBody))
 
 	// temporarily returning random number 121212. just for testing as a placeholder
 	return 121212

@@ -2,7 +2,6 @@ package telegram
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -23,36 +22,34 @@ const (
 func (p *Processor) doCmd(text string, chatID int, username string) error {
 	text = strings.TrimSpace(text)
 
-	log.Printf("got new command [%s] from [%s]", text, username)
+	log.Printf("doCmd: got new command [%s] from [%s]", text, username)
 
-	// chatIDchan := make(chan int)
-	// usernameChan := make(chan string)
-
-	quitCh := make(chan bool)
-
-	// p.wg.Wait()
+	event := models.Event{
+		ChatId:   chatID,
+		UserName: username,
+		Text:     text,
+	}
 
 	switch text {
 	case StartCmd:
-		errCh <- p.sendHello(chatID, username)
+		p.startSendHelloCh <- true
+		log.Print("doCmd: switch sent true to startSendHelloCh")
 	case HelpCmd:
-		errCh <- p.sendHelp(chatID)
+		p.startSendHelpCh <- true
 	case Habit:
-		for {
-			textChan <- text
-			errCh <- p.createHabit()
-			if <-quitCh {
-				break
-			}
-		}
+		p.startCreateHabitCh <- true
 
-	default:
-		return p.tg.SendMessage(chatID, msgUnknownCommand)
 	}
+
+	log.Print("doCmd: switch case made its choise")
+
+	p.eventCh <- event
+
+	log.Print("doCmd: event is sent to eventCh")
 
 	err := <-p.errChan
 
-	log.Printf("doCmd err content is: %v", err)
+	log.Printf("doCmd:  err content is: %v", err)
 
 	return err
 }
@@ -60,15 +57,17 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 func (p *Processor) CreateHabit() {
 	const habitErr = "can't do command: save page"
 
-	<-p.StartHabitCh
-
-	p.mu.Lock()
-
-	log.Print("createHabit method called")
+	log.Print("CreateHabit: goroutine started")
 
 	for {
 
-		event := <-p.EventCh
+		<-p.startCreateHabitCh
+		log.Print("CreateHabit: method called")
+
+		p.mu.Lock()
+		log.Print("CreateHabit: method locked event channel")
+
+		event := <-p.eventCh
 
 		chatID := event.ChatId
 		username := event.UserName
@@ -116,7 +115,7 @@ func (p *Processor) CreateHabit() {
 			}
 			t, err := time.Parse(timeFormat, text)
 			if err != nil {
-				fmt.Println("Error:", err)
+				log.Printf("error: CreateHabit: %v", err)
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.StartDate = t
@@ -128,14 +127,14 @@ func (p *Processor) CreateHabit() {
 
 			t, err := time.Parse(timeFormat, text)
 			if err != nil {
-				fmt.Println("Error:", err)
+				log.Printf("error: CreateHabit: %v", err)
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.EndDate = t
 
 			habitId := p.adapter.CreateHabit(username, habit)
 
-			log.Printf("created habit id is: %v", habitId)
+			log.Printf("CreateHabit: created habit id is: %v", habitId)
 
 			p.adapter.UpdateHabitTracker(username, habitId, tracker)
 
@@ -151,29 +150,74 @@ func (p *Processor) CreateHabit() {
 			// 	return err
 			// }
 
-			if err := p.tg.SendMessage(chatID, msgCreated); err != nil {
-				p.errChan <- nil
-			}
+			// if err := p.tg.SendMessage(chatID, msgCreated); err != nil {
+			// 	p.errChan <- nil
+			// }
+
+			err = p.tg.SendMessage(chatID, msgCreated)
+			p.errChan <- err
 
 			p.mu.Unlock()
+			log.Print("CreateHabit: method unlocked event channel")
 
 		}
 
 	}
 }
 
-func (p *Processor) sendHelp(chatID int) error {
-	return p.tg.SendMessage(chatID, msgHelp)
+func (p *Processor) SendHelp() {
+	log.Print("SendHelp: goroutine started")
+
+	for {
+		<-p.startSendHelpCh
+
+		p.mu.Lock()
+		log.Print("SendHelp: method locked event channel")
+
+		event := <-p.eventCh
+		chatID := event.ChatId
+
+		err := p.tg.SendMessage(chatID, msgHelp)
+
+		p.errChan <- err
+
+		p.mu.Unlock()
+		log.Print("SendHelp: method locked event channel")
+
+	}
 }
 
-func (p *Processor) sendHello(chatID int, username string) error {
-	log.Print("sendHello method called")
+func (p *Processor) SendHello() {
+	log.Print("SendHello: goroutine started")
 
-	p.adapter.SignUp(username)
+	for {
 
-	log.Printf("user [%v] started bot\n", username)
+		<-p.startSendHelloCh
+		log.Print("SendHello: SendHello method called")
 
-	return p.tg.SendMessage(chatID, msgHello)
+		p.mu.Lock()
+
+		log.Print("SendHello: method locked event channel")
+
+		event := <-p.eventCh
+
+		log.Printf("SendHello: event content is: %v", event)
+
+		chatID := event.ChatId
+		username := event.UserName
+
+		p.adapter.SignUp(username)
+
+		log.Printf("SendHello: user [%v] started bot\n", username)
+
+		err := p.tg.SendMessage(chatID, msgHello)
+
+		p.errChan <- err
+
+		p.mu.Unlock()
+
+		log.Print("SendHello: method unlocked event channel")
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

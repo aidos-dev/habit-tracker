@@ -9,10 +9,10 @@ import (
 )
 
 func (a *AdapterHandler) SignUp(username string) {
-	log.Print("adapter SignUp method called")
+	log.Print("adapter: SignUp method called")
 
 	// Perform the necessary logic for command1
-	log.Println("Executing SignUp with text:", username)
+	log.Println("adapter: SignUp: Executing SignUp with text:", username)
 
 	// Make an HTTP request to the backend service
 	requestURL := a.BackendUrl + "/auth/sign-up"
@@ -26,7 +26,7 @@ func (a *AdapterHandler) SignUp(username string) {
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: failed to send request: %v", err.Error())
+		log.Printf("error: adapter: SignUp: failed to send request: %v", err.Error())
 		return
 	}
 
@@ -47,7 +47,7 @@ func (a *AdapterHandler) SignUp(username string) {
 		return
 	}
 
-	log.Printf("response body: %v", string(responseBody))
+	log.Printf("adapter: SignUp: response body: %v", string(responseBody))
 
 	// c.JSON(http.StatusOK, map[string]interface{}{
 	// 	"tg_user_name": username,

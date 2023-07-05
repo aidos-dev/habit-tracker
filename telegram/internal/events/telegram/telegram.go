@@ -3,6 +3,7 @@ package telegram
 import (
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
 	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
@@ -15,16 +16,16 @@ import (
 )
 
 type Processor struct {
-	tg           *tgClient.Client
-	offset       int
-	storage      storage.Storage
-	adapter      *v1.AdapterHandler
-	wg           *sync.WaitGroup
-	mu           *sync.Mutex
-	EventCh      chan models.Event
-	startHelloCh chan bool
-	StartHabitCh chan bool
-	errChan      chan error
+	tg                 *tgClient.Client
+	offset             int
+	storage            storage.Storage
+	adapter            *v1.AdapterHandler
+	mu                 *sync.Mutex
+	eventCh            chan models.Event
+	startSendHelloCh   chan bool
+	startSendHelpCh    chan bool
+	startCreateHabitCh chan bool
+	errChan            chan error
 	// HabitCh      chan models.Habit
 	// TrackerCh    chan models.HabitTracker
 }
@@ -39,16 +40,17 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, wg *sync.WaitGroup, mu *sync.Mutex, eventCh chan models.Event, startHabitCh chan bool, errChan chan error) *Processor {
+func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, errChan chan error) *Processor {
 	return &Processor{
-		tg:           client,
-		storage:      storage,
-		adapter:      adapter,
-		wg:           wg,
-		mu:           mu,
-		EventCh:      eventCh,
-		StartHabitCh: startHabitCh,
-		errChan:      errChan,
+		tg:                 client,
+		storage:            storage,
+		adapter:            adapter,
+		mu:                 mu,
+		eventCh:            eventCh,
+		startSendHelloCh:   startSendHelloCh,
+		startSendHelpCh:    startSendHelpCh,
+		startCreateHabitCh: startCreateHabitCh,
+		errChan:            errChan,
 		// HabitCh:      habitCh,
 		// TrackerCh:    trackerCh,
 	}
@@ -91,7 +93,7 @@ func (p *Processor) processMessage(event events.Event) error {
 		return errs.Wrap("can't process message", err)
 	}
 
-	fmt.Printf("Event content is: [%v]\n", event)
+	log.Printf("processMessage: Event content is: [%v]\n", event)
 
 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
 		return errs.Wrap("can't process message", err)
