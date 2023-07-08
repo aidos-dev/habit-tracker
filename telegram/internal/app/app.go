@@ -17,7 +17,6 @@ import (
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage/files"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -27,6 +26,9 @@ const (
 )
 
 func Run() {
+	// init config: cleanenv
+	cfg := config.MustLoad()
+
 	// get telegram token
 	telegramToken := config.MustToken()
 
@@ -54,7 +56,7 @@ func Run() {
 	// adapter.Router = ginEng.Group("/telegram")
 
 	go func() {
-		if err := srv.Run(viper.GetString("port"), ginEng); err != nil {
+		if err := srv.Run(cfg, ginEng); err != nil {
 			logrus.Printf("error occured while running backend adapter http server: %s", err.Error())
 			return
 		}

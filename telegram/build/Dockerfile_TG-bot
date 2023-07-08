@@ -43,7 +43,7 @@ WORKDIR /app
 COPY --from=build /app/tg-bot-habit .
 # COPY telegram/build/wait-for-postgres.sh /app/build/
 COPY telegram/build/.env /app/build/
-# COPY telegram/config/telegramToken.go /app/config/
+COPY telegram/configs /app/configs/
 
 # Set the environment variable from the .env file
 # ARG value will be passed with CLI command and then passed from ARG to ENV

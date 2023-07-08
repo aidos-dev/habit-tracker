@@ -1,8 +1,13 @@
-port: "8000"
+env: "local" # local, dev, prod
+
+http_server:
+  port: "8000"
+  timeout: 4s
+  idle_timeout: 60s
 
 db:
-  username: "postgres"
   host: "db"
   port: "5432"
+  username: "postgres"
   dbname: "postgres"
   sslmode: "disable"

@@ -4,23 +4,25 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/aidos-dev/habit-tracker/telegram/config"
 )
 
 type Server struct {
 	httpServer *http.Server
 }
 
-func (s *Server) Run(port string, handler http.Handler) error {
+func (s *Server) Run(cfg *config.Config, handler http.Handler) error {
 	s.httpServer = &http.Server{
-		Addr:           ":" + port,
+		Addr:           ":" + cfg.HTTPServer.Port,
 		Handler:        handler,
 		MaxHeaderBytes: 1 << 20, // 1 MB
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    cfg.HTTPServer.Timeout,
+		WriteTimeout:   cfg.HTTPServer.Timeout,
+		IdleTimeout:    cfg.HTTPServer.IdleTimeout,
 	}
 
-	log.Print("adapter server started and listening on port: 8080")
+	log.Printf("adapter server started and listening on port: %v", cfg.HTTPServer.Port)
 
 	return s.httpServer.ListenAndServe()
 }

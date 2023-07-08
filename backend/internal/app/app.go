@@ -6,45 +6,22 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/aidos-dev/habit-tracker/backend/internal/config"
 	v1 "github.com/aidos-dev/habit-tracker/backend/internal/delivery/http/v1"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository/postgres"
 	"github.com/aidos-dev/habit-tracker/backend/internal/server"
 	"github.com/aidos-dev/habit-tracker/backend/internal/service"
 	_ "github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
-func initConfig() error {
-	// AddConfigPath receives a derectory name
-	viper.AddConfigPath("configs")
-	// SetConfig receives a file name (from the directory above)
-	viper.SetConfigName("config")
-	return viper.ReadInConfig()
-}
-
 func Run() {
+	// init config: cleanenv
+	cfg := config.MustLoad()
+
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
-	if err := initConfig(); err != nil {
-		logrus.Printf("error occured while running initConfig: %s", err.Error())
-		return
-	}
-
-	if err := godotenv.Load("build/.env"); err != nil {
-		logrus.Printf("error loading env variables: %s", err.Error())
-		return
-	}
-
-	dbpool, err := postgres.NewPostgresDB(postgres.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
-		Password: os.Getenv("DB_PASSWORD"),
-	})
+	dbpool, err := postgres.NewPostgresDB(cfg)
 	if err != nil {
 		logrus.Printf("failed to initialize db: %s", err.Error())
 		return
@@ -52,13 +29,12 @@ func Run() {
 
 	repos := postgres.NewPostgresRepository(dbpool)
 	services := service.NewService(repos)
-	// handlers := v1.NewHandler(services)
 	handlers := v1.NewHandler(services)
 
 	srv := new(server.Server)
 
 	go func() {
-		if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
+		if err := srv.Run(cfg, handlers.InitRoutes()); err != nil {
 			logrus.Printf("error occured while running http server: %s", err.Error())
 			return
 		}
