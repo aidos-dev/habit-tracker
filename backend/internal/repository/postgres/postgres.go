@@ -9,6 +9,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	nonUniqueValueCode = "23505"
+)
+
 func NewPostgresDB(cfg *config.Config) (*pgxpool.Pool, error) {
 	// db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 	// 	cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode))

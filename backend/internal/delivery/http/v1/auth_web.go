@@ -2,30 +2,36 @@ package v1
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 )
 
 func (h *Handler) signUpWeb(c *gin.Context) {
+	const op = "delivery.http.v1.signUpWeb"
+
 	var input models.User
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		h.log.Error(op, "faile to get JSON object", sl.Err(err))
 		return
 	}
 
-	log.Printf("Parsed JSON content: %v\n", input)
-
-	// input = webUserFormat(c, input)
+	// the line bellow only for debugging
+	// h.log.Info("Parsed JSON content", slog.Any("value", input))
 
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		h.log.Error(op, "faile to add new user", sl.Err(err))
 		return
 	}
+
+	h.log.Info("user has been added", slog.Int("id", id))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
@@ -38,18 +44,23 @@ type signInInput struct {
 }
 
 func (h *Handler) signInWeb(c *gin.Context) {
+	const op = "delivery.http.v1.signInWeb"
+
 	var input signInInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		h.log.Error(op, "faile to get JSON object", sl.Err(err))
 		return
 	}
 
-	log.Printf("Parsed JSON content: %v\n", input)
+	// the line bellow only for debugging
+	// h.log.Info("Parsed JSON content", slog.Any("value", input))
 
 	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		h.log.Error(op, "faile to generate JWT token", sl.Err(err))
 		return
 	}
 
@@ -59,6 +70,8 @@ func (h *Handler) signInWeb(c *gin.Context) {
 }
 
 func (h *Handler) deleteUser(c *gin.Context) {
+	const op = "delivery.http.v1.deleteUser"
+
 	userId, err := getUserId(c)
 	if err != nil {
 		return
@@ -67,6 +80,7 @@ func (h *Handler) deleteUser(c *gin.Context) {
 	deletedUserId, err := h.services.User.DeleteUser(userId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: delete user: %v", err.Error()))
+		h.log.Error(op, fmt.Sprintf("faile to delete a user: %d", userId), sl.Err(err))
 		return
 	}
 

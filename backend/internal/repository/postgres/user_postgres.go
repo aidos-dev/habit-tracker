@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,6 +23,11 @@ func NewUserPostgres(dbpool *pgxpool.Pool) repository.User {
 }
 
 func (r *UserPostgres) CreateUser(user models.User) (int, error) {
+	const (
+		op         = "repository.postgres.CreateUser"
+		userExists = "such user already exists"
+	)
+
 	var id int
 	query := `INSERT INTO 
 						user_account (user_name, tg_user_name, first_name, last_name, email, password_hash) 
@@ -36,13 +43,28 @@ func (r *UserPostgres) CreateUser(user models.User) (int, error) {
 
 	row := r.dbpool.QueryRow(context.Background(), query, user.Username, user.TgUsername, user.FirstName, user.LastName, user.Email, user.Password)
 	if err := row.Scan(&id); err != nil {
-		return 0, err
+
+		///////////////////////////////////////////
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == nonUniqueValueCode {
+				return 0, fmt.Errorf("%s: %s: %w", op, userExists, err)
+			}
+			return 0, fmt.Errorf("%s: %w", op, err)
+			// fmt.Printf("error from %s: with message: %v\n", op, pgErr.Message) // => syntax error at end of input
+			// fmt.Printf("error from %s: with code: %v\n", op, pgErr.Code)       // => 42601
+		}
+
+		///////////////////////////////////////////
+
 	}
 
 	return id, nil
 }
 
 func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
+	const op = "repository.postgres.GetUser"
+
 	var user models.User
 	query := `SELECT 
 					id,
@@ -59,22 +81,24 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 	userHabit, err := r.dbpool.Query(context.Background(), query, username, password)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error from GetUser: QueryRow failed: %v\n", err)
-		return user, err
+		return user, fmt.Errorf("%s: %w", op, err)
 	}
 
 	user, err = pgx.CollectOneRow(userHabit, pgx.RowToStructByName[models.User])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error from GetUser: Collect One Row failed: %v\n", err)
-		return user, err
+		return user, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return user, err
+	return user, nil
 }
 
 func (r *UserPostgres) DeleteUser(userId int) (int, error) {
+	const op = "repository.postgres.DeleteUser"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	var checkUserId int
@@ -89,7 +113,7 @@ func (r *UserPostgres) DeleteUser(userId int) (int, error) {
 	if err != nil {
 		tx.Rollback(context.Background())
 		fmt.Printf("err: repository: user_postgres.go: DeleteUser: rowUser.Scan: user doesn't exist: %v\n", err)
-		return 0, err
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return checkUserId, tx.Commit(context.Background())

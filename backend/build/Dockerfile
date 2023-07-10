@@ -14,6 +14,7 @@ COPY go.sum ./
 # COPY migrate ./
 
 COPY /backend ./backend
+COPY /pkg ./pkg
 
 RUN ls -lah
 

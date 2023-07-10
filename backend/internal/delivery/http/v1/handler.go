@@ -3,14 +3,19 @@ package v1
 import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/service"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 )
 
 type Handler struct {
+	log      *slog.Logger
 	services *service.Service
 }
 
-func NewHandler(services *service.Service) *Handler {
-	return &Handler{services: services}
+func NewHandler(log *slog.Logger, services *service.Service) *Handler {
+	return &Handler{
+		log:      log,
+		services: services,
+	}
 }
 
 func (h *Handler) InitRoutes() *gin.Engine {
