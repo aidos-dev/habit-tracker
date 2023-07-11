@@ -44,18 +44,18 @@ func (r *UserPostgres) CreateUser(user models.User) (int, error) {
 	row := r.dbpool.QueryRow(context.Background(), query, user.Username, user.TgUsername, user.FirstName, user.LastName, user.Email, user.Password)
 	if err := row.Scan(&id); err != nil {
 
-		///////////////////////////////////////////
+		/*
+			errors.As() is used instead of if err != nil. It is pgx error wrapping
+			it gives us ability to see different error codes and handle them accordingly
+			https://github.com/jackc/pgx/wiki/Error-Handling
+		*/
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == nonUniqueValueCode {
-				return 0, fmt.Errorf("%s: %s: %w", op, userExists, err)
+				return 0, fmt.Errorf("%s: %s: %w", op, userExists, err) // for unique_violation error
 			}
-			return 0, fmt.Errorf("%s: %w", op, err)
-			// fmt.Printf("error from %s: with message: %v\n", op, pgErr.Message) // => syntax error at end of input
-			// fmt.Printf("error from %s: with code: %v\n", op, pgErr.Code)       // => 42601
+			return 0, fmt.Errorf("%s: %w", op, err) // for any other errors
 		}
-
-		///////////////////////////////////////////
 
 	}
 
@@ -79,6 +79,12 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 				WHERE user_name=$1 AND password_hash=$2`
 
 	userHabit, err := r.dbpool.Query(context.Background(), query, username, password)
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		fmt.Printf("Get user error message %s\n\n", pgErr.Message)
+		fmt.Printf("Get user error code %s\n\n", pgErr.Code)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error from GetUser: QueryRow failed: %v\n", err)
 		return user, fmt.Errorf("%s: %w", op, err)

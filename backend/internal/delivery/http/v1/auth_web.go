@@ -17,7 +17,7 @@ func (h *Handler) signUpWeb(c *gin.Context) {
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		h.log.Error(op, "faile to get JSON object", sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s:failed to get JSON object\n", op), sl.Err(err))
 		return
 	}
 
@@ -26,12 +26,12 @@ func (h *Handler) signUpWeb(c *gin.Context) {
 
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		h.log.Error(op, "faile to add new user", sl.Err(err))
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		h.log.Error(fmt.Sprintf("%s: failed to add new user", op), sl.Err(err))
 		return
 	}
 
-	h.log.Info("user has been added", slog.Int("id", id))
+	h.log.Info(fmt.Sprintf("%s:user has been added\n", op), slog.Int("id", id))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
@@ -46,23 +46,34 @@ type signInInput struct {
 func (h *Handler) signInWeb(c *gin.Context) {
 	const op = "delivery.http.v1.signInWeb"
 
+	h.log.Info(fmt.Sprintf("%s: Step 1\n", op))
+
 	var input signInInput
+
+	h.log.Info(fmt.Sprintf("%s: Step 2\n", op))
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		h.log.Error(op, "faile to get JSON object", sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s:failed to get JSON object\n", op), sl.Err(err))
 		return
 	}
 
+	h.log.Info(fmt.Sprintf("%s: Step 3\n", op))
+
 	// the line bellow only for debugging
 	// h.log.Info("Parsed JSON content", slog.Any("value", input))
+	h.log.Info(fmt.Sprintf("%s: input content: %v\n", op, input))
+	h.log.Info(fmt.Sprintf("%s: input Username: %v\n", op, input.Username))
+	h.log.Info(fmt.Sprintf("%s: input Password: %v\n", op, input.Password))
 
 	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		h.log.Error(op, "faile to generate JWT token", sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s:failed to generate JWT token", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: Step 4\n", op))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"token": token,
@@ -74,15 +85,18 @@ func (h *Handler) deleteUser(c *gin.Context) {
 
 	userId, err := getUserId(c)
 	if err != nil {
+		h.log.Error(fmt.Sprintf("%s:failed to find a user by id: %d", op, userId), sl.Err(err))
 		return
 	}
 
 	deletedUserId, err := h.services.User.DeleteUser(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: delete user: %v", err.Error()))
-		h.log.Error(op, fmt.Sprintf("faile to delete a user: %d", userId), sl.Err(err))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("%s:failed to delete a user: %d: %s", op, userId, err.Error()))
+		h.log.Error(fmt.Sprintf("%s:failed to delete a user: %d", op, userId), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s:user deleted\n", op), slog.Int("id", deletedUserId))
 
 	// c.JSON(http.StatusOK, map[string]interface{}{
 	// 	"Status": statusResponse{

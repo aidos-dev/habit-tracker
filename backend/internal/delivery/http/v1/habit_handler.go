@@ -5,12 +5,16 @@ import (
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) createHabit(c *gin.Context) {
+	const op = "delivery.http.v1.createHabit"
+
 	userId, err := getUserId(c)
 	if err != nil {
+		h.log.Error(fmt.Sprintf("%s:failed to find a user by id: %d", op, userId), sl.Err(err))
 		return
 	}
 

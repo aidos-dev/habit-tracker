@@ -25,10 +25,19 @@ func NewAuthService(repo repository.AdminUser) Authorization {
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
+	const op = "service.auth_web.GenerateToken"
+
+	fmt.Printf("%s: Step 1\n", op)
+	fmt.Printf("%s: username: %v\n", op, username)
+	fmt.Printf("%s: password: %v\n", op, password)
+	fmt.Printf("%s: password hash: %v\n", op, generatePasswordHash(password))
+
 	user, err := s.repo.GetUser(username, generatePasswordHash(password))
 	if err != nil {
 		return "", err
 	}
+
+	fmt.Printf("%s: Step 2\n", op)
 
 	claims := &jwt.MapClaims{
 		"iss":       "issuer",
@@ -40,12 +49,18 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		},
 	}
 
+	fmt.Printf("%s: Step 3\n", op)
+
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		claims,
 	)
 
+	fmt.Printf("%s: Step 4\n", op)
+
 	tokenString, err := token.SignedString([]byte(signingKey))
+
+	fmt.Printf("%s: Step 5\n", op)
 
 	return tokenString, err
 }
