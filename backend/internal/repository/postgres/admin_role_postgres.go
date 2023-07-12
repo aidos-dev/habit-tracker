@@ -2,11 +2,11 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/sirupsen/logrus"
 )
 
 type AdminRolePostgres struct {
@@ -18,6 +18,8 @@ func NewAdminRolePostgres(dbpool *pgxpool.Pool) repository.AdminRole {
 }
 
 func (r *AdminRolePostgres) AssignRole(userId int, role models.UpdateRoleInput) (int, error) {
+	const op = "repository.postgres.AssignRole"
+
 	var id int
 
 	query := `UPDATE 
@@ -27,11 +29,9 @@ func (r *AdminRolePostgres) AssignRole(userId int, role models.UpdateRoleInput) 
 				WHERE id =$1
 				RETURNING id`
 
-	logrus.Debugf("assignRoleQuerry: %s", query)
-
 	row := r.dbpool.QueryRow(context.Background(), query, userId, role.Role)
 	if err := row.Scan(&id); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return id, nil

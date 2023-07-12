@@ -6,13 +6,6 @@ import (
 	_ "github.com/jackc/pgx/v5"
 )
 
-// type AdminUser interface {
-// 	GetAllUsers() ([]models.GetUser, error)
-// 	GetUserById(userId int) (models.GetUser, error)
-// 	GetUserByTgUsername(TGusername string) (models.GetUser, error)
-// 	User
-// }
-
 type AdminRole interface {
 	AssignRole(userId int, role models.UpdateRoleInput) (int, error)
 }
@@ -33,7 +26,6 @@ type AdminUserReward interface {
 }
 
 type Admin interface {
-	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -70,7 +62,6 @@ type Reward interface {
 }
 
 type Repository struct {
-	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward

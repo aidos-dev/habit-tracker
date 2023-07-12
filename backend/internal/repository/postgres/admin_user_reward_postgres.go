@@ -19,9 +19,11 @@ func NewAdminUserRewardPostgres(dbpool *pgxpool.Pool) repository.AdminUserReward
 }
 
 func (r *AdminUserRewardPostgres) AssignReward(userId, habitId, rewardId int) (int, error) {
+	const op = "repository.postgres.AssignReward"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	var userRewardId int
@@ -43,7 +45,7 @@ func (r *AdminUserRewardPostgres) AssignReward(userId, habitId, rewardId int) (i
 	rowUserReward := tx.QueryRow(context.Background(), assignRewardQuery, userId, habitId, rewardId)
 	if err := rowUserReward.Scan(&userRewardId); err != nil {
 		tx.Rollback(context.Background())
-		return 0, err
+		return 0, fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return userRewardId, tx.Commit(context.Background())
@@ -51,9 +53,11 @@ func (r *AdminUserRewardPostgres) AssignReward(userId, habitId, rewardId int) (i
 
 // Take away from user
 func (r *AdminUserRewardPostgres) RemoveFromUser(userId, habitId, rewardId int) error {
+	const op = "repository.postgres.RemoveFromUser"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	var checkUserRewardId int
@@ -68,8 +72,7 @@ func (r *AdminUserRewardPostgres) RemoveFromUser(userId, habitId, rewardId int) 
 	err = rowUserReward.Scan(&checkUserRewardId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		fmt.Printf("err: repository: admin_user_reward_postgres.go: RemoveFromUser: rowUserReward.Scan: user_reward doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	// queryUserReward := `IF EXISTS (
@@ -101,9 +104,11 @@ func (r *AdminUserRewardPostgres) RemoveFromUser(userId, habitId, rewardId int) 
 }
 
 func (r *AdminUserRewardPostgres) UpdateUserReward(userId, habitId, rewardId int, input models.UpdateUserRewardInput) error {
+	const op = "repository.postgres.UpdateUserReward"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	var userRewardId int
@@ -121,8 +126,7 @@ func (r *AdminUserRewardPostgres) UpdateUserReward(userId, habitId, rewardId int
 
 	if err != nil {
 		tx.Rollback(context.Background())
-		fmt.Printf("err: repository: admin_user_reward_postgres.go: UpdateUserReward: rowUserReward.Scan: user_reward doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return tx.Commit(context.Background())

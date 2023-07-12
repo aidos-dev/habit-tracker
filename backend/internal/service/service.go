@@ -12,13 +12,6 @@ type Authorization interface {
 	FindTgUser(tgUsername string) (models.GetUser, error)
 }
 
-// type AdminUser interface {
-// 	GetAllUsers() ([]models.GetUser, error)
-// 	GetUserById(userId int) (models.GetUser, error)
-// 	GetUserByTgUsername(TGusername string) (models.GetUser, error)
-// 	User
-// }
-
 type AdminRole interface {
 	AssignRole(userId int, role models.UpdateRoleInput) (int, error)
 }
@@ -39,7 +32,6 @@ type AdminUserReward interface {
 }
 
 type Admin interface {
-	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -77,7 +69,6 @@ type Reward interface {
 
 type Service struct {
 	Authorization
-	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -90,8 +81,7 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization: NewAuthService(repos.User),
-		// AdminUser:       NewAdminUserService(repos.AdminUser),
+		Authorization:   NewAuthService(repos.User),
 		AdminRole:       NewAdminRoleService(repos.AdminRole),
 		AdminReward:     NewAdminRewardService(repos.AdminReward),
 		AdminUserReward: NewAdminUserRewardService(repos.AdminUserReward),

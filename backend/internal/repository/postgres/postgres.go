@@ -11,32 +11,36 @@ import (
 
 const (
 	nonUniqueValueCode = "23505"
+	queryErr           = "queryRow failed"
+	collectErr         = "collectRow failed"
+	scanErr            = "row scan failed"
+)
+
+const (
+	habitTable     = "habit-table"
+	trackerTable   = "habit-tracker-table"
+	userHabitTable = "user-habit-table"
 )
 
 func NewPostgresDB(cfg *config.Config) (*pgxpool.Pool, error) {
-	// db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
-	// 	cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode))
-	// if err != nil {
-	// 	return nil, err
-	// }
+	const op = "repository.postgres.NewPostgresDB"
 
 	dbpool, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		cfg.DB.Username, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.DBName))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	err = dbpool.Ping(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return dbpool, nil
+	return dbpool, err
 }
 
 func NewPostgresRepository(dbpool *pgxpool.Pool) *repository.Repository {
 	return &repository.Repository{
-		// AdminUser:       NewAdminUserPostgres(dbpool),
 		AdminRole:       NewAdminRolePostgres(dbpool),
 		AdminReward:     NewAdminRewardPostgres(dbpool),
 		AdminUserReward: NewAdminUserRewardPostgres(dbpool),

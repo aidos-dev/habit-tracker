@@ -7,7 +7,6 @@ import (
 
 type AdminPostgres struct {
 	dbpool *pgxpool.Pool
-	// repository.AdminUser
 	repository.AdminRole
 	repository.AdminReward
 	repository.AdminUserReward

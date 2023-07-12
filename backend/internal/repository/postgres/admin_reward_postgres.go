@@ -3,13 +3,11 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/sirupsen/logrus"
 )
 
 type AdminRewardPostgres struct {
@@ -21,6 +19,8 @@ func NewAdminRewardPostgres(dbpool *pgxpool.Pool) repository.AdminReward {
 }
 
 func (r *AdminRewardPostgres) Create(reward models.Reward) (int, error) {
+	const op = "repository.postgres.admin_reward_postgres.Create"
+
 	var rewardId int
 	query := `INSERT INTO 
 						reward (title, description) 
@@ -29,13 +29,15 @@ func (r *AdminRewardPostgres) Create(reward models.Reward) (int, error) {
 
 	row := r.dbpool.QueryRow(context.Background(), query, reward.Title, reward.Description)
 	if err := row.Scan(&rewardId); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return rewardId, nil
 }
 
 func (r *AdminRewardPostgres) GetById(rewardId int) (models.Reward, error) {
+	const op = "repository.postgres.admin_reward_postgres.GetById"
+
 	var reward models.Reward
 
 	query := `SELECT 
@@ -48,22 +50,22 @@ func (r *AdminRewardPostgres) GetById(rewardId int) (models.Reward, error) {
 
 	rowReward, err := r.dbpool.Query(context.Background(), query, rewardId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetById: QueryRow failed: %v\n", err)
-		return reward, err
+		return reward, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowReward.Close()
 
 	reward, err = pgx.CollectOneRow(rowReward, pgx.RowToStructByName[models.Reward])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetById: Collect One Row failed: %v\n", err)
-		return reward, err
+		return reward, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return reward, nil
 }
 
 func (r *AdminRewardPostgres) GetAllRewards() ([]models.Reward, error) {
+	const op = "repository.postgres.admin_reward_postgres.GetAllRewards"
+
 	var rewards []models.Reward
 
 	query := `SELECT 
@@ -75,25 +77,25 @@ func (r *AdminRewardPostgres) GetAllRewards() ([]models.Reward, error) {
 
 	rowsRewards, err := r.dbpool.Query(context.Background(), query)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		return rewards, err
+		return rewards, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowsRewards.Close()
 
 	rewards, err = pgx.CollectRows(rowsRewards, pgx.RowToStructByName[models.Reward])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "rowsRewards CollectRows failed: %v\n", err)
-		return rewards, err
+		return rewards, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return rewards, nil
 }
 
 func (r *AdminRewardPostgres) Delete(rewardId int) error {
+	const op = "repository.postgres.admin_reward_postgres.Delete"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	queryReward := `DELETE FROM 
@@ -107,14 +109,15 @@ func (r *AdminRewardPostgres) Delete(rewardId int) error {
 	err = rowReward.Scan(&checkrewardId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		fmt.Printf("err: repository: admin_reward_postgres.go: Delete: rowReward.Scan: reward doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return tx.Commit(context.Background())
 }
 
 func (r *AdminRewardPostgres) UpdateReward(rewardId int, input models.UpdateRewardInput) error {
+	const op = "repository.postgres.admin_reward_postgres.UpdateReward"
+
 	query := `UPDATE 
 					reward 
 				SET 
@@ -123,17 +126,13 @@ func (r *AdminRewardPostgres) UpdateReward(rewardId int, input models.UpdateRewa
 				WHERE id = $1
 				RETURNING id`
 
-	logrus.Debugf("updateQuerry: %s", query)
-
 	var checkRewardId int
 
 	rowRewardd := r.dbpool.QueryRow(context.Background(), query, rewardId, input.Title, input.Description)
 	err := rowRewardd.Scan(&checkRewardId)
 	if err != nil {
-
-		fmt.Printf("err: repository: admin_reward_postgres.go: UpdateReward: rowReward.Scan: reward doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
-	return err
+	return nil
 }

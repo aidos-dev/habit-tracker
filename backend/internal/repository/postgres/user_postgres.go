@@ -93,11 +93,7 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 }
 
 func (r *UserPostgres) GetAllUsers() ([]models.GetUser, error) {
-	const (
-		op         = "repository.postgres.GetAllUsers"
-		queryErr   = "queryRow failed"
-		collectErr = "collectRows failed"
-	)
+	const op = "repository.postgres.GetAllUsers"
 
 	var users []models.GetUser
 	query := `SELECT 
@@ -113,25 +109,21 @@ func (r *UserPostgres) GetAllUsers() ([]models.GetUser, error) {
 
 	rowsUsers, err := r.dbpool.Query(context.Background(), query)
 	if err != nil {
-		return users, fmt.Errorf("%s:%s %w", op, queryErr, err)
+		return users, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowsUsers.Close()
 
 	users, err = pgx.CollectRows(rowsUsers, pgx.RowToStructByName[models.GetUser])
 	if err != nil {
-		return users, fmt.Errorf("%s:%s %w", op, collectErr, err)
+		return users, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return users, nil
 }
 
 func (r *UserPostgres) GetUserById(userId int) (models.GetUser, error) {
-	const (
-		op         = "repository.postgres.GetUserById"
-		queryErr   = "queryRow failed"
-		collectErr = "collectRow failed"
-	)
+	const op = "repository.postgres.GetUserById"
 
 	var user models.GetUser
 	query := `SELECT 
@@ -148,25 +140,21 @@ func (r *UserPostgres) GetUserById(userId int) (models.GetUser, error) {
 
 	rowUser, err := r.dbpool.Query(context.Background(), query, userId)
 	if err != nil {
-		return user, fmt.Errorf("%s:%s %w", op, queryErr, err)
+		return user, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowUser.Close()
 
 	user, err = pgx.CollectOneRow(rowUser, pgx.RowToStructByName[models.GetUser])
 	if err != nil {
-		return user, fmt.Errorf("%s:%s %w", op, collectErr, err)
+		return user, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return user, nil
 }
 
 func (r *UserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
-	const (
-		op         = "repository.postgres.GetUserById"
-		queryErr   = "queryRow failed"
-		collectErr = "collectRow failed"
-	)
+	const op = "repository.postgres.GetUserById"
 
 	var user models.GetUser
 	query := `SELECT 
@@ -183,14 +171,14 @@ func (r *UserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, e
 
 	rowUser, err := r.dbpool.Query(context.Background(), query, TGusername)
 	if err != nil {
-		return user, fmt.Errorf("%s:%s %w", op, queryErr, err)
+		return user, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowUser.Close()
 
 	user, err = pgx.CollectOneRow(rowUser, pgx.RowToStructByName[models.GetUser])
 	if err != nil {
-		return user, fmt.Errorf("%s:%s %w", op, collectErr, err)
+		return user, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return user, nil

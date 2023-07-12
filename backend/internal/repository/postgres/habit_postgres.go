@@ -3,14 +3,12 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/sirupsen/logrus"
 )
 
 type HabitPostgres struct {
@@ -22,9 +20,11 @@ func NewHabitPostgres(dbpool *pgxpool.Pool) repository.Habit {
 }
 
 func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
+	const op = "repository.postgres.habit_postgres.Create"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	var habitId int
@@ -37,7 +37,7 @@ func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
 	rowHabit := tx.QueryRow(context.Background(), createHabitQuery, habit.Title, habit.Description)
 	if err := rowHabit.Scan(&habitId); err != nil {
 		tx.Rollback(context.Background())
-		return 0, err
+		return 0, fmt.Errorf("%s:%s: %w", op, habitTable, err)
 	}
 
 	// create an empty tracker for a habit
@@ -51,7 +51,7 @@ func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
 	err = rowTracker.Scan(&trackerId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		return 0, err
+		return 0, fmt.Errorf("%s:%s: %w", op, trackerTable, err)
 	}
 
 	// link habit to a user and a tracker to a habit
@@ -62,13 +62,15 @@ func (r *HabitPostgres) Create(userId int, habit models.Habit) (int, error) {
 	_, err = tx.Exec(context.Background(), createUsersHabitsQuery, userId, habitId, trackerId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		return 0, err
+		return 0, fmt.Errorf("%s:%s: %w", op, userHabitTable, err)
 	}
 
 	return habitId, tx.Commit(context.Background())
 }
 
 func (r *HabitPostgres) GetAll(userId int) ([]models.Habit, error) {
+	const op = "repository.postgres.habit_postgres.GetAll"
+
 	var habits []models.Habit
 	query := `SELECT 
 					tl.id, 
@@ -80,22 +82,22 @@ func (r *HabitPostgres) GetAll(userId int) ([]models.Habit, error) {
 
 	rowsHabits, err := r.dbpool.Query(context.Background(), query, userId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		return habits, err
+		return habits, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowsHabits.Close()
 
 	habits, err = pgx.CollectRows(rowsHabits, pgx.RowToStructByName[models.Habit])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "rowsHabits CollectRows failed: %v\n", err)
-		return habits, err
+		return habits, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return habits, err
 }
 
 func (r *HabitPostgres) GetById(userId, habitId int) (models.Habit, error) {
+	const op = "repository.postgres.habit_postgres.GetById"
+
 	var habit models.Habit
 
 	query := `SELECT 
@@ -108,25 +110,25 @@ func (r *HabitPostgres) GetById(userId, habitId int) (models.Habit, error) {
 
 	rowHabit, err := r.dbpool.Query(context.Background(), query, userId, habitId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetById: QueryRow failed: %v\n", err)
-		return habit, err
+		return habit, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowHabit.Close()
 
 	habit, err = pgx.CollectOneRow(rowHabit, pgx.RowToStructByName[models.Habit])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetById: Collect One Row failed: %v\n", err)
-		return habit, err
+		return habit, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return habit, err
 }
 
 func (r *HabitPostgres) Delete(userId, habitId int) error {
+	const op = "repository.postgres.habit_postgres.Delete"
+
 	tx, err := r.dbpool.Begin(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	queryTracker := `DELETE FROM 
@@ -140,8 +142,7 @@ func (r *HabitPostgres) Delete(userId, habitId int) error {
 	err = rowTracker.Scan(&checkTrackerId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		fmt.Printf("err: repository: habit_postgres.go: Delete: rowTracker.Scan: habit tracker doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, trackerTable, err)
 	}
 
 	query := `DELETE FROM 
@@ -155,14 +156,15 @@ func (r *HabitPostgres) Delete(userId, habitId int) error {
 	err = rowHabit.Scan(&checkHabitId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		fmt.Printf("err: repository: habit_postgres.go: Delete: rowHabit.Scan: habit doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, habitTable, err)
 	}
 
 	return tx.Commit(context.Background())
 }
 
 func (r *HabitPostgres) Update(userId, habitId int, input models.UpdateHabitInput) error {
+	const op = "repository.postgres.habit_postgres.Update"
+
 	query := `UPDATE 
 					habit tl 
 				SET 
@@ -172,16 +174,12 @@ func (r *HabitPostgres) Update(userId, habitId int, input models.UpdateHabitInpu
 					WHERE tl.id = ul.habit_id AND ul.user_id=$1 AND ul.habit_id=$2
 					RETURNING tl.id`
 
-	logrus.Debugf("updateQuerry: %s", query)
-
 	var checkHabitId int
 
 	rowHabit := r.dbpool.QueryRow(context.Background(), query, userId, habitId, input.Title, input.Description)
 	err := rowHabit.Scan(&checkHabitId)
 	if err != nil {
-
-		fmt.Printf("err: repository: habit_postgres.go: Update: rowHabit.Scan: habit doesn't exist: %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return err
