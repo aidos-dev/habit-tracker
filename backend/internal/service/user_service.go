@@ -22,6 +22,18 @@ func (s *UserService) GetUser(username, password string) (models.User, error) {
 	return s.repo.GetUser(username, password)
 }
 
+func (r *UserService) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
+	return r.repo.GetUserByTgUsername(TGusername)
+}
+
+func (r *UserService) GetUserById(userId int) (models.GetUser, error) {
+	return r.repo.GetUserById(userId)
+}
+
+func (r *UserService) GetAllUsers() ([]models.GetUser, error) {
+	return r.repo.GetAllUsers()
+}
+
 func (s *UserService) DeleteUser(userId int) (int, error) {
 	return s.repo.DeleteUser(userId)
 }

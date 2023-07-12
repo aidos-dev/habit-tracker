@@ -6,12 +6,12 @@ import (
 	_ "github.com/jackc/pgx/v5"
 )
 
-type AdminUser interface {
-	GetAllUsers() ([]models.GetUser, error)
-	GetUserById(userId int) (models.GetUser, error)
-	GetUserByTgUsername(TGusername string) (models.GetUser, error)
-	User
-}
+// type AdminUser interface {
+// 	GetAllUsers() ([]models.GetUser, error)
+// 	GetUserById(userId int) (models.GetUser, error)
+// 	GetUserByTgUsername(TGusername string) (models.GetUser, error)
+// 	User
+// }
 
 type AdminRole interface {
 	AssignRole(userId int, role models.UpdateRoleInput) (int, error)
@@ -33,7 +33,7 @@ type AdminUserReward interface {
 }
 
 type Admin interface {
-	AdminUser
+	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -42,6 +42,9 @@ type Admin interface {
 type User interface {
 	CreateUser(user models.User) (int, error)
 	GetUser(username, password string) (models.User, error)
+	GetUserByTgUsername(TGusername string) (models.GetUser, error)
+	GetUserById(userId int) (models.GetUser, error)
+	GetAllUsers() ([]models.GetUser, error)
 	DeleteUser(userId int) (int, error)
 }
 
@@ -67,7 +70,7 @@ type Reward interface {
 }
 
 type Repository struct {
-	AdminUser
+	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward

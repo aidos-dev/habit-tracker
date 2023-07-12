@@ -4,7 +4,7 @@ import "github.com/aidos-dev/habit-tracker/backend/internal/repository"
 
 type AdminService struct {
 	repo repository.Admin
-	AdminUser
+	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward

@@ -17,27 +17,20 @@ const (
 )
 
 type AuthService struct {
-	repo repository.AdminUser
+	repo repository.User
 }
 
-func NewAuthService(repo repository.AdminUser) Authorization {
+func NewAuthService(repo repository.User) Authorization {
 	return &AuthService{repo: repo}
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
 	const op = "service.auth_web.GenerateToken"
 
-	fmt.Printf("%s: Step 1\n", op)
-	fmt.Printf("%s: username: %v\n", op, username)
-	fmt.Printf("%s: password: %v\n", op, password)
-	fmt.Printf("%s: password hash: %v\n", op, generatePasswordHash(password))
-
 	user, err := s.repo.GetUser(username, generatePasswordHash(password))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
-
-	fmt.Printf("%s: Step 2\n", op)
 
 	claims := &jwt.MapClaims{
 		"iss":       "issuer",
@@ -49,20 +42,17 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		},
 	}
 
-	fmt.Printf("%s: Step 3\n", op)
-
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		claims,
 	)
 
-	fmt.Printf("%s: Step 4\n", op)
-
 	tokenString, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
 
-	fmt.Printf("%s: Step 5\n", op)
-
-	return tokenString, err
+	return tokenString, nil
 }
 
 func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
@@ -77,11 +67,7 @@ func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
-	// fmt.Printf("service: auth.go: ParseToken: token content: %v\n", token)
-
 	claims := token.Claims.(jwt.MapClaims)
-
-	// fmt.Printf("service: auth.go: ParseToken: claims content: %v\n", claims)
 
 	return claims, nil
 }

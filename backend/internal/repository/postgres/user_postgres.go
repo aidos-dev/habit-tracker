@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
@@ -68,10 +67,11 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 	var user models.User
 	query := `SELECT 
 					id,
-					user_name, 
-					first_name, 
-					last_name, 
-					email,
+					COALESCE(user_name, '') AS user_name,
+					COALESCE(tg_user_name, '') AS tg_user_name,
+					COALESCE(first_name, '') AS first_name,
+					COALESCE(last_name, '') AS last_name,
+					COALESCE(email, '') AS email,
 					password_hash, 
 					role 
 				FROM 
@@ -79,21 +79,118 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 				WHERE user_name=$1 AND password_hash=$2`
 
 	userHabit, err := r.dbpool.Query(context.Background(), query, username, password)
-
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		fmt.Printf("Get user error message %s\n\n", pgErr.Message)
-		fmt.Printf("Get user error code %s\n\n", pgErr.Code)
-	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetUser: QueryRow failed: %v\n", err)
 		return user, fmt.Errorf("%s: %w", op, err)
 	}
 
 	user, err = pgx.CollectOneRow(userHabit, pgx.RowToStructByName[models.User])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetUser: Collect One Row failed: %v\n", err)
+		// fmt.Fprintf(os.Stderr, "error from GetUser: Collect One Row failed: %v\n", err)
 		return user, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return user, nil
+}
+
+func (r *UserPostgres) GetAllUsers() ([]models.GetUser, error) {
+	const (
+		op         = "repository.postgres.GetAllUsers"
+		queryErr   = "queryRow failed"
+		collectErr = "collectRows failed"
+	)
+
+	var users []models.GetUser
+	query := `SELECT 
+					id,
+					COALESCE(user_name, '') AS user_name,
+					COALESCE(tg_user_name, '') AS tg_user_name,
+					COALESCE(first_name, '') AS first_name,
+					COALESCE(last_name, '') AS last_name,
+					COALESCE(email, '') AS email,
+					role 
+				FROM 
+					user_account`
+
+	rowsUsers, err := r.dbpool.Query(context.Background(), query)
+	if err != nil {
+		return users, fmt.Errorf("%s:%s %w", op, queryErr, err)
+	}
+
+	defer rowsUsers.Close()
+
+	users, err = pgx.CollectRows(rowsUsers, pgx.RowToStructByName[models.GetUser])
+	if err != nil {
+		return users, fmt.Errorf("%s:%s %w", op, collectErr, err)
+	}
+
+	return users, nil
+}
+
+func (r *UserPostgres) GetUserById(userId int) (models.GetUser, error) {
+	const (
+		op         = "repository.postgres.GetUserById"
+		queryErr   = "queryRow failed"
+		collectErr = "collectRow failed"
+	)
+
+	var user models.GetUser
+	query := `SELECT 
+					id,
+					COALESCE(user_name, '') AS user_name,
+					COALESCE(tg_user_name, '') AS tg_user_name,
+					COALESCE(first_name, '') AS first_name,
+					COALESCE(last_name, '') AS last_name,
+					COALESCE(email, '') AS email,
+					role 
+				FROM 
+					user_account
+				WHERE id=$1`
+
+	rowUser, err := r.dbpool.Query(context.Background(), query, userId)
+	if err != nil {
+		return user, fmt.Errorf("%s:%s %w", op, queryErr, err)
+	}
+
+	defer rowUser.Close()
+
+	user, err = pgx.CollectOneRow(rowUser, pgx.RowToStructByName[models.GetUser])
+	if err != nil {
+		return user, fmt.Errorf("%s:%s %w", op, collectErr, err)
+	}
+
+	return user, nil
+}
+
+func (r *UserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
+	const (
+		op         = "repository.postgres.GetUserById"
+		queryErr   = "queryRow failed"
+		collectErr = "collectRow failed"
+	)
+
+	var user models.GetUser
+	query := `SELECT 
+					id,
+					COALESCE(user_name, '') AS user_name,
+					COALESCE(tg_user_name, '') AS tg_user_name,
+					COALESCE(first_name, '') AS first_name,
+					COALESCE(last_name, '') AS last_name,
+					COALESCE(email, '') AS email,
+					role 
+				FROM 
+					user_account
+				WHERE tg_user_name=$1`
+
+	rowUser, err := r.dbpool.Query(context.Background(), query, TGusername)
+	if err != nil {
+		return user, fmt.Errorf("%s:%s %w", op, queryErr, err)
+	}
+
+	defer rowUser.Close()
+
+	user, err = pgx.CollectOneRow(rowUser, pgx.RowToStructByName[models.GetUser])
+	if err != nil {
+		return user, fmt.Errorf("%s:%s %w", op, collectErr, err)
 	}
 
 	return user, nil
@@ -118,7 +215,6 @@ func (r *UserPostgres) DeleteUser(userId int) (int, error) {
 	err = rowUser.Scan(&checkUserId)
 	if err != nil {
 		tx.Rollback(context.Background())
-		fmt.Printf("err: repository: user_postgres.go: DeleteUser: rowUser.Scan: user doesn't exist: %v\n", err)
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 

@@ -36,7 +36,7 @@ func NewPostgresDB(cfg *config.Config) (*pgxpool.Pool, error) {
 
 func NewPostgresRepository(dbpool *pgxpool.Pool) *repository.Repository {
 	return &repository.Repository{
-		AdminUser:       NewAdminUserPostgres(dbpool),
+		// AdminUser:       NewAdminUserPostgres(dbpool),
 		AdminRole:       NewAdminRolePostgres(dbpool),
 		AdminReward:     NewAdminRewardPostgres(dbpool),
 		AdminUserReward: NewAdminUserRewardPostgres(dbpool),

@@ -12,12 +12,12 @@ type Authorization interface {
 	FindTgUser(tgUsername string) (models.GetUser, error)
 }
 
-type AdminUser interface {
-	GetAllUsers() ([]models.GetUser, error)
-	GetUserById(userId int) (models.GetUser, error)
-	GetUserByTgUsername(TGusername string) (models.GetUser, error)
-	User
-}
+// type AdminUser interface {
+// 	GetAllUsers() ([]models.GetUser, error)
+// 	GetUserById(userId int) (models.GetUser, error)
+// 	GetUserByTgUsername(TGusername string) (models.GetUser, error)
+// 	User
+// }
 
 type AdminRole interface {
 	AssignRole(userId int, role models.UpdateRoleInput) (int, error)
@@ -39,7 +39,7 @@ type AdminUserReward interface {
 }
 
 type Admin interface {
-	AdminUser
+	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -48,6 +48,9 @@ type Admin interface {
 type User interface {
 	CreateUser(user models.User) (int, error)
 	GetUser(username, password string) (models.User, error)
+	GetUserByTgUsername(TGusername string) (models.GetUser, error)
+	GetUserById(userId int) (models.GetUser, error)
+	GetAllUsers() ([]models.GetUser, error)
 	DeleteUser(userId int) (int, error)
 }
 
@@ -74,7 +77,7 @@ type Reward interface {
 
 type Service struct {
 	Authorization
-	AdminUser
+	// AdminUser
 	AdminRole
 	AdminReward
 	AdminUserReward
@@ -87,8 +90,8 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization:   NewAuthService(repos.AdminUser),
-		AdminUser:       NewAdminUserService(repos.AdminUser),
+		Authorization: NewAuthService(repos.User),
+		// AdminUser:       NewAdminUserService(repos.AdminUser),
 		AdminRole:       NewAdminRoleService(repos.AdminRole),
 		AdminReward:     NewAdminRewardService(repos.AdminReward),
 		AdminUserReward: NewAdminUserRewardService(repos.AdminUserReward),
