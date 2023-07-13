@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 )
@@ -22,6 +24,12 @@ func (s *HabitTrackerService) GetById(userId, habitId int) (models.HabitTracker,
 }
 
 func (s *HabitTrackerService) Update(userId, habitId int, input models.UpdateTrackerInput) error {
+	const op = "service.habit_tracker_service.Update"
+
+	if err := input.Validate(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return s.repo.Update(userId, habitId, input)
 }
 

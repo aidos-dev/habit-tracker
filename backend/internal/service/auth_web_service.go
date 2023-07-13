@@ -25,7 +25,7 @@ func NewAuthService(repo repository.User) Authorization {
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	const op = "service.auth_web.GenerateToken"
+	const op = "service.auth_web_service.GenerateToken"
 
 	user, err := s.repo.GetUser(username, generatePasswordHash(password))
 	if err != nil {
@@ -52,10 +52,12 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return tokenString, nil
+	return tokenString, err
 }
 
 func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
+	const op = "service.auth_web_service.ParseToken"
+
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -64,12 +66,12 @@ func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
 		return []byte(signingKey), nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	return claims, nil
+	return claims, err
 }
 
 func generatePasswordHash(password string) string {
