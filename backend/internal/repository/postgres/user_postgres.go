@@ -89,7 +89,7 @@ func (r *UserPostgres) GetUser(username, password string) (models.User, error) {
 		return user, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return user, nil
+	return user, err
 }
 
 func (r *UserPostgres) GetAllUsers() ([]models.GetUser, error) {
@@ -119,7 +119,7 @@ func (r *UserPostgres) GetAllUsers() ([]models.GetUser, error) {
 		return users, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
-	return users, nil
+	return users, err
 }
 
 func (r *UserPostgres) GetUserById(userId int) (models.GetUser, error) {
@@ -150,7 +150,7 @@ func (r *UserPostgres) GetUserById(userId int) (models.GetUser, error) {
 		return user, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
-	return user, nil
+	return user, err
 }
 
 func (r *UserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
@@ -181,7 +181,7 @@ func (r *UserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, e
 		return user, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
-	return user, nil
+	return user, err
 }
 
 func (r *UserPostgres) DeleteUser(userId int) (int, error) {

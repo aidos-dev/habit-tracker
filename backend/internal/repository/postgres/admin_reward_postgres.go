@@ -60,7 +60,7 @@ func (r *AdminRewardPostgres) GetById(rewardId int) (models.Reward, error) {
 		return reward, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
-	return reward, nil
+	return reward, err
 }
 
 func (r *AdminRewardPostgres) GetAllRewards() ([]models.Reward, error) {
@@ -87,7 +87,7 @@ func (r *AdminRewardPostgres) GetAllRewards() ([]models.Reward, error) {
 		return rewards, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
-	return rewards, nil
+	return rewards, err
 }
 
 func (r *AdminRewardPostgres) Delete(rewardId int) error {
@@ -134,5 +134,5 @@ func (r *AdminRewardPostgres) UpdateReward(rewardId int, input models.UpdateRewa
 		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
-	return nil
+	return err
 }

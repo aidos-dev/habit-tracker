@@ -3,14 +3,11 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
-	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/sirupsen/logrus"
 )
 
 type HabitTrackerPostgres struct {
@@ -22,6 +19,8 @@ func NewHabitTrackerPostgres(dbpool *pgxpool.Pool) repository.HabitTracker {
 }
 
 func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker, error) {
+	const op = "repository.postgres.habit_tracker_postgres.GetById"
+
 	var habitTracker models.HabitTracker
 
 	query := `SELECT 
@@ -39,26 +38,26 @@ func (r *HabitTrackerPostgres) GetById(userId, habitId int) (models.HabitTracker
 				WHERE ul.user_id = $1 AND ul.habit_id = $2`
 
 	/*
-		how to add interval to daterime:
+		how to add interval to datetime:
 		https://www.commandprompt.com/education/postgresql-dateadd-equivalent-how-to-add-interval-to-datetime/
 	*/
 
 	rowTracker, err := r.dbpool.Query(context.Background(), query, userId, habitId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from habit_tracker: GetById: QueryRow failed: %v\n", err)
-		return habitTracker, err
+		return habitTracker, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	habitTracker, err = pgx.CollectOneRow(rowTracker, pgx.RowToStructByName[models.HabitTracker])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from habit_tracker: GetById: Collect One Row failed: %v\n", err)
-		return habitTracker, err
+		return habitTracker, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return habitTracker, err
 }
 
 func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error) {
+	const op = "repository.postgres.habit_tracker_postgres.GetAll"
+
 	var trackers []models.HabitTracker
 	query := `SELECT 
 					tl.id, 
@@ -77,22 +76,22 @@ func (r *HabitTrackerPostgres) GetAll(userId int) ([]models.HabitTracker, error)
 
 	rowsTrackers, err := r.dbpool.Query(context.Background(), query, userId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "habit_tracker: GetAll: QueryRow failed: %v\n", err)
-		return trackers, err
+		return trackers, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowsTrackers.Close()
 
 	trackers, err = pgx.CollectRows(rowsTrackers, pgx.RowToStructByName[models.HabitTracker])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "habit_tracker: GetAll: CollectRows failed: %v\n", err)
-		return trackers, err
+		return trackers, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return trackers, err
 }
 
 func (r *HabitTrackerPostgres) Update(userId, habitId int, input models.UpdateTrackerInput) error {
+	const op = "repository.postgres.habit_tracker_postgres.Update"
+
 	query := `UPDATE 
 					habit_tracker tl 
 				SET 
@@ -107,16 +106,12 @@ func (r *HabitTrackerPostgres) Update(userId, habitId int, input models.UpdateTr
 					WHERE tl.id = ul.habit_tracker_id AND ul.habit_id=$2 AND ul.user_id=$1
 					RETURNING tl.id`
 
-	logrus.Debugf("updateQuerry: %s", query)
-
 	var checkTrackerId int
 
 	rowTracker := r.dbpool.QueryRow(context.Background(), query, userId, habitId, input.UnitOfMessure, input.Goal, input.Frequency, input.StartDate, input.EndDate, input.Counter, input.Done)
 	err := rowTracker.Scan(&checkTrackerId)
 	if err != nil {
-
-		fmt.Printf("err: repository: habit_tracker_postgres.go: Update: rowTracker.Scan: tracker doesn't exis:  %v\n", err)
-		return err
+		return fmt.Errorf("%s:%s: %w", op, scanErr, err)
 	}
 
 	return err

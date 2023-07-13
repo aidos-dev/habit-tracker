@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
@@ -21,6 +20,8 @@ func NewRewardPostgres(dbpool *pgxpool.Pool) repository.Reward {
 }
 
 func (r *RewardPostgres) GetPersonalRewardsByHabitId(userId, habitId int) ([]models.Reward, error) {
+	const op = "repository.postgres.reward_postgres.GetPersonalRewardsByHabitId"
+
 	var rewards []models.Reward
 
 	query := `SELECT 
@@ -30,22 +31,22 @@ func (r *RewardPostgres) GetPersonalRewardsByHabitId(userId, habitId int) ([]mod
 
 	rowReward, err := r.dbpool.Query(context.Background(), query, userId, habitId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetById: QueryRow failed: %v\n", err)
-		return rewards, err
+		return rewards, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowReward.Close()
 
 	rewards, err = pgx.CollectRows(rowReward, pgx.RowToStructByName[models.Reward])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetPersonalRewardById: Collect One Row failed: %v\n", err)
-		return rewards, err
+		return rewards, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return rewards, err
 }
 
 func (r *RewardPostgres) GetAllPersonalRewards(userId int) ([]models.Reward, error) {
+	const op = "repository.postgres.reward_postgres.GetAllPersonalRewards"
+
 	var rewards []models.Reward
 
 	query := `SELECT 
@@ -55,16 +56,14 @@ func (r *RewardPostgres) GetAllPersonalRewards(userId int) ([]models.Reward, err
 
 	rowRewards, err := r.dbpool.Query(context.Background(), query, userId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetAllPersonalRewards: QueryRow failed: %v\n", err)
-		return rewards, err
+		return rewards, fmt.Errorf("%s:%s: %w", op, queryErr, err)
 	}
 
 	defer rowRewards.Close()
 
 	rewards, err = pgx.CollectRows(rowRewards, pgx.RowToStructByName[models.Reward])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error from GetPersonalRewardById: Collect Rows failed: %v\n", err)
-		return rewards, err
+		return rewards, fmt.Errorf("%s:%s: %w", op, collectErr, err)
 	}
 
 	return rewards, err

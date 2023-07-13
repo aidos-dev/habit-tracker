@@ -9,6 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+/*
+two const blocks bellow are used for more specific errors identification.
+these error codes, messages and table names shall be used in errors wrapping
+*/
+
 const (
 	nonUniqueValueCode = "23505"
 	queryErr           = "queryRow failed"
