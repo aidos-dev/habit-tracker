@@ -17,7 +17,7 @@ func (h *Handler) signUpWeb(c *gin.Context) {
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		h.log.Error(fmt.Sprintf("%s:failed to get JSON object\n", op), sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
@@ -31,7 +31,7 @@ func (h *Handler) signUpWeb(c *gin.Context) {
 		return
 	}
 
-	h.log.Info(fmt.Sprintf("%s:user has been added\n", op), slog.Int("id", id))
+	h.log.Info(fmt.Sprintf("%s: user has been added", op), slog.Int("id", id))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
@@ -50,7 +50,7 @@ func (h *Handler) signInWeb(c *gin.Context) {
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		h.log.Error(fmt.Sprintf("%s:failed to get JSON object\n", op), sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *Handler) signInWeb(c *gin.Context) {
 	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		h.log.Error(fmt.Sprintf("%s:failed to generate JWT token", op), sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s: failed to generate JWT token", op), sl.Err(err))
 		return
 	}
 

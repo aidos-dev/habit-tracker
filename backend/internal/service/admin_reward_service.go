@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 )
@@ -30,5 +32,11 @@ func (s *AdminRewardService) Delete(rewardId int) error {
 }
 
 func (s *AdminRewardService) UpdateReward(rewardId int, input models.UpdateRewardInput) error {
+	const op = "service.admin_reward_service.UpdateReward"
+
+	if err := input.Validate(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return s.repo.UpdateReward(rewardId, input)
 }

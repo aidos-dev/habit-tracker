@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 )
@@ -23,5 +25,11 @@ func (s *AdminUserRewardService) RemoveFromUser(userId, habitId, rewardId int) e
 }
 
 func (s *AdminUserRewardService) UpdateUserReward(userId, habitId, rewardId int, input models.UpdateUserRewardInput) error {
+	const op = "service.admin_user_reward_service.UpdateUserReward"
+
+	if err := input.Validate(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return s.repo.UpdateUserReward(userId, habitId, rewardId, input)
 }

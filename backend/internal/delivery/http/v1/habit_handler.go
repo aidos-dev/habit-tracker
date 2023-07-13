@@ -7,6 +7,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 )
 
 func (h *Handler) createHabit(c *gin.Context) {
@@ -14,7 +15,7 @@ func (h *Handler) createHabit(c *gin.Context) {
 
 	userId, err := getUserId(c)
 	if err != nil {
-		h.log.Error(fmt.Sprintf("%s:failed to find a user by id: %d", op, userId), sl.Err(err))
+		h.log.Error(fmt.Sprintf("%s: failed to find a user by id: %d", op, userId), sl.Err(err))
 		return
 	}
 
@@ -27,8 +28,17 @@ func (h *Handler) createHabit(c *gin.Context) {
 	habitId, err := h.services.Habit.Create(userId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		h.log.Error(fmt.Sprintf("%s: failed to create a habit", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(
+		fmt.Sprintf("%s: habit created:", op),
+		slog.Int("habitId", habitId),
+		slog.String("input", input.Title),
+		slog.String("descpription", input.Description),
+		slog.Int("userId", userId),
+	)
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"habitId": habitId,
