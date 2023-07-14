@@ -15,10 +15,11 @@ these error codes, messages and table names shall be used in errors wrapping
 */
 
 const (
-	nonUniqueValueCode = "23505"
-	queryErr           = "queryRow failed"
-	collectErr         = "collectRow failed"
-	scanErr            = "row scan failed"
+	nonUniqueValueCode    = "23505"
+	foreign_key_violation = "23503" // for example: when there is no referenced value in referenced table
+	queryErr              = "queryRow failed"
+	collectErr            = "collectRow failed"
+	scanErr               = "row scan failed"
 )
 
 const (

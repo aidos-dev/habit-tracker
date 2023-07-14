@@ -1,33 +1,34 @@
 package v1
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 )
 
 func (h *Handler) signUpTelegram(c *gin.Context) {
+	const op = "delivery.http.v1.auth_telegram.signUpTelegram"
+
 	var input models.User
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
-
-	log.Printf("Parsed JSON content: %v\n", input)
-
-	// input = telegramUserFormat(c, input)
-
-	log.Printf("The TG prepared user is: %v\n", input)
 
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		log.Println(err.Error())
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		h.log.Error(fmt.Sprintf("%s: failed to add new user", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a new user has been added", op), slog.Int("id", id))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
@@ -59,32 +60,34 @@ registered as a telegram user, using only
 telegram username and NULL values in other fields. Otherwise the repository layer
 will not allow to create a user without other credentials
 */
-func telegramUserFormat(c *gin.Context, user models.User) models.User {
-	var emptyUser models.User // emptyUser created only to return it in case of error
+// func telegramUserFormat(c *gin.Context, user models.User) models.User {
+// 	const op = "delivery.http.v1.auth_telegram.telegramUserFormat"
 
-	if user.TgUsername == "" {
-		newErrorResponse(c, http.StatusBadRequest, "error: user name is not specified")
-		return emptyUser
-	}
+// 	var emptyUser models.User // emptyUser created only to return it in case of error
 
-	if user.Username == "" {
-		user.Username = models.Empty
-	}
+// 	if user.TgUsername == "" {
+// 		newErrorResponse(c, http.StatusBadRequest, "error: user name is not specified")
+// 		return emptyUser
+// 	}
 
-	if user.FirstName == "" {
-		user.FirstName = models.Empty
-	}
+// 	if user.Username == "" {
+// 		user.Username = models.Empty
+// 	}
 
-	if user.LastName == "" {
-		user.LastName = models.Empty
-	}
+// 	if user.FirstName == "" {
+// 		user.FirstName = models.Empty
+// 	}
 
-	if user.Email == "" {
-		user.Email = models.Empty
-	}
+// 	if user.LastName == "" {
+// 		user.LastName = models.Empty
+// 	}
 
-	return user
-}
+// 	if user.Email == "" {
+// 		user.Email = models.Empty
+// 	}
+
+// 	return user
+// }
 
 // func (h *Handler) deleteUserTelegram(c *gin.Context) {
 // 	userId, err := getUserId(c)

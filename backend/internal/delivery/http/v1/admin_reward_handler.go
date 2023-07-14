@@ -8,6 +8,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 )
 
 func (h *Handler) createReward(c *gin.Context) {
@@ -15,24 +16,26 @@ func (h *Handler) createReward(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: createReward: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	var input models.Reward
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: createReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
 	id, err := h.services.AdminReward.Create(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: createReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to create reward: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to create reward", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a new reward has been added", op), slog.Int("id", id))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
@@ -46,21 +49,21 @@ func (h *Handler) getRewardById(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardById: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	rewardId, err := strconv.Atoi(c.Param("rewardId"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
-		h.log.Error(fmt.Sprintf("%s: invalid list id param", op), sl.Err(err))
+		newErrorResponse(c, http.StatusBadRequest, "invalid reward id param")
+		h.log.Error(fmt.Sprintf("%s: invalid reward id param", op), sl.Err(err))
 		return
 	}
 
 	reward, err := h.services.AdminReward.GetById(rewardId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getRewardById: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get reward: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get reward", op), sl.Err(err))
 		return
 	}
@@ -75,14 +78,14 @@ func (h *Handler) getAllRewards(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllRewards: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	rewards, err := h.services.AdminReward.GetAllRewards()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllRewards: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get rewards: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get rewards", op), sl.Err(err))
 		return
 	}
@@ -97,21 +100,26 @@ func (h *Handler) deleteReward(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteReward: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	rewardId, err := strconv.Atoi(c.Param("rewardId"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
+		newErrorResponse(c, http.StatusBadRequest, "invalid reward id param")
+		h.log.Error(fmt.Sprintf("%s: invalid reward id param", op), sl.Err(err))
 		return
 	}
 
 	err = h.services.AdminReward.Delete(rewardId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to delete a reward %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to delete a reward", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a reward is deleted", op), slog.Int("id", rewardId))
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
@@ -123,26 +131,32 @@ func (h *Handler) updateReward(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateReward: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	rewardId, err := strconv.Atoi(c.Param("rewardId"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		newErrorResponse(c, http.StatusBadRequest, "invalid reward id param")
+		h.log.Error(fmt.Sprintf("%s: invalid reward id param", op), sl.Err(err))
 		return
 	}
 
 	var input models.UpdateRewardInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error from handler: updateReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
 	if err := h.services.AdminReward.UpdateReward(rewardId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateReward: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to update reward %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to update a reward", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a reward has been updated", op), slog.Int("id", rewardId))
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

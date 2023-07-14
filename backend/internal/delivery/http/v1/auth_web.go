@@ -31,7 +31,7 @@ func (h *Handler) signUpWeb(c *gin.Context) {
 		return
 	}
 
-	h.log.Info(fmt.Sprintf("%s: user has been added", op), slog.Int("id", id))
+	h.log.Info(fmt.Sprintf("%s: a new user has been added", op), slog.Int("id", id))
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
@@ -108,8 +108,8 @@ registered as a web user, using all required credentials. Also
 it created a telegram userName as NULL value just as a placeholder. In the future a web user
 will be able to replace it with real telegram userName
 */
-func webUserFormat(c *gin.Context, user models.User) models.User {
-	user.TgUsername = models.Empty
+// func webUserFormat(c *gin.Context, user models.User) models.User {
+// 	user.TgUsername = models.Empty
 
-	return user
-}
+// 	return user
+// }

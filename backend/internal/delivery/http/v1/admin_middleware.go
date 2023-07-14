@@ -19,7 +19,7 @@ func (h *Handler) adminPass(c *gin.Context) {
 
 	userRole, err := getUserRole(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, "user role not found: doesn't exist")
+		newErrorResponse(c, http.StatusInternalServerError, "user role not found")
 		h.log.Error(fmt.Sprintf("%s: failed to get user role", op), sl.Err(err))
 		return
 	}
