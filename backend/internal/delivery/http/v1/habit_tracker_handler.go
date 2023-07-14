@@ -5,19 +5,25 @@ import (
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 )
 
 func (h *Handler) getAllHabitTrackers(c *gin.Context) {
+	const op = "delivery.http.v1.habit_tracker_handler.getAllHabitTrackers"
+
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	trackers, err := h.services.HabitTracker.GetAll(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabitTrackers: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get all habit trackers: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get all habit trackers", op), sl.Err(err))
 		return
 	}
 
@@ -25,21 +31,26 @@ func (h *Handler) getAllHabitTrackers(c *gin.Context) {
 }
 
 func (h *Handler) getHabitTrackerById(c *gin.Context) {
+	const op = "delivery.http.v1.habit_tracker_handler.getHabitTrackerById"
+
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id param")
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
 
 	tracker, err := h.services.HabitTracker.GetById(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitTrackerById: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: habit tracker not found: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to find habit tracker by Id", op), sl.Err(err))
 		return
 	}
 
@@ -47,27 +58,36 @@ func (h *Handler) getHabitTrackerById(c *gin.Context) {
 }
 
 func (h *Handler) updateHabitTracker(c *gin.Context) {
+	const op = "delivery.http.v1.habit_tracker_handler.updateHabitTracker"
+
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
 
 	var input models.UpdateTrackerInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
 	if err := h.services.HabitTracker.Update(userId, habitId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateHabitTracker: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to update a habit tracker %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to update a habit tracker", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a habit tracker has been updated", op), slog.Int("habit id", habitId))
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

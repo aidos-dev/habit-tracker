@@ -15,14 +15,14 @@ func (h *Handler) assignReward(c *gin.Context) {
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: habit not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
@@ -59,14 +59,14 @@ func (h *Handler) removeRewardFromUser(c *gin.Context) {
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: habit not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
@@ -101,14 +101,14 @@ func (h *Handler) updateUserReward(c *gin.Context) {
 
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: habit not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}

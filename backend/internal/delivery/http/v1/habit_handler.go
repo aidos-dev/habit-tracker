@@ -11,23 +11,25 @@ import (
 )
 
 func (h *Handler) createHabit(c *gin.Context) {
-	const op = "delivery.http.v1.createHabit"
+	const op = "delivery.http.v1.habit_handler.createHabit"
 
 	userId, err := getUserId(c)
 	if err != nil {
-		h.log.Error(fmt.Sprintf("%s: failed to find a user by id: %d", op, userId), sl.Err(err))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	var input models.Habit
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := h.services.Habit.Create(userId, input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to create a habit: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to create a habit", op), sl.Err(err))
 		return
 	}
@@ -50,14 +52,19 @@ type getAllHabitsResponse struct {
 }
 
 func (h *Handler) getAllHabits(c *gin.Context) {
+	const op = "delivery.http.v1.habit_handler.getAllHabits"
+
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habits, err := h.services.Habit.GetAll(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabits: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get habits: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get habits", op), sl.Err(err))
 		return
 	}
 
@@ -67,20 +74,26 @@ func (h *Handler) getAllHabits(c *gin.Context) {
 }
 
 func (h *Handler) getHabitById(c *gin.Context) {
+	const op = "delivery.http.v1.habit_handler.getHabitById"
+
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:getHabitById: invalid id param: %v", habitId))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
 
 	habit, err := h.services.Habit.GetById(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitById: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: habit not found: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to find a habit by Id", op), sl.Err(err))
 		return
 	}
 
@@ -88,22 +101,30 @@ func (h *Handler) getHabitById(c *gin.Context) {
 }
 
 func (h *Handler) deleteHabit(c *gin.Context) {
+	const op = "delivery.http.v1.habit_handler.deleteHabit"
+
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:deleteHabit: invalid id param: %v", habitId))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
 
 	err = h.services.Habit.Delete(userId, habitId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: deleteHabit: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to delete a habit %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to delete a habit", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a habit is deleted", op), slog.Int("id", habitId))
 
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "ok",
@@ -111,28 +132,37 @@ func (h *Handler) deleteHabit(c *gin.Context) {
 }
 
 func (h *Handler) updateHabit(c *gin.Context) {
+	const op = "delivery.http.v1.habit_handler.updateHabit"
+
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
 
 	habitId, err := getHabitId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:updateHabit: invalid id param: %v", habitId))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: invalid id param: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get habit Id", op), sl.Err(err))
 		return
 	}
 
 	var input models.UpdateHabitInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
 		return
 	}
 
 	if err := h.services.Habit.Update(userId, habitId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: updateHabit: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to update a habit %v", err.Error()))
+		h.log.Error(fmt.Sprintf("%s: failed to update a habit", op), sl.Err(err))
 		return
 	}
+
+	h.log.Info(fmt.Sprintf("%s: a habit has been updated", op), slog.Int("id", habitId))
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

@@ -16,7 +16,7 @@ func (h *Handler) createReward(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
@@ -49,7 +49,7 @@ func (h *Handler) getRewardById(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
@@ -78,7 +78,7 @@ func (h *Handler) getAllRewards(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
@@ -100,7 +100,7 @@ func (h *Handler) deleteReward(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
@@ -131,7 +131,7 @@ func (h *Handler) updateReward(c *gin.Context) {
 
 	_, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: user not found: %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to get user Id", op), sl.Err(err))
 		return
 	}
@@ -151,7 +151,7 @@ func (h *Handler) updateReward(c *gin.Context) {
 	}
 
 	if err := h.services.AdminReward.UpdateReward(rewardId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to update reward %v", err.Error()))
+		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to update a reward %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to update a reward", op), sl.Err(err))
 		return
 	}
