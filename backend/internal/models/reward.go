@@ -21,7 +21,7 @@ type UpdateRewardInput struct {
 }
 
 func (i UpdateRewardInput) Validate() error {
-	if i.Title == nil && i.Description == nil {
+	if (*i.Title == "" && *i.Description == "") || (i.Title == nil && i.Description == nil) {
 		return errors.New("reward update structure has no values")
 	}
 	return nil
@@ -33,7 +33,7 @@ type UpdateUserRewardInput struct {
 }
 
 func (i UpdateUserRewardInput) Validate() error {
-	if i.RewardId == nil && i.HabitId == nil {
+	if (*i.RewardId == 0 && *i.HabitId == 0) || (i.RewardId == nil && i.HabitId == nil) {
 		return errors.New("user reward update structure has no values")
 	}
 	return nil

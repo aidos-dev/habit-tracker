@@ -1,5 +1,7 @@
 package models
 
+import "errors"
+
 type User struct {
 	Id         int    `json:"userId" db:"id"`
 	Username   string `json:"userName" db:"user_name"`
@@ -9,6 +11,20 @@ type User struct {
 	Email      string `json:"eMail" db:"email"`
 	Password   string `json:"password" db:"password_hash"`
 	Role       string `json:"role" db:"role" `
+}
+
+func (u *User) Validate() error {
+	if u.Username == "" && u.TgUsername == "" {
+		return errors.New("user structure has no values")
+	}
+
+	if u.TgUsername == "" {
+		if u.Username == "" || u.Email == "" || u.Password == "" {
+			return errors.New("user structure has no values")
+		}
+	}
+
+	return nil
 }
 
 /*
