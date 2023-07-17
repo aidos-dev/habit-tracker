@@ -10,7 +10,4 @@ const (
 	msgNoSavedPages   = "You have no saved pages 🤔"
 	msgSaved          = "Saved! 🤔"
 	msgAlreadyExists  = "You already have this page in your list 🤔"
-	// msgNoHabitCreated     = "Could not create a habit 😕"
-	// msgCreated            = "Habit created! 😄"
-	// msgHabitAlreadyExists = "This habit already exists 😬"
 )
