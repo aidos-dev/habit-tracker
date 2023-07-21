@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgx/v5 v5.4.1
 	github.com/joho/godotenv v1.5.1
 	github.com/sirupsen/logrus v1.6.0
+	go.uber.org/mock v0.2.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
 
