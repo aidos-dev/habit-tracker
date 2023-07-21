@@ -12,7 +12,6 @@ the main idea is to avoid writing messages to log during tests
 as we don't want the messages to be saved to log while testing,
 because they will not have much value
 */
-
 func NewDiscardLogger() *slog.Logger {
 	return slog.New(NewDiscardHandler())
 }
