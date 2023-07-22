@@ -3,14 +3,13 @@ package service
 import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
-	"github.com/golang-jwt/jwt"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
 
 type Authorization interface {
 	GenerateToken(username, password string) (string, error)
-	ParseToken(token string) (jwt.MapClaims, error)
+	ParseToken(token string) (int, string, error)
 	FindTgUser(tgUsername string) (models.GetUser, error)
 }
 

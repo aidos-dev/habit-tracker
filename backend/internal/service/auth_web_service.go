@@ -55,7 +55,7 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 	return tokenString, err
 }
 
-func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
+func (s *AuthService) ParseToken(accessToken string) (int, string, error) {
 	const op = "service.auth_web_service.ParseToken"
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (any, error) {
@@ -66,12 +66,18 @@ func (s *AuthService) ParseToken(accessToken string) (jwt.MapClaims, error) {
 		return []byte(signingKey), nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return 0, "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	return claims, err
+	data := claims["data"].(map[string]any)
+
+	userIdfloat := data["userId"].(float64) // we can  convert interface only to float64
+	userId := int(userIdfloat)              // after that it is easy to convert float64 to int
+	userRole := data["userRole"].(string)
+
+	return userId, userRole, err
 }
 
 func generatePasswordHash(password string) string {

@@ -71,17 +71,12 @@ func (h *Handler) webUserIdentity(c *gin.Context) {
 		return
 	}
 
-	claims, err := h.services.Authorization.ParseToken(headerParts[1])
+	userId, userRole, err := h.services.Authorization.ParseToken(headerParts[1])
 	if err != nil {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 		h.log.Error(fmt.Sprintf("%s: failed to parse jwt token", op), sl.Err(err))
 		return
 	}
-
-	data := claims["data"].(map[string]any)
-
-	userId := data["userId"].(float64)
-	userRole := data["userRole"].(string)
 
 	c.Set(roleCtx, userRole)
 	c.Set(userCtx, userId)
