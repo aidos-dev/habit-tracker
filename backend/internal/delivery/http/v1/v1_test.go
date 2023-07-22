@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -46,6 +47,51 @@ func Test_handler_signUpWeb(t *testing.T) {
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"id":1}`,
 		},
+		{
+			// if both of Username and TgUsername are missing
+			name: "Missing field",
+			inputBody: `{
+				"firstName": "testUserName",
+				"lastName": "testUserLastName",
+				"eMail": "testEmail@gmail.com",
+				"password": "qwerty"
+			}`,
+			inputUser: models.User{
+				FirstName: "testUserName",
+				LastName:  "testUserLastName",
+				Email:     "testEmail@gmail.com",
+				Password:  "qwerty",
+			},
+			mockBehavior:        func(s *mock_service.MockUser, user models.User) {},
+			expectedStatusCode:  400,
+			expectedRequestBody: `{"message":"user structure has no values"}`,
+		},
+		{
+			/*
+				this test case checks only the status code returned
+				if the service returns an error
+			*/
+			name: "Service failuer",
+			inputBody: `{
+				"userName": "testUser",
+				"firstName": "testUserName",
+				"lastName": "testUserLastName",
+				"eMail": "testEmail@gmail.com",
+				"password": "qwerty"
+				}`,
+			inputUser: models.User{
+				Username:  "testUser",
+				FirstName: "testUserName",
+				LastName:  "testUserLastName",
+				Email:     "testEmail@gmail.com",
+				Password:  "qwerty",
+			},
+			mockBehavior: func(s *mock_service.MockUser, user models.User) {
+				s.EXPECT().CreateUser(user).Return(0, errors.New("something went wrong"))
+			},
+			expectedStatusCode:  500,
+			expectedRequestBody: `{"message":"something went wrong"}`,
+		},
 	}
 
 	for _, testCase := range testTable {
@@ -62,18 +108,18 @@ func Test_handler_signUpWeb(t *testing.T) {
 			services := &service.Service{User: user}
 			handler := NewHandler(log, services)
 
-			// Test Server
+			// Init Endpoint
 			r := gin.New()
 			r.POST("sign-up", handler.signUpWeb)
 
-			// Test Request
+			// Create Request
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(
 				"POST", "/sign-up",
 				bytes.NewBufferString(testCase.inputBody),
 			)
 
-			// Perform Request
+			// Make Request
 			r.ServeHTTP(w, req)
 
 			if w.Code != testCase.expectedStatusCode {

@@ -21,12 +21,18 @@ func (h *Handler) signUpWeb(c *gin.Context) {
 		return
 	}
 
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		h.log.Error(fmt.Sprintf("%s: invalid input", op), sl.Err(err))
+		return
+	}
+
 	// the line bellow only for debugging
 	// h.log.Info("Parsed JSON content", slog.Any("value", input))
 
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		h.log.Error(fmt.Sprintf("%s: failed to add new user", op), sl.Err(err))
 		return
 	}

@@ -21,6 +21,12 @@ func (h *Handler) signUpTelegram(c *gin.Context) {
 		return
 	}
 
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		h.log.Error(fmt.Sprintf("%s: invalid input", op), sl.Err(err))
+		return
+	}
+
 	id, err := h.services.User.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())

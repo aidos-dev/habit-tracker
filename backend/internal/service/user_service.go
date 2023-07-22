@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 )
@@ -16,13 +14,13 @@ func NewUserService(repo repository.User) User {
 }
 
 func (s *UserService) CreateUser(user models.User) (int, error) {
-	const op = "service.user_service.CreateUser"
+	// const op = "service.user_service.CreateUser"
 
 	user.Password = generatePasswordHash(user.Password)
 
-	if err := user.Validate(); err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
+	// if err := user.Validate(); err != nil {
+	// 	return 0, fmt.Errorf("%s: %w", op, err)
+	// }
 
 	return s.repo.CreateUser(user)
 }
