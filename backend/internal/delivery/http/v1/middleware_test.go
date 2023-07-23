@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"net/http/httptest"
 	"testing"
 
@@ -14,6 +15,11 @@ import (
 func Test_handler_webUserIdentity(t *testing.T) {
 	type mockBehavior func(s *mock_service.MockAuthorization, token string)
 
+	type ResponseBody struct {
+		UserID   int    `json:"userId"`
+		UserRole string `json:"userRole"`
+	}
+
 	testTable := []struct {
 		name                 string
 		headerName           string
@@ -21,7 +27,7 @@ func Test_handler_webUserIdentity(t *testing.T) {
 		token                string
 		mockBehavior         mockBehavior
 		expectedStatusCode   int
-		expectedResponseBody string
+		expectedResponseBody ResponseBody
 	}{
 		{
 			name:        "OK",
@@ -31,8 +37,11 @@ func Test_handler_webUserIdentity(t *testing.T) {
 			mockBehavior: func(s *mock_service.MockAuthorization, token string) {
 				s.EXPECT().ParseToken(token).Return(1, "test_role", nil)
 			},
-			expectedStatusCode:   200,
-			expectedResponseBody: "1",
+			expectedStatusCode: 200,
+			expectedResponseBody: ResponseBody{
+				UserID:   1,
+				UserRole: "test_role",
+			},
 		},
 	}
 
@@ -53,8 +62,20 @@ func Test_handler_webUserIdentity(t *testing.T) {
 			// Init Endpoint
 			r := gin.New()
 			r.GET("/identity", handler.webUserIdentity, func(c *gin.Context) {
-				id, _ := c.Get(userCtx)
-				c.String(200, "%d", id)
+				// Get user ID from the context
+				userID, _ := c.Get(userCtx)
+
+				// Get user role from the context
+				userRole, _ := c.Get(roleCtx)
+
+				// Create a response struct with userID and userRole
+				responseBody := ResponseBody{
+					UserID:   userID.(int),      // Convert userID to int
+					UserRole: userRole.(string), // Convert userRole to string
+				}
+
+				// Return the response as JSON
+				c.JSON(200, responseBody)
 			})
 
 			// Init Test Request
@@ -72,8 +93,18 @@ func Test_handler_webUserIdentity(t *testing.T) {
 				// t.Logf("But got: %d", w.Code)
 			}
 
-			if w.Body.String() != testCase.expectedResponseBody {
-				t.Errorf("Expected response body '%s' but got '%s'", testCase.expectedResponseBody, w.Body.String())
+			var responseBody ResponseBody
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			if err != nil {
+				t.Errorf("Failed to unmarshal response body: %v", err)
+			}
+
+			if responseBody.UserID != testCase.expectedResponseBody.UserID {
+				t.Errorf("Expected userID: %d but got: %d", testCase.expectedResponseBody.UserID, responseBody.UserID)
+			}
+
+			if responseBody.UserRole != testCase.expectedResponseBody.UserRole {
+				t.Errorf("Expected userRole '%s' but got '%s'", testCase.expectedResponseBody.UserRole, responseBody.UserRole)
 			}
 		})
 	}
