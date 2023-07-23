@@ -18,12 +18,12 @@ func Test_handler_signUpWeb(t *testing.T) {
 	type mockBehavior func(s *mock_service.MockUser, user models.User)
 
 	testTable := []struct {
-		name                string
-		inputBody           string
-		inputUser           models.User
-		mockBehavior        mockBehavior
-		expectedStatusCode  int
-		expectedRequestBody string
+		name                 string
+		inputBody            string
+		inputUser            models.User
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
 	}{
 		{
 			name: "OK",
@@ -44,8 +44,8 @@ func Test_handler_signUpWeb(t *testing.T) {
 			mockBehavior: func(s *mock_service.MockUser, user models.User) {
 				s.EXPECT().CreateUser(user).Return(1, nil)
 			},
-			expectedStatusCode:  200,
-			expectedRequestBody: `{"id":1}`,
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"id":1}`,
 		},
 		{
 			// if both of Username and TgUsername are missing
@@ -62,9 +62,9 @@ func Test_handler_signUpWeb(t *testing.T) {
 				Email:     "testEmail@gmail.com",
 				Password:  "qwerty",
 			},
-			mockBehavior:        func(s *mock_service.MockUser, user models.User) {},
-			expectedStatusCode:  400,
-			expectedRequestBody: `{"message":"user structure has no values"}`,
+			mockBehavior:         func(s *mock_service.MockUser, user models.User) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"message":"user structure has no values"}`,
 		},
 		{
 			/*
@@ -89,8 +89,8 @@ func Test_handler_signUpWeb(t *testing.T) {
 			mockBehavior: func(s *mock_service.MockUser, user models.User) {
 				s.EXPECT().CreateUser(user).Return(0, errors.New("something went wrong"))
 			},
-			expectedStatusCode:  500,
-			expectedRequestBody: `{"message":"something went wrong"}`,
+			expectedStatusCode:   500,
+			expectedResponseBody: `{"message":"something went wrong"}`,
 		},
 	}
 
@@ -129,8 +129,8 @@ func Test_handler_signUpWeb(t *testing.T) {
 				// t.Logf("But got: %d", w.Code)
 			}
 
-			if w.Body.String() != testCase.expectedRequestBody {
-				t.Errorf("Expected response body '%s' but got '%s'", testCase.expectedRequestBody, w.Body.String())
+			if w.Body.String() != testCase.expectedResponseBody {
+				t.Errorf("Expected response body '%s' but got '%s'", testCase.expectedResponseBody, w.Body.String())
 			}
 		})
 	}
