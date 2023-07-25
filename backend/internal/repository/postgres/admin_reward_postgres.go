@@ -26,7 +26,7 @@ func (r *AdminRewardPostgres) Create(reward models.Reward) (int, error) {
 						reward (title, description) 
 						VALUES ($1, $2) 
 					RETURNING id`
-
+	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	row := r.dbpool.QueryRow(context.Background(), query, reward.Title, reward.Description)
 	if err := row.Scan(&rewardId); err != nil {
 		return 0, fmt.Errorf("%s:%s: %w", op, scanErr, err)

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -18,6 +19,7 @@ func Test_handler_webUserIdentity(t *testing.T) {
 	type ResponseBody struct {
 		UserID   int    `json:"userId"`
 		UserRole string `json:"userRole"`
+		Message  string `json:"message"`
 	}
 
 	testTable := []struct {
@@ -41,6 +43,60 @@ func Test_handler_webUserIdentity(t *testing.T) {
 			expectedResponseBody: ResponseBody{
 				UserID:   1,
 				UserRole: "test_role",
+				Message:  "",
+			},
+		},
+		{
+			name:               "Empty Header Name",
+			headerName:         "",
+			token:              "token",
+			mockBehavior:       func(s *mock_service.MockAuthorization, token string) {},
+			expectedStatusCode: 401,
+			expectedResponseBody: ResponseBody{
+				UserID:   0,
+				UserRole: "",
+				Message:  "empty auth header",
+			},
+		},
+		{
+			name:               "Invalid Header Value",
+			headerName:         "Authorization",
+			headerValue:        "Bearrrr token", // "Bearer" is misspelled
+			token:              "token",
+			mockBehavior:       func(s *mock_service.MockAuthorization, token string) {},
+			expectedStatusCode: 401,
+			expectedResponseBody: ResponseBody{
+				UserID:   0,
+				UserRole: "",
+				Message:  "invalid auth header: wrong auth method",
+			},
+		},
+		{
+			name:               "Empty Token",
+			headerName:         "Authorization",
+			headerValue:        "Bearer ", // token is missing
+			token:              "token",
+			mockBehavior:       func(s *mock_service.MockAuthorization, token string) {},
+			expectedStatusCode: 401,
+			expectedResponseBody: ResponseBody{
+				UserID:   0,
+				UserRole: "",
+				Message:  "invalid auth header: token is missing",
+			},
+		},
+		{
+			name:        "Parse Error",
+			headerName:  "Authorization",
+			headerValue: "Bearer token",
+			token:       "token",
+			mockBehavior: func(s *mock_service.MockAuthorization, token string) {
+				s.EXPECT().ParseToken(token).Return(0, "", errors.New("failed to parse token"))
+			},
+			expectedStatusCode: 401,
+			expectedResponseBody: ResponseBody{
+				UserID:   0,
+				UserRole: "",
+				Message:  "failed to parse token",
 			},
 		},
 	}
@@ -105,6 +161,10 @@ func Test_handler_webUserIdentity(t *testing.T) {
 
 			if responseBody.UserRole != testCase.expectedResponseBody.UserRole {
 				t.Errorf("Expected userRole '%s' but got '%s'", testCase.expectedResponseBody.UserRole, responseBody.UserRole)
+			}
+
+			if responseBody.Message != testCase.expectedResponseBody.Message {
+				t.Errorf("Expected Message '%s' but got '%s'", testCase.expectedResponseBody.Message, responseBody.Message)
 			}
 		})
 	}

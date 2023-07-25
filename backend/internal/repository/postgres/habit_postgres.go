@@ -7,7 +7,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/backend/internal/repository"
 	"github.com/jackc/pgx/v5"
-	_ "github.com/jackc/pgx/v5"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

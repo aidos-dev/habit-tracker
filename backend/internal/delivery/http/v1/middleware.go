@@ -66,8 +66,20 @@ func (h *Handler) webUserIdentity(c *gin.Context) {
 	headerParts := strings.Split(header, " ")
 
 	if len(headerParts) != 2 {
-		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
-		h.log.Error(fmt.Sprintf("%s: error", op), "invalid auth header")
+		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header: auth fields are missing")
+		h.log.Error(fmt.Sprintf("%s: error", op), "invalid auth header: auth fields are missing")
+		return
+	}
+
+	if headerParts[0] != "Bearer" {
+		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header: wrong auth method")
+		h.log.Error(fmt.Sprintf("%s: error", op), "invalid auth header: wrong auth method")
+		return
+	}
+
+	if headerParts[1] == "" {
+		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header: token is missing")
+		h.log.Error(fmt.Sprintf("%s: error", op), "invalid auth header: token is missing")
 		return
 	}
 
