@@ -2,13 +2,15 @@ package telegram
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage"
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -20,9 +22,17 @@ const (
 )
 
 func (p *Processor) doCmd(text string, chatID int, username string) error {
+	const op = "telegram/internal/events/telegram/commands.doCmd"
+
 	text = strings.TrimSpace(text)
 
-	log.Printf("doCmd: got new command [%s] from [%s]", text, username)
+	// log.Printf("doCmd: got new command [%s] from [%s]", text, username)
+	p.log.Info(
+		fmt.Sprintf("%s: got new command", op),
+		slog.String("command text", text),
+		slog.String("from", username),
+		slog.Int("chatId", chatID),
+	)
 
 	event := models.Event{
 		ChatId:   chatID,
@@ -33,7 +43,8 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	switch text {
 	case StartCmd:
 		p.startSendHelloCh <- true
-		log.Print("doCmd: switch sent true to startSendHelloCh")
+		// log.Print("doCmd: switch sent true to startSendHelloCh")
+		p.log.Info(fmt.Sprintf("%s: switch sent true to startSendHelloCh", op))
 	case HelpCmd:
 		p.startSendHelpCh <- true
 	case Habit:
@@ -41,31 +52,40 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 
 	}
 
-	log.Print("doCmd: switch case made its choise")
+	// log.Print("doCmd: switch case made its choise")
+	p.log.Info(fmt.Sprintf("%s: switch case made its choise", op))
 
 	p.eventCh <- event
 
-	log.Print("doCmd: event is sent to eventCh")
+	// log.Print("doCmd: event is sent to eventCh")
+	p.log.Info(fmt.Sprintf("%s: event is sent to eventCh", op))
 
 	err := <-p.errChan
 
-	log.Printf("doCmd:  err content is: %v", err)
+	// log.Printf("doCmd:  err content is: %v", err)
+	p.log.Info(fmt.Sprintf("%s: err content is: %v", op, err))
 
 	return err
 }
 
 func (p *Processor) CreateHabit() {
-	const habitErr = "can't do command: save page"
+	const (
+		op       = "telegram/internal/events/telegram/commands.CreateHabit"
+		habitErr = "can't do command: save page"
+	)
 
-	log.Print("CreateHabit: goroutine started")
+	// log.Print("CreateHabit: goroutine started")
+	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
 	for {
 
 		<-p.startCreateHabitCh
-		log.Print("CreateHabit: method called")
+		// log.Print("CreateHabit: method called")
+		p.log.Info(fmt.Sprintf("%s: CreateHabit method called", op))
 
 		p.mu.Lock()
-		log.Print("CreateHabit: method locked event channel")
+		// log.Print("CreateHabit: method locked event channel")
+		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
 
 		event := <-p.eventCh
 
@@ -115,7 +135,7 @@ func (p *Processor) CreateHabit() {
 			}
 			t, err := time.Parse(timeFormat, text)
 			if err != nil {
-				log.Printf("error: CreateHabit: %v", err)
+				p.log.Error(fmt.Sprintf("%s: failed to parse time", op), sl.Err(err))
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.StartDate = t
@@ -127,16 +147,20 @@ func (p *Processor) CreateHabit() {
 
 			t, err := time.Parse(timeFormat, text)
 			if err != nil {
-				log.Printf("error: CreateHabit: %v", err)
+				p.log.Error(fmt.Sprintf("%s: failed to parse time", op), sl.Err(err))
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.EndDate = t
 
 			habitId := p.adapter.CreateHabit(username, habit)
 
-			log.Printf("CreateHabit: created habit id is: %v", habitId)
-
 			p.adapter.UpdateHabitTracker(username, habitId, tracker)
+			// log.Printf("CreateHabit: created habit id is: %v", habitId)
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit created", op),
+				slog.Int("habitId", habitId),
+			)
 
 			// isExists, err := p.storage.IsExists(page)
 			// if err != nil {
@@ -158,7 +182,8 @@ func (p *Processor) CreateHabit() {
 			p.errChan <- err
 
 			p.mu.Unlock()
-			log.Print("CreateHabit: method unlocked event channel")
+			// log.Print("CreateHabit: method unlocked event channel")
+			p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
 
 		}
 
@@ -166,13 +191,17 @@ func (p *Processor) CreateHabit() {
 }
 
 func (p *Processor) SendHelp() {
-	log.Print("SendHelp: goroutine started")
+	const op = "telegram/internal/events/telegram/commands.SendHelp"
+
+	// log.Print("SendHelp: goroutine started")
+	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
 	for {
 		<-p.startSendHelpCh
 
 		p.mu.Lock()
-		log.Print("SendHelp: method locked event channel")
+		// log.Print("SendHelp: method locked event channel")
+		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
 
 		event := <-p.eventCh
 		chatID := event.ChatId
@@ -182,33 +211,45 @@ func (p *Processor) SendHelp() {
 		p.errChan <- err
 
 		p.mu.Unlock()
-		log.Print("SendHelp: method locked event channel")
+		// log.Print("SendHelp: method locked event channel")
+		p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
 
 	}
 }
 
 func (p *Processor) SendHello() {
-	log.Print("SendHello: goroutine started")
+	const op = "telegram/internal/events/telegram/commands.SendHello"
+
+	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
 	for {
 
 		<-p.startSendHelloCh
-		log.Print("SendHello: SendHello method called")
+		// log.Print("SendHello: SendHello method called")
+		p.log.Info(fmt.Sprintf("%s: method called", op))
 
 		p.mu.Lock()
 
-		log.Print("SendHello: method locked event channel")
+		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
 
 		event := <-p.eventCh
 
-		log.Printf("SendHello: event content is: %v", event)
+		// log.Printf("SendHello: event content is: %v", event)
+		p.log.Info(
+			fmt.Sprintf("%s: event content", op),
+			slog.Any("content", event),
+		)
 
 		chatID := event.ChatId
 		username := event.UserName
 
 		p.adapter.SignUp(username)
 
-		log.Printf("SendHello: user [%v] started bot\n", username)
+		// log.Printf("SendHello: user [%v] started bot\n", username)
+		p.log.Info(
+			fmt.Sprintf("%s: user started the bot", op),
+			slog.String("username", username),
+		)
 
 		err := p.tg.SendMessage(chatID, msgHello)
 
@@ -216,7 +257,7 @@ func (p *Processor) SendHello() {
 
 		p.mu.Unlock()
 
-		log.Print("SendHello: method unlocked event channel")
+		p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
 	}
 }
 

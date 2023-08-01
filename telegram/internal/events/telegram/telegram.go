@@ -3,11 +3,11 @@ package telegram
 import (
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 
 	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/clients/tgClient"
+	"golang.org/x/exp/slog"
 
 	"github.com/aidos-dev/habit-tracker/pkg/errs"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/events"
@@ -16,6 +16,7 @@ import (
 )
 
 type Processor struct {
+	log                *slog.Logger
 	tg                 *tgClient.Client
 	offset             int
 	storage            storage.Storage
@@ -40,8 +41,9 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, errChan chan error) *Processor {
+func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, errChan chan error) *Processor {
 	return &Processor{
+		log:                log,
 		tg:                 client,
 		storage:            storage,
 		adapter:            adapter,
@@ -88,12 +90,16 @@ func (p *Processor) Process(event events.Event) error {
 }
 
 func (p *Processor) processMessage(event events.Event) error {
+	const op = "telegram/internal/events/telegram/telegram.processMessage"
+
 	meta, err := meta(event)
 	if err != nil {
 		return errs.Wrap("can't process message", err)
 	}
 
-	log.Printf("processMessage: Event content is: [%v]\n", event)
+	// log.Printf("processMessage: Event content is: [%v]\n", event)
+	// the line bellow only for debugging
+	p.log.Info(fmt.Sprintf("%s: Event", op), slog.Any("content", event))
 
 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
 		return errs.Wrap("can't process message", err)

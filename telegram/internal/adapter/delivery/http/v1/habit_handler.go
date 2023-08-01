@@ -3,21 +3,28 @@ package v1
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
+	"golang.org/x/exp/slog"
 )
 
 func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
-	log.Print("adapter: CreateHabit method called")
+	const (
+		op        = "telegram/internal/adapter/delivery/http/v1/habit_handler.CreateHabit"
+		habitsUrl = "/api/habits"
+	)
+
+	a.log.Info(fmt.Sprintf("%s: CreateHabit method called", op))
 
 	// Perform the necessary logic for command1
-	log.Println("adapter: CreateHabit: Executing CreateHabit with text:", username)
+	a.log.Info(fmt.Sprintf("%s: Executing CreateHabit with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + "/api/habits"
+	requestURL := a.BackendUrl + habitsUrl
 
 	type Request struct {
 		Title       string `json:"title"`
@@ -31,29 +38,27 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: adapter: CreateHabit: failed to send request: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to encode to JSON", op), sl.Err(err))
 		return 0
 	}
 
 	// Send a POST request
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: adapter: CreateHabit: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to send http.Post request", op), sl.Err(err))
 		return 0
 	}
 	defer resp.Body.Close()
 
 	// Read the response body
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: adapter: CreateHabit: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to read the responseBody", op), sl.Err(err))
 		return 0
 	}
 
-	log.Printf("adapter: CreateHabit: response body: %v", string(responseBody))
+	// the line bellow only for debugging
+	a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
 
 	// temporarily returning random number 121212. just for testing as a placeholder
 	return 121212

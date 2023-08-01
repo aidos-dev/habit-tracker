@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
+	"github.com/aidos-dev/habit-tracker/pkg/loggs"
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/aidos-dev/habit-tracker/telegram/config"
 	v1 "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/delivery/http/v1"
 	server "github.com/aidos-dev/habit-tracker/telegram/internal/adapter/server/httpServer"
@@ -16,7 +17,7 @@ import (
 	"github.com/aidos-dev/habit-tracker/telegram/internal/events/telegram"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/storage/files"
-	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -28,6 +29,16 @@ const (
 func Run() {
 	// init config: cleanenv
 	cfg := config.MustLoad()
+
+	// init logger: slog
+	log := loggs.SetupLogger(cfg.Env)
+
+	log.Info(
+		"starting Telegram service with slog logger",
+		slog.String("env", cfg.Env),
+		slog.String("version", "v1"),
+	)
+	log.Debug("debug messages are enabled")
 
 	// get telegram token
 	telegramToken := config.MustToken()
@@ -47,7 +58,7 @@ func Run() {
 		// trackerCh    chan models.HabitTracker
 	)
 
-	adapter := v1.NewAdapterHandler()
+	adapter := v1.NewAdapterHandler(log)
 
 	srv := new(server.Server)
 
@@ -56,8 +67,8 @@ func Run() {
 	// adapter.Router = ginEng.Group("/telegram")
 
 	go func() {
-		if err := srv.Run(cfg, ginEng); err != nil {
-			logrus.Printf("error occured while running backend adapter http server: %s", err.Error())
+		if err := srv.Run(cfg, log, ginEng); err != nil {
+			log.Error("error occured while running the adapter to backend http server: %s", sl.Err(err))
 			return
 		}
 	}()
@@ -70,7 +81,7 @@ func Run() {
 	mu := &sync.Mutex{}
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(tgClient, storage, adapter, mu, eventCh, startSendHelloCh, startSendHelpCh, startCreateHabitCh, errChan)
+	eventsProcessor := telegram.NewProcessor(log, tgClient, storage, adapter, mu, eventCh, startSendHelloCh, startSendHelpCh, startCreateHabitCh, errChan)
 
 	go eventsProcessor.SendHello()
 
@@ -83,26 +94,26 @@ func Run() {
 	*/
 	go eventsProcessor.CreateHabit()
 
-	log.Print("service started")
-
 	// consumer.Start(fetcher, processor)
 
-	consumer := event_consumer.NewConsumer(eventsProcessor, eventsProcessor, batchSize)
+	consumer := event_consumer.NewConsumer(log, eventsProcessor, eventsProcessor, batchSize)
 
 	go func() {
 		if err := consumer.Start(); err != nil {
-			logrus.Printf("error occured while running telegram consumer service: %s", err.Error())
+			log.Error("error occured while running telegram consumer service: %s", sl.Err(err))
 			return
 		}
 	}()
+
+	log.Info("Telegram service has started")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
-	logrus.Println("telegram service Shutting Down")
+	log.Info("Telegram service Shutting Down")
 
 	if err := srv.Shutdown(context.Background()); err != nil {
-		logrus.Errorf("error occured on server shutting down: %s", err.Error())
+		log.Error("error occured on server shutting down: %s", sl.Err(err))
 	}
 }

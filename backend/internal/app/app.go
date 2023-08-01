@@ -31,8 +31,6 @@ func Run() {
 	)
 	log.Debug("debug messages are enabled")
 
-	// logrus.SetFormatter(new(logrus.JSONFormatter))
-
 	dbpool, err := postgres.NewPostgresDB(cfg)
 	if err != nil {
 		log.Error("failed to initialize db", sl.Err(err))

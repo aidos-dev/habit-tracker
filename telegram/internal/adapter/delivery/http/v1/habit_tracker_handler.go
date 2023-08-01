@@ -3,23 +3,31 @@ package v1
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
+	"golang.org/x/exp/slog"
 )
 
 func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitTracker models.HabitTracker) {
-	log.Print("adapter UpdateHabitTracker method called")
+	const (
+		op         = "telegram/internal/adapter/delivery/http/v1/habit_tracker_handler.UpdateHabitTracker"
+		habitsUrl  = "/api/habits"
+		trackerUrl = "/tracker"
+	)
+
+	a.log.Info(fmt.Sprintf("%s: UpdateHabitTracker method called", op))
 
 	// Perform the necessary logic for command1
-	log.Println("Executing UpdateHabitTracker with text:", username)
+	a.log.Info(fmt.Sprintf("%s: Executing UpdateHabitTracker with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + "/api/habits/" + strconv.Itoa(habitId) + "/tracker"
+	requestURL := a.BackendUrl + habitsUrl + strconv.Itoa(habitId) + trackerUrl
 
 	type Request struct {
 		UnitOfMessure string    `json:"unit_of_messure"`
@@ -40,7 +48,7 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: failed to send request: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to encode to JSON", op), sl.Err(err))
 		return
 	}
 
@@ -48,7 +56,7 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 	req, err := http.NewRequest("PUT", requestURL, bytes.NewBuffer(requestBody))
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to send http.Put request", op), sl.Err(err))
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -56,21 +64,22 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("error executing request: %v", err)
+		a.log.Error(fmt.Sprintf("%s: failed to execute a request", op), sl.Err(err))
 		return
 	}
 
 	defer resp.Body.Close()
 
 	// Read the response body
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to read the responseBody", op), sl.Err(err))
 		return
 	}
 
-	log.Printf("response body: %v", string(responseBody))
+	// the line bellow only for debugging
+	a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
 }
 
 // func (h *Handler) getAllHabitTrackers(c *gin.Context) {

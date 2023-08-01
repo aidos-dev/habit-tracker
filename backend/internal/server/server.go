@@ -9,8 +9,8 @@ import (
 )
 
 type Server struct {
-	httpServer *http.Server
 	log        *slog.Logger
+	httpServer *http.Server
 }
 
 func (s *Server) Run(cfg *config.Config, log *slog.Logger, handler http.Handler) error {

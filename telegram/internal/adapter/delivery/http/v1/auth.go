@@ -3,19 +3,27 @@ package v1
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"io"
 	"net/http"
+
+	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
+	"golang.org/x/exp/slog"
 )
 
 func (a *AdapterHandler) SignUp(username string) {
-	log.Print("adapter: SignUp method called")
+	const (
+		op        = "telegram/internal/adapter/delivery/http/v1/auth.SignUp"
+		signUpUrl = "/auth/sign-up"
+	)
+
+	a.log.Info(fmt.Sprintf("%s: SignUp method called", op))
 
 	// Perform the necessary logic for command1
-	log.Println("adapter: SignUp: Executing SignUp with text:", username)
+	a.log.Info(fmt.Sprintf("%s: Executing SignUp with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + "/auth/sign-up"
+	requestURL := a.BackendUrl + signUpUrl
 
 	type Request struct {
 		Name string `json:"tg_user_name"`
@@ -25,29 +33,27 @@ func (a *AdapterHandler) SignUp(username string) {
 
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: adapter: SignUp: failed to send request: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to encode to JSON", op), sl.Err(err))
 		return
 	}
 
 	// Send a POST request
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to send http.Post request", op), sl.Err(err))
 		return
 	}
 	defer resp.Body.Close()
 
 	// Read the response body
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		log.Printf("error: %v", err.Error())
+		a.log.Error(fmt.Sprintf("%s: failed to read the responseBody", op), sl.Err(err))
 		return
 	}
 
-	log.Printf("adapter: SignUp: response body: %v", string(responseBody))
+	// the line bellow only for debugging
+	a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
 
 	// c.JSON(http.StatusOK, map[string]interface{}{
 	// 	"tg_user_name": username,

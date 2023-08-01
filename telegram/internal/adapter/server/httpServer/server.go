@@ -2,17 +2,20 @@ package server
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/telegram/config"
+	"golang.org/x/exp/slog"
 )
 
 type Server struct {
+	log        *slog.Logger
 	httpServer *http.Server
 }
 
-func (s *Server) Run(cfg *config.Config, handler http.Handler) error {
+func (s *Server) Run(cfg *config.Config, log *slog.Logger, handler http.Handler) error {
+	s.log = log
+
 	s.httpServer = &http.Server{
 		Addr:           ":" + cfg.HTTPServer.Port,
 		Handler:        handler,
@@ -22,7 +25,7 @@ func (s *Server) Run(cfg *config.Config, handler http.Handler) error {
 		IdleTimeout:    cfg.HTTPServer.IdleTimeout,
 	}
 
-	log.Printf("adapter server started and listening on port: %v", cfg.HTTPServer.Port)
+	s.log.Info("adapter server started and listening", slog.String("port", cfg.HTTPServer.Port))
 
 	return s.httpServer.ListenAndServe()
 }

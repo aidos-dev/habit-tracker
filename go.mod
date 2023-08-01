@@ -9,7 +9,6 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.4.2
 	github.com/jackc/pgx/v5 v5.4.1
 	github.com/joho/godotenv v1.5.1
-	github.com/sirupsen/logrus v1.6.0
 	go.uber.org/mock v0.2.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
@@ -29,7 +28,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/leodido/go-urn v1.2.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
