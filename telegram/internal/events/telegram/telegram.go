@@ -99,7 +99,7 @@ func (p *Processor) processMessage(event events.Event) error {
 
 	// log.Printf("processMessage: Event content is: [%v]\n", event)
 	// the line bellow only for debugging
-	p.log.Info(fmt.Sprintf("%s: Event", op), slog.Any("content", event))
+	p.log.Info(fmt.Sprintf("%s: New event", op), slog.Any("event content", event))
 
 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
 		return errs.Wrap("can't process message", err)
