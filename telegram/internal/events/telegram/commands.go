@@ -26,10 +26,9 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 
 	text = strings.TrimSpace(text)
 
-	// log.Printf("doCmd: got new command [%s] from [%s]", text, username)
 	p.log.Info(
-		fmt.Sprintf("%s: got new command", op),
-		slog.String("command text", text),
+		fmt.Sprintf("%s: got new message", op),
+		slog.String("message text", text),
 		slog.String("from", username),
 		slog.Int("chatId", chatID),
 	)
@@ -40,16 +39,20 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		Text:     text,
 	}
 
-	switch text {
-	case StartCmd:
+	switch {
+	case text == StartCmd:
 		p.startSendHelloCh <- true
 		// log.Print("doCmd: switch sent true to startSendHelloCh")
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startSendHelloCh", op))
-	case HelpCmd:
+	case text == HelpCmd:
 		p.startSendHelpCh <- true
-	case Habit:
+		p.log.Info(fmt.Sprintf("%s: switch sent true to startSendHelpCh", op))
+	case text == Habit || <-p.continueHabitCh:
 		p.startCreateHabitCh <- true
-
+		p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
+	case text == Cancel:
+		p.log.Info(fmt.Sprintf("%s: switch recieved command to Cancel", op))
+		return nil
 	}
 
 	// log.Print("doCmd: switch case made its choise")
@@ -88,46 +91,114 @@ func (p *Processor) CreateHabit() {
 		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
 
 		event := <-p.eventCh
+		p.log.Info(
+			fmt.Sprintf("%s: recieved an event", op),
+			slog.Any("event content", event),
+		)
 
 		chatID := event.ChatId
 		username := event.UserName
 		text := event.Text
 
+		var habit models.Habit
+		var tracker models.HabitTracker
+
 		if text == Cancel {
+			p.log.Info(fmt.Sprintf("%s: method recieved command to Cancel", op))
+			habit = clearHabit(habit)
+			tracker = clearTracker(tracker)
 			p.mu.Unlock()
+			p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
 			p.errChan <- nil
 		}
 
 		// defer p.wg.Done()
 		// p.wg.Add(1)
 
-		var habit models.Habit
-		var tracker models.HabitTracker
-
 		switch {
+		case text == Habit:
+			if err := p.tg.SendMessage(chatID, msgHabitTitle); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
+			}
+
+			p.errChan <- nil
+			p.log.Info(
+				fmt.Sprintf("%s: nil sent to errChan", op),
+				slog.Any("err content", nil),
+			)
+
+			p.continueHabitCh <- true
+			p.log.Info(fmt.Sprintf("%s: signal sent to continueHabitCh", op))
+
+			////////////////////////////////////////
+			// p.mu.Unlock()
+			// // log.Print("CreateHabit: method unlocked event channel")
+			// p.log.Info(fmt.Sprintf("%s: 1 - method unlocked event channel", op))
+			/////////////////////////////////////////
+
 		case habit.Title == "":
 			if err := p.tg.SendMessage(chatID, msgHabitTitle); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
 			}
+
 			habit.Title = text
+			p.log.Info(
+				fmt.Sprintf("%s: habit Title filled", op),
+				slog.String("habit title", habit.Title),
+			)
+
+			p.errChan <- nil
+			p.log.Info(
+				fmt.Sprintf("%s: nil sent to errChan", op),
+				slog.Any("err content", nil),
+			)
 
 		case habit.Description == "":
 			if err := p.tg.SendMessage(chatID, msgHabitDescription); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
+
 			habit.Description = text
+			p.log.Info(
+				fmt.Sprintf("%s: habit Description filled", op),
+				slog.String("habit description", habit.Description),
+			)
+
+			p.errChan <- nil
+			p.log.Info(
+				fmt.Sprintf("%s: nil sent to errChan", op),
+				slog.Any("err content", nil),
+			)
 
 		case tracker.UnitOfMessure == "":
 			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
+
 			tracker.UnitOfMessure = text
+			p.log.Info(
+				fmt.Sprintf("%s: tracker Unit of Messuer filled", op),
+				slog.String("tracker UoM", tracker.UnitOfMessure),
+			)
 
 		case tracker.Frequency == "":
 			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.Frequency = text
+			tracker.UnitOfMessure = text
+			p.log.Info(
+				fmt.Sprintf("%s: tracker Frequency filled", op),
+				slog.String("tracker frequency", tracker.Frequency),
+			)
 
 		case tracker.StartDate.IsZero():
 			if err := p.tg.SendMessage(chatID, msgStartDate); err != nil {
@@ -139,6 +210,10 @@ func (p *Processor) CreateHabit() {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.StartDate = t
+			p.log.Info(
+				fmt.Sprintf("%s: tracker start date filled", op),
+				slog.Any("tracker start date", tracker.StartDate),
+			)
 
 		case tracker.EndDate.IsZero():
 			if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
@@ -151,6 +226,10 @@ func (p *Processor) CreateHabit() {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.EndDate = t
+			p.log.Info(
+				fmt.Sprintf("%s: tracker end date filled", op),
+				slog.Any("tracker end date", tracker.EndDate),
+			)
 
 			habitId := p.adapter.CreateHabit(username, habit)
 
@@ -190,6 +269,22 @@ func (p *Processor) CreateHabit() {
 	}
 }
 
+// clearHabit resets all habit fields back to zero values
+func clearHabit(habit models.Habit) models.Habit {
+	habit.Title = ""
+	habit.Description = ""
+	return habit
+}
+
+// clearTracker resets all habit tracker fields back to zero values
+func clearTracker(tracker models.HabitTracker) models.HabitTracker {
+	tracker.UnitOfMessure = ""
+	tracker.Frequency = ""
+	tracker.StartDate = time.Time{}
+	tracker.EndDate = time.Time{}
+	return tracker
+}
+
 func (p *Processor) SendHelp() {
 	const op = "telegram/internal/events/telegram/commands.SendHelp"
 
@@ -198,6 +293,7 @@ func (p *Processor) SendHelp() {
 
 	for {
 		<-p.startSendHelpCh
+		p.log.Info(fmt.Sprintf("%s: method called", op))
 
 		p.mu.Lock()
 		// log.Print("SendHelp: method locked event channel")

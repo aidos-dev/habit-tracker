@@ -26,6 +26,7 @@ type Processor struct {
 	startSendHelloCh   chan bool
 	startSendHelpCh    chan bool
 	startCreateHabitCh chan bool
+	continueHabitCh    chan bool
 	errChan            chan error
 	// HabitCh      chan models.Habit
 	// TrackerCh    chan models.HabitTracker
@@ -41,7 +42,7 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, errChan chan error) *Processor {
+func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, continueHabitCh chan bool, errChan chan error) *Processor {
 	return &Processor{
 		log:                log,
 		tg:                 client,
@@ -52,6 +53,7 @@ func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Sto
 		startSendHelloCh:   startSendHelloCh,
 		startSendHelpCh:    startSendHelpCh,
 		startCreateHabitCh: startCreateHabitCh,
+		continueHabitCh:    continueHabitCh,
 		errChan:            errChan,
 		// HabitCh:      habitCh,
 		// TrackerCh:    trackerCh,
