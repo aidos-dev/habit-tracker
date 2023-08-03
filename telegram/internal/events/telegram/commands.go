@@ -40,32 +40,51 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	}
 
 	switch {
+	case text == Cancel:
+		p.log.Info(fmt.Sprintf("%s: switch recieved command to Cancel", op))
+		return nil
 	case text == StartCmd:
 		p.startSendHelloCh <- true
-		// log.Print("doCmd: switch sent true to startSendHelloCh")
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startSendHelloCh", op))
 	case text == HelpCmd:
 		p.startSendHelpCh <- true
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startSendHelpCh", op))
-	case text == Habit || <-p.continueHabitCh:
+	case text == Habit:
 		p.startCreateHabitCh <- true
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
-	case text == Cancel:
-		p.log.Info(fmt.Sprintf("%s: switch recieved command to Cancel", op))
-		return nil
+
+	default:
+		/*
+		   this block of code placed to default and wrapped to "select - case"
+		   to make it non blocking.
+		*/
+		select {
+		/*
+			this case operates when a user started to create a habit and after each input
+			the bot prompts a user for the next input (habit title, description, frequency etc.)
+			after each input the CreateHabit method sends signal to p.continueHabitCh
+			so the CreateHabit method can be recalled again to continue filling habit fields
+			and continue creating a habit
+		*/
+		case <-p.continueHabitCh:
+			p.startCreateHabitCh <- true
+			p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
+		default:
+
+			p.log.Info(fmt.Sprintf("%s: the message couldn't find it's route", op))
+			return nil
+		}
+
 	}
 
-	// log.Print("doCmd: switch case made its choise")
 	p.log.Info(fmt.Sprintf("%s: switch case made its choise", op))
 
 	p.eventCh <- event
 
-	// log.Print("doCmd: event is sent to eventCh")
 	p.log.Info(fmt.Sprintf("%s: event is sent to eventCh", op))
 
 	err := <-p.errChan
 
-	// log.Printf("doCmd:  err content is: %v", err)
 	p.log.Info(fmt.Sprintf("%s: err content is: %v", op, err))
 
 	return err
@@ -77,18 +96,17 @@ func (p *Processor) CreateHabit() {
 		habitErr = "can't do command: save page"
 	)
 
-	// log.Print("CreateHabit: goroutine started")
 	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
 	for {
 
 		<-p.startCreateHabitCh
-		// log.Print("CreateHabit: method called")
+
 		p.log.Info(fmt.Sprintf("%s: CreateHabit method called", op))
 
 		p.mu.Lock()
-		// log.Print("CreateHabit: method locked event channel")
-		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
+
+		p.log.Info(fmt.Sprintf("%s: locked event channel", op))
 
 		event := <-p.eventCh
 		p.log.Info(
@@ -104,11 +122,11 @@ func (p *Processor) CreateHabit() {
 		var tracker models.HabitTracker
 
 		if text == Cancel {
-			p.log.Info(fmt.Sprintf("%s: method recieved command to Cancel", op))
+			p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
 			habit = clearHabit(habit)
 			tracker = clearTracker(tracker)
 			p.mu.Unlock()
-			p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
+			p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
 			p.errChan <- nil
 		}
 
@@ -262,7 +280,7 @@ func (p *Processor) CreateHabit() {
 
 			p.mu.Unlock()
 			// log.Print("CreateHabit: method unlocked event channel")
-			p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
+			p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
 
 		}
 
@@ -288,7 +306,6 @@ func clearTracker(tracker models.HabitTracker) models.HabitTracker {
 func (p *Processor) SendHelp() {
 	const op = "telegram/internal/events/telegram/commands.SendHelp"
 
-	// log.Print("SendHelp: goroutine started")
 	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
 	for {
@@ -296,8 +313,8 @@ func (p *Processor) SendHelp() {
 		p.log.Info(fmt.Sprintf("%s: method called", op))
 
 		p.mu.Lock()
-		// log.Print("SendHelp: method locked event channel")
-		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
+
+		p.log.Info(fmt.Sprintf("%s: locked event channel", op))
 
 		event := <-p.eventCh
 		chatID := event.ChatId
@@ -307,8 +324,8 @@ func (p *Processor) SendHelp() {
 		p.errChan <- err
 
 		p.mu.Unlock()
-		// log.Print("SendHelp: method locked event channel")
-		p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
+
+		p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
 
 	}
 }
@@ -321,16 +338,15 @@ func (p *Processor) SendHello() {
 	for {
 
 		<-p.startSendHelloCh
-		// log.Print("SendHello: SendHello method called")
+
 		p.log.Info(fmt.Sprintf("%s: method called", op))
 
 		p.mu.Lock()
 
-		p.log.Info(fmt.Sprintf("%s: method locked event channel", op))
+		p.log.Info(fmt.Sprintf("%s: locked event channel", op))
 
 		event := <-p.eventCh
 
-		// log.Printf("SendHello: event content is: %v", event)
 		p.log.Info(
 			fmt.Sprintf("%s: event content", op),
 			slog.Any("content", event),
@@ -341,7 +357,6 @@ func (p *Processor) SendHello() {
 
 		p.adapter.SignUp(username)
 
-		// log.Printf("SendHello: user [%v] started bot\n", username)
 		p.log.Info(
 			fmt.Sprintf("%s: user started the bot", op),
 			slog.String("username", username),
@@ -353,7 +368,7 @@ func (p *Processor) SendHello() {
 
 		p.mu.Unlock()
 
-		p.log.Info(fmt.Sprintf("%s: method unlocked event channel", op))
+		p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
 	}
 }
 

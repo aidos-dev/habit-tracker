@@ -8,7 +8,7 @@ migrate-down:
 	migrate -path ./migrations -database 'postgres://postgres:${DB_PASSWORD}@localhost:5432/postgres?sslmode=disable' down
 
 compose:
-	docker compose -f docker-compose.yml up --build telegram habit-tracker 
+	docker-compose -f docker-compose.yml up --build telegram habit-tracker 
 	docker image prune -f
 
 recompose:
