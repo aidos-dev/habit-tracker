@@ -40,9 +40,9 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	}
 
 	switch {
-	case text == Cancel:
-		p.log.Info(fmt.Sprintf("%s: switch recieved command to Cancel", op))
-		return nil
+	// case text == Cancel:
+	// 	p.log.Info(fmt.Sprintf("%s: switch recieved command to Cancel", op))
+	// 	return nil
 	case text == StartCmd:
 		p.startSendHelloCh <- true
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startSendHelloCh", op))
@@ -98,6 +98,9 @@ func (p *Processor) CreateHabit() {
 
 	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
+	var habit models.Habit
+	var tracker models.HabitTracker
+
 	for {
 
 		<-p.startCreateHabitCh
@@ -105,10 +108,13 @@ func (p *Processor) CreateHabit() {
 		p.log.Info(fmt.Sprintf("%s: CreateHabit method called", op))
 
 		p.mu.Lock()
-
 		p.log.Info(fmt.Sprintf("%s: locked event channel", op))
 
 		event := <-p.eventCh
+
+		p.mu.Unlock()
+		p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
+
 		p.log.Info(
 			fmt.Sprintf("%s: recieved an event", op),
 			slog.Any("event content", event),
@@ -118,20 +124,25 @@ func (p *Processor) CreateHabit() {
 		username := event.UserName
 		text := event.Text
 
-		var habit models.Habit
-		var tracker models.HabitTracker
-
 		if text == Cancel {
 			p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
 			habit = clearHabit(habit)
 			tracker = clearTracker(tracker)
-			p.mu.Unlock()
-			p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit and tracker intermidate values", op),
+				slog.Any("habit value", habit),
+				slog.Any("tracker value", tracker),
+			)
+
 			p.errChan <- nil
 		}
 
-		// defer p.wg.Done()
-		// p.wg.Add(1)
+		p.log.Info(
+			fmt.Sprintf("%s: habit and tracker intermidate values", op),
+			slog.Any("habit value", habit),
+			slog.Any("tracker value", tracker),
+		)
 
 		switch {
 		case text == Habit:
@@ -143,23 +154,10 @@ func (p *Processor) CreateHabit() {
 				)
 			}
 
-			p.errChan <- nil
-			p.log.Info(
-				fmt.Sprintf("%s: nil sent to errChan", op),
-				slog.Any("err content", nil),
-			)
-
-			p.continueHabitCh <- true
-			p.log.Info(fmt.Sprintf("%s: signal sent to continueHabitCh", op))
-
-			////////////////////////////////////////
-			// p.mu.Unlock()
-			// // log.Print("CreateHabit: method unlocked event channel")
-			// p.log.Info(fmt.Sprintf("%s: 1 - method unlocked event channel", op))
-			/////////////////////////////////////////
+			p.requestNextPromt()
 
 		case habit.Title == "":
-			if err := p.tg.SendMessage(chatID, msgHabitTitle); err != nil {
+			if err := p.tg.SendMessage(chatID, msgHabitDescription); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 				p.log.Info(
 					fmt.Sprintf("%s: err sent to errChan", op),
@@ -173,14 +171,10 @@ func (p *Processor) CreateHabit() {
 				slog.String("habit title", habit.Title),
 			)
 
-			p.errChan <- nil
-			p.log.Info(
-				fmt.Sprintf("%s: nil sent to errChan", op),
-				slog.Any("err content", nil),
-			)
+			p.requestNextPromt()
 
 		case habit.Description == "":
-			if err := p.tg.SendMessage(chatID, msgHabitDescription); err != nil {
+			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 
@@ -190,14 +184,10 @@ func (p *Processor) CreateHabit() {
 				slog.String("habit description", habit.Description),
 			)
 
-			p.errChan <- nil
-			p.log.Info(
-				fmt.Sprintf("%s: nil sent to errChan", op),
-				slog.Any("err content", nil),
-			)
+			p.requestNextPromt()
 
 		case tracker.UnitOfMessure == "":
-			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
+			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 
@@ -207,19 +197,22 @@ func (p *Processor) CreateHabit() {
 				slog.String("tracker UoM", tracker.UnitOfMessure),
 			)
 
+			p.requestNextPromt()
+
 		case tracker.Frequency == "":
-			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
+			if err := p.tg.SendMessage(chatID, msgStartDate); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			tracker.Frequency = text
-			tracker.UnitOfMessure = text
 			p.log.Info(
 				fmt.Sprintf("%s: tracker Frequency filled", op),
 				slog.String("tracker frequency", tracker.Frequency),
 			)
 
+			p.requestNextPromt()
+
 		case tracker.StartDate.IsZero():
-			if err := p.tg.SendMessage(chatID, msgStartDate); err != nil {
+			if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
 			t, err := time.Parse(timeFormat, text)
@@ -233,10 +226,12 @@ func (p *Processor) CreateHabit() {
 				slog.Any("tracker start date", tracker.StartDate),
 			)
 
+			p.requestNextPromt()
+
 		case tracker.EndDate.IsZero():
-			if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-			}
+			// if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
+			// 	p.errChan <- errs.Wrap(habitErr, err)
+			// }
 
 			t, err := time.Parse(timeFormat, text)
 			if err != nil {
@@ -247,6 +242,12 @@ func (p *Processor) CreateHabit() {
 			p.log.Info(
 				fmt.Sprintf("%s: tracker end date filled", op),
 				slog.Any("tracker end date", tracker.EndDate),
+			)
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit and tracker final values", op),
+				slog.Any("habit value", habit),
+				slog.Any("tracker value", tracker),
 			)
 
 			habitId := p.adapter.CreateHabit(username, habit)
@@ -278,10 +279,6 @@ func (p *Processor) CreateHabit() {
 			err = p.tg.SendMessage(chatID, msgCreated)
 			p.errChan <- err
 
-			p.mu.Unlock()
-			// log.Print("CreateHabit: method unlocked event channel")
-			p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
-
 		}
 
 	}
@@ -301,6 +298,26 @@ func clearTracker(tracker models.HabitTracker) models.HabitTracker {
 	tracker.StartDate = time.Time{}
 	tracker.EndDate = time.Time{}
 	return tracker
+}
+
+/*
+requestNextPromt sends nil to p.errChan to release doCmd func and let it
+accept the next command from a user.
+Also it sends a signal to p.continueHabitCh to let
+doCmd func know that CreateHabit method is still in process of
+creating a habit and it is waiting for the next message from a user
+*/
+func (p *Processor) requestNextPromt() {
+	const op = "telegram/internal/events/telegram/commands.CreateHabit"
+
+	p.errChan <- nil
+	p.log.Info(
+		fmt.Sprintf("%s: nil sent to errChan", op),
+		slog.Any("err content", nil),
+	)
+
+	p.continueHabitCh <- true
+	p.log.Info(fmt.Sprintf("%s: signal sent to continueHabitCh", op))
 }
 
 func (p *Processor) SendHelp() {
