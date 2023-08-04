@@ -27,11 +27,13 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	requestURL := a.BackendUrl + habitsUrl
 
 	type Request struct {
+		Username    string `json:"tg_user_name"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
 	}
 
 	requestData := Request{
+		Username:    username,
 		Title:       habit.Title,
 		Description: habit.Description,
 	}

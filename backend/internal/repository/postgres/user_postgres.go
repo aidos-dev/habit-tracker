@@ -154,7 +154,7 @@ func (r *UserPostgres) GetUserById(userId int) (models.GetUser, error) {
 }
 
 func (r *UserPostgres) GetUserByTgUsername(TGusername string) (models.GetUser, error) {
-	const op = "repository.postgres.GetUserById"
+	const op = "repository.postgres.GetUserByTgUsername"
 
 	var user models.GetUser
 	query := `SELECT 

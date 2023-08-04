@@ -260,6 +260,18 @@ func (p *Processor) CreateHabit() {
 				slog.Int("habitId", habitId),
 			)
 
+			/*
+				clean up habit and tracker in order to release memory
+				and prepare it for other future habits
+			*/
+			habit = clearHabit(habit)
+			tracker = clearTracker(tracker)
+			p.log.Info(
+				fmt.Sprintf("%s: habit and tracker values after cleaning up", op),
+				slog.Any("habit value", habit),
+				slog.Any("tracker value", tracker),
+			)
+
 			// isExists, err := p.storage.IsExists(page)
 			// if err != nil {
 			// 	return err

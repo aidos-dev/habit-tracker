@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -10,6 +11,8 @@ import (
 	"github.com/aidos-dev/habit-tracker/backend/internal/models"
 	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/gin-gonic/gin"
+
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -40,6 +43,11 @@ func (h *Handler) tgUserIdentity(c *gin.Context) {
 		return
 	}
 
+	h.log.Info(
+		fmt.Sprintf("%s: preparing to find a tgUser", op),
+		slog.String("tgUserName", TgUserName.TgUsername),
+	)
+
 	user, err := h.services.Authorization.FindTgUser(TgUserName.TgUsername)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: a telegram user not found: %v", err.Error()))
@@ -47,10 +55,20 @@ func (h *Handler) tgUserIdentity(c *gin.Context) {
 		return
 	}
 
+	h.log.Info(
+		fmt.Sprintf("%s: a tgUser is found and ready to be sent to context", op),
+		slog.Any("tgUse", user),
+	)
+
+	// h.log.Info(
+	// 	fmt.Sprintf("%s: Data type of user.Id", op),
+	// 	slog.Any("type", reflect.TypeOf(user.Id)),
+	// )
+
+	log.Printf("%s\n: Data type of user.Id: %v\n", op, reflect.TypeOf(user.Id))
+
 	c.Set(userCtx, user.Id)
 	c.Set(roleCtx, user.Role)
-
-	c.JSON(http.StatusOK, user)
 }
 
 func (h *Handler) webUserIdentity(c *gin.Context) {
@@ -90,8 +108,15 @@ func (h *Handler) webUserIdentity(c *gin.Context) {
 		return
 	}
 
-	c.Set(roleCtx, userRole)
+	// h.log.Info(
+	// 	fmt.Sprintf("%s: Data type of userId", op),
+	// 	slog.Any("type", reflect.TypeOf(userId)),
+	// )
+
+	log.Printf("%s\n: Data type of userId: %v\n", op, reflect.TypeOf(userId))
+
 	c.Set(userCtx, userId)
+	c.Set(roleCtx, userRole)
 }
 
 func getUserId(c *gin.Context) (int, error) {
@@ -99,11 +124,17 @@ func getUserId(c *gin.Context) (int, error) {
 
 	id, ok := c.Get(userCtx)
 	if !ok {
-		newErrorResponse(c, http.StatusInternalServerError, "user id not found: doesn't exist")
+		// newErrorResponse(c, http.StatusInternalServerError, "user id not found: doesn't exist")
 		return 0, fmt.Errorf("%s: user id not found", op)
 	}
 
+	log.Printf("%s: a user id before converting: %d", op, id)
+
 	idInt := int(id.(float64)) // converting float64 to int
+	// idInt, ok := id.(int) // converting  to int
+	// if !ok {
+	// 	return 0, fmt.Errorf("%s: failed to convert id to int", op)
+	// }
 
 	var n int
 
@@ -111,7 +142,7 @@ func getUserId(c *gin.Context) (int, error) {
 
 	// _, ok = id.(int) // checking if conversion to int was successful
 	if !intValue {
-		newErrorResponse(c, http.StatusInternalServerError, "user id is of invalid type")
+		// newErrorResponse(c, http.StatusInternalServerError, "user id is of invalid type")
 		return 0, fmt.Errorf("%s: user id is of invalid type", op)
 	}
 
