@@ -5,7 +5,10 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-const backendURL = "http://habit-tracker:8000/telegram"
+const (
+	backendURL = "http://habit-tracker:8000/telegram"
+	userQuery  = "?tgUser="
+)
 
 type AdapterHandler struct {
 	log    *slog.Logger

@@ -33,6 +33,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	authTelegram := routerTelegram.Group("/auth")
 	{
 		authTelegram.POST("/sign-up", h.signUpTelegram)
+		// authTelegram.POST("/tg/:tgUser", h.tgUser)
 		// authTelegram.GET("/exist", h.tgUserIdentity)
 		// authTelegram.POST("/sign-in", h.signInTelegram)
 	}

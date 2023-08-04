@@ -35,20 +35,24 @@ func (h *Handler) userIdentity(c *gin.Context) {
 func (h *Handler) tgUserIdentity(c *gin.Context) {
 	const op = "delivery.http.v1.middleware.tgUserIdentity"
 
-	var TgUserName models.TgUser
+	// var TgUserName models.TgUser
 
-	if err := c.BindJSON(&TgUserName); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
-		h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
-		return
-	}
+	// if err := c.BindJSON(&TgUserName); err != nil {
+	// 	newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("error: failed to get JSON object: %v", err.Error()))
+	// 	h.log.Error(fmt.Sprintf("%s: failed to get JSON object", op), sl.Err(err))
+	// 	return
+	// }
+
+	TgUserName := c.Query("tgUser")
 
 	h.log.Info(
 		fmt.Sprintf("%s: preparing to find a tgUser", op),
-		slog.String("tgUserName", TgUserName.TgUsername),
+		// slog.String("tgUserName", TgUserName.TgUsername),
+		slog.String("tgUserName", TgUserName),
 	)
 
-	user, err := h.services.Authorization.FindTgUser(TgUserName.TgUsername)
+	// user, err := h.services.Authorization.FindTgUser(TgUserName.TgUsername)
+	user, err := h.services.Authorization.FindTgUser(TgUserName)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: a telegram user not found: %v", err.Error()))
 		h.log.Error(fmt.Sprintf("%s: failed to find a telegram user by tg username", op), sl.Err(err))
@@ -65,7 +69,7 @@ func (h *Handler) tgUserIdentity(c *gin.Context) {
 	// 	slog.Any("type", reflect.TypeOf(user.Id)),
 	// )
 
-	log.Printf("%s\n: Data type of user.Id: %v\n", op, reflect.TypeOf(user.Id))
+	log.Printf("%s: Data type of user.Id: %v\n", op, reflect.TypeOf(user.Id))
 
 	c.Set(userCtx, user.Id)
 	c.Set(roleCtx, user.Role)
@@ -113,7 +117,7 @@ func (h *Handler) webUserIdentity(c *gin.Context) {
 	// 	slog.Any("type", reflect.TypeOf(userId)),
 	// )
 
-	log.Printf("%s\n: Data type of userId: %v\n", op, reflect.TypeOf(userId))
+	log.Printf("%s: Data type of userId: %v\n", op, reflect.TypeOf(userId))
 
 	c.Set(userCtx, userId)
 	c.Set(roleCtx, userRole)
@@ -130,11 +134,34 @@ func getUserId(c *gin.Context) (int, error) {
 
 	log.Printf("%s: a user id before converting: %d", op, id)
 
-	idInt := int(id.(float64)) // converting float64 to int
+	idInt, err := convertToInt(id)
+	if err != nil {
+		return 0, fmt.Errorf("%s: failed to convert to int", op)
+	}
+
+	return idInt, nil
+}
+
+func convertToInt(id any) (int, error) {
+	const op = "delivery.http.v1.middleware.convertToInt"
+	// idInt := int(id.(float64)) // converting float64 to int
 	// idInt, ok := id.(int) // converting  to int
 	// if !ok {
 	// 	return 0, fmt.Errorf("%s: failed to convert id to int", op)
 	// }
+
+	var idInt int
+
+	switch id.(type) {
+	case int:
+		idInt = id.(int) // converting  to int
+		log.Printf("%s: idInt got value from int type: %d", op, id)
+	case float64:
+		idInt = int(id.(float64)) // converting float64 to int
+		log.Printf("%s: idInt got value from float64 type: %d", op, id)
+	default:
+		return 0, fmt.Errorf("%s: user id is of unknown type", op)
+	}
 
 	var n int
 

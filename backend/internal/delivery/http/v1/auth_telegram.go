@@ -41,6 +41,16 @@ func (h *Handler) signUpTelegram(c *gin.Context) {
 	})
 }
 
+// /*
+// tgUser gets telegram user name from url and puts it
+// to gin context
+// */
+// func (h *Handler) tgUser(c *gin.Context) {
+// 	tgUserName := strings.TrimSpace(c.Param("tgUser"))
+
+// 	c.Set(tgUserCtx, tgUserName)
+// }
+
 // func (h *Handler) signInTelegram(c *gin.Context) {
 // 	var input signInInput
 

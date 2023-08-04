@@ -35,7 +35,6 @@ func (h *Handler) adminPass(c *gin.Context) {
 adminUserPass allows administrator to pass any user id to context
 so it can have access and manage users accounts
 */
-
 func (h *Handler) adminUserPass(c *gin.Context) {
 	const op = "delivery.http.v1.admin_middleware.adminUserPass"
 
