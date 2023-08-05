@@ -49,12 +49,15 @@ func Run() {
 	storage := files.New(storagePath)
 
 	var (
-		eventCh            = make(chan models.Event)
-		startSendHelloCh   = make(chan bool)
-		startSendHelpCh    = make(chan bool)
-		startCreateHabitCh = make(chan bool)
-		continueHabitCh    = make(chan bool)
-		errChan            = make(chan error)
+		eventCh              = make(chan models.Event)
+		startSendHelloCh     = make(chan bool)
+		startSendHelpCh      = make(chan bool)
+		startCreateHabitCh   = make(chan bool)
+		habitDataChan        = make(chan models.Habit)
+		startUpdateTrackerCh = make(chan bool)
+		continueHabitCh      = make(chan bool)
+		continueTrackerCh    = make(chan bool)
+		errChan              = make(chan error)
 		// habitCh      chan models.Habit
 		// trackerCh    chan models.HabitTracker
 	)
@@ -82,7 +85,7 @@ func Run() {
 	mu := &sync.Mutex{}
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(log, tgClient, storage, adapter, mu, eventCh, startSendHelloCh, startSendHelpCh, startCreateHabitCh, continueHabitCh, errChan)
+	eventsProcessor := telegram.NewProcessor(log, tgClient, storage, adapter, mu, eventCh, startSendHelloCh, startSendHelpCh, startCreateHabitCh, habitDataChan, startUpdateTrackerCh, continueHabitCh, continueTrackerCh, errChan)
 
 	go eventsProcessor.SendHello()
 
@@ -94,6 +97,13 @@ func Run() {
 		a user is in process of habit creation
 	*/
 	go eventsProcessor.CreateHabit()
+
+	/*
+		method UpdateTracker runs in a separate goroutine and keeps listening
+		for chanels. This way it can handle a "dialog" with a user while
+		a user is in process of updating a tracker of the habit
+	*/
+	go eventsProcessor.UpdateTracker()
 
 	// consumer.Start(fetcher, processor)
 

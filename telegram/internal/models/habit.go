@@ -6,6 +6,7 @@ type Habit struct {
 	Id          int    `json:"habitId"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	Username    string
 }
 
 type HabitTracker struct {

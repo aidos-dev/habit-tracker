@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
@@ -52,18 +51,31 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	}
 	defer resp.Body.Close()
 
-	// Read the response body
-	responseBody, err := io.ReadAll(resp.Body)
+	response, err := a.readResponse(resp)
 	if err != nil {
-		a.log.Error(fmt.Sprintf("%s: failed to read the responseBody", op), sl.Err(err))
+		a.log.Error(fmt.Sprintf("%s: failed to get the response", op), sl.Err(err))
 		return 0
 	}
 
-	// the line bellow only for debugging
-	a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
+	// Checking if the "habitId" field exists in the response
+	habitID, ok := response["habitId"].(float64)
+	if !ok {
+		a.log.Error(fmt.Sprintf("%s: habitId not found in response", op))
+		return 0
+	}
 
-	// temporarily returning random number 121212. just for testing as a placeholder
-	return 121212
+	// Converting the float64 habitID to an integer
+	habitIDInt := int(habitID)
+
+	a.log.Info(
+		fmt.Sprintf("%s: habit created:", op),
+		slog.Int("habitId", habitIDInt),
+	)
+
+	// // the line bellow only for debugging
+	// a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
+
+	return habitIDInt
 }
 
 // type getAllHabitsResponse struct {

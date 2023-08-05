@@ -17,6 +17,7 @@ const (
 	StartCmd    = "/start"
 	HelpCmd     = "/help"
 	Habit       = "/new_habit"
+	Tracker     = "/update_tracker"
 	DeleteHabit = "/delete_habit"
 	Cancel      = "/cancel"
 )
@@ -52,6 +53,9 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	case text == Habit:
 		p.startCreateHabitCh <- true
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
+	case text == Tracker:
+		p.startUpdateTrackerCh <- true
+		p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
 
 	default:
 		/*
@@ -69,6 +73,9 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		case <-p.continueHabitCh:
 			p.startCreateHabitCh <- true
 			p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
+		case <-p.continueTrackerCh:
+			p.startUpdateTrackerCh <- true
+			p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
 		default:
 
 			p.log.Info(fmt.Sprintf("%s: the message couldn't find it's route", op))
@@ -93,7 +100,7 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 func (p *Processor) CreateHabit() {
 	const (
 		op       = "telegram/internal/events/telegram/commands.CreateHabit"
-		habitErr = "can't do command: save page"
+		habitErr = "can't do command: create habit"
 	)
 
 	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
@@ -106,6 +113,168 @@ func (p *Processor) CreateHabit() {
 		<-p.startCreateHabitCh
 
 		p.log.Info(fmt.Sprintf("%s: CreateHabit method called", op))
+
+		p.mu.Lock()
+		p.log.Info(fmt.Sprintf("%s: locked event channel", op))
+
+		event := <-p.eventCh
+
+		p.mu.Unlock()
+		p.log.Info(fmt.Sprintf("%s: unlocked event channel", op))
+
+		p.log.Info(
+			fmt.Sprintf("%s: recieved an event", op),
+			slog.Any("event content", event),
+		)
+
+		chatID := event.ChatId
+		username := event.UserName
+		text := event.Text
+
+		if text == Cancel {
+			p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
+			habit = clearHabit(habit)
+			tracker = clearTracker(tracker)
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit intermidate values", op),
+				slog.Any("habit value", habit),
+			)
+
+			p.errChan <- nil
+		}
+
+		p.log.Info(
+			fmt.Sprintf("%s: habit intermidate values", op),
+			slog.Any("habit value", habit),
+		)
+
+		switch {
+		case text == Habit:
+			if err := p.tg.SendMessage(chatID, msgHabitTitle); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
+			}
+
+			p.requestNextPromt(p.continueHabitCh, "continueHabitCh")
+
+		case habit.Title == "":
+			if err := p.tg.SendMessage(chatID, msgHabitDescription); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
+			}
+
+			habit.Title = text
+			p.log.Info(
+				fmt.Sprintf("%s: habit Title filled", op),
+				slog.String("habit title", habit.Title),
+			)
+
+			p.requestNextPromt(p.continueHabitCh, "continueHabitCh")
+
+		case habit.Description == "":
+			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+			}
+
+			habit.Description = text
+			p.log.Info(
+				fmt.Sprintf("%s: habit Description filled", op),
+				slog.String("habit description", habit.Description),
+			)
+
+			p.requestNextPromt(p.continueHabitCh, "continueHabitCh")
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit final values", op),
+				slog.Any("habit value", habit),
+			)
+
+			habitId := p.adapter.CreateHabit(username, habit)
+
+			p.adapter.UpdateHabitTracker(username, habitId, tracker)
+			// log.Printf("CreateHabit: created habit id is: %v", habitId)
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit created", op),
+				slog.Int("habitId", habitId),
+			)
+
+			habitData := models.Habit{
+				Id:          habitId,
+				Title:       habit.Title,
+				Description: habit.Description,
+				Username:    username,
+			}
+
+			/*
+				habitData to be passed to p.habitDataChan
+				so UpdateTracker method can use the habit data
+				to create or update a tracker for this habit
+			*/
+			p.habitDataChan <- habitData
+			p.log.Info(
+				fmt.Sprintf("%s: habitData is sent to p.habitDataChan", op),
+			)
+
+			/*
+				clean up habit in order to release memory
+				and prepare it for other future habits
+			*/
+			habit = clearHabit(habit)
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit values after cleaning up", op),
+				slog.Any("habit value", habit),
+			)
+
+			// isExists, err := p.storage.IsExists(page)
+			// if err != nil {
+			// 	return err
+			// }
+			// if isExists {
+			// 	return p.tg.SendMessage(chatID, msgAlreadyExists)
+			// }
+
+			// if err := p.storage.Save(page); err != nil {
+			// 	return err
+			// }
+
+			// if err := p.tg.SendMessage(chatID, msgCreated); err != nil {
+			// 	p.errChan <- nil
+			// }
+
+			err := p.tg.SendMessage(chatID, msgCreated)
+			p.errChan <- err
+
+		}
+
+	}
+}
+
+func (p *Processor) UpdateTracker() {
+	const (
+		op       = "telegram/internal/events/telegram/commands.UpdateTracker"
+		habitErr = "can't do command: update tracker"
+	)
+
+	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
+
+	habit := <-p.habitDataChan
+
+	var tracker models.HabitTracker
+
+	for {
+
+		<-p.startUpdateTrackerCh
+
+		p.log.Info(fmt.Sprintf("%s: UpdateTracker method called", op))
 
 		p.mu.Lock()
 		p.log.Info(fmt.Sprintf("%s: locked event channel", op))
@@ -145,8 +314,8 @@ func (p *Processor) CreateHabit() {
 		)
 
 		switch {
-		case text == Habit:
-			if err := p.tg.SendMessage(chatID, msgHabitTitle); err != nil {
+		case text == Tracker:
+			if err := p.tg.SendMessage(chatID, msgChooseHabit); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 				p.log.Info(
 					fmt.Sprintf("%s: err sent to errChan", op),
@@ -154,37 +323,7 @@ func (p *Processor) CreateHabit() {
 				)
 			}
 
-			p.requestNextPromt()
-
-		case habit.Title == "":
-			if err := p.tg.SendMessage(chatID, msgHabitDescription); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-				p.log.Info(
-					fmt.Sprintf("%s: err sent to errChan", op),
-					slog.Any("err content", errs.Wrap(habitErr, err)),
-				)
-			}
-
-			habit.Title = text
-			p.log.Info(
-				fmt.Sprintf("%s: habit Title filled", op),
-				slog.String("habit title", habit.Title),
-			)
-
-			p.requestNextPromt()
-
-		case habit.Description == "":
-			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-			}
-
-			habit.Description = text
-			p.log.Info(
-				fmt.Sprintf("%s: habit Description filled", op),
-				slog.String("habit description", habit.Description),
-			)
-
-			p.requestNextPromt()
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 		case tracker.UnitOfMessure == "":
 			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
@@ -197,7 +336,7 @@ func (p *Processor) CreateHabit() {
 				slog.String("tracker UoM", tracker.UnitOfMessure),
 			)
 
-			p.requestNextPromt()
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 		case tracker.Frequency == "":
 			if err := p.tg.SendMessage(chatID, msgStartDate); err != nil {
@@ -209,7 +348,7 @@ func (p *Processor) CreateHabit() {
 				slog.String("tracker frequency", tracker.Frequency),
 			)
 
-			p.requestNextPromt()
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 		case tracker.StartDate.IsZero():
 			if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
@@ -226,7 +365,7 @@ func (p *Processor) CreateHabit() {
 				slog.Any("tracker start date", tracker.StartDate),
 			)
 
-			p.requestNextPromt()
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 		case tracker.EndDate.IsZero():
 			// if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
@@ -250,14 +389,12 @@ func (p *Processor) CreateHabit() {
 				slog.Any("tracker value", tracker),
 			)
 
-			habitId := p.adapter.CreateHabit(username, habit)
-
-			p.adapter.UpdateHabitTracker(username, habitId, tracker)
+			p.adapter.UpdateHabitTracker(username, habit.Id, tracker)
 			// log.Printf("CreateHabit: created habit id is: %v", habitId)
 
 			p.log.Info(
 				fmt.Sprintf("%s: habit created", op),
-				slog.Int("habitId", habitId),
+				slog.Int("habitId", habit.Id),
 			)
 
 			/*
@@ -288,7 +425,7 @@ func (p *Processor) CreateHabit() {
 			// 	p.errChan <- nil
 			// }
 
-			err = p.tg.SendMessage(chatID, msgCreated)
+			err = p.tg.SendMessage(chatID, msgTrackerUpdated)
 			p.errChan <- err
 
 		}
@@ -315,12 +452,12 @@ func clearTracker(tracker models.HabitTracker) models.HabitTracker {
 /*
 requestNextPromt sends nil to p.errChan to release doCmd func and let it
 accept the next command from a user.
-Also it sends a signal to p.continueHabitCh to let
-doCmd func know that CreateHabit method is still in process of
-creating a habit and it is waiting for the next message from a user
+Also it sends a signal to "continue" channels to let
+doCmd func know that some method is still in process of
+creating or updating something and it is waiting for the next message from a user
 */
-func (p *Processor) requestNextPromt() {
-	const op = "telegram/internal/events/telegram/commands.CreateHabit"
+func (p *Processor) requestNextPromt(nextPromtChan chan bool, chanName string) {
+	const op = "telegram/internal/events/telegram/commands.requestNextPromt"
 
 	p.errChan <- nil
 	p.log.Info(
@@ -328,8 +465,8 @@ func (p *Processor) requestNextPromt() {
 		slog.Any("err content", nil),
 	)
 
-	p.continueHabitCh <- true
-	p.log.Info(fmt.Sprintf("%s: signal sent to continueHabitCh", op))
+	nextPromtChan <- true
+	p.log.Info(fmt.Sprintf("%s: signal sent to %s", op, chanName))
 }
 
 func (p *Processor) SendHelp() {

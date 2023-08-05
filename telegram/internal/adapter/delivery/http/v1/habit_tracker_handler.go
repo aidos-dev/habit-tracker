@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,7 +16,7 @@ import (
 func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitTracker models.HabitTracker) {
 	const (
 		op         = "telegram/internal/adapter/delivery/http/v1/habit_tracker_handler.UpdateHabitTracker"
-		habitsUrl  = "/api/habits"
+		habitsUrl  = "/api/habits/"
 		trackerUrl = "/tracker"
 	)
 
@@ -27,7 +26,8 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 	a.log.Info(fmt.Sprintf("%s: Executing UpdateHabitTracker with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + habitsUrl + strconv.Itoa(habitId) + trackerUrl
+	// http://localhost:8000/telegram/api/habits/7/tracker
+	requestURL := a.BackendUrl + habitsUrl + strconv.Itoa(habitId) + trackerUrl + userQuery + username
 
 	type Request struct {
 		UnitOfMessure string    `json:"unit_of_messure"`
@@ -45,12 +45,22 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 		EndDate:       habitTracker.EndDate,
 	}
 
+	a.log.Info(
+		fmt.Sprintf("%s: requestData struct prepared for Marshaling", op),
+		slog.Any("struct content", requestData),
+	)
+
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
 		// c.String(http.StatusInternalServerError, err.Error())
 		a.log.Error(fmt.Sprintf("%s: failed to encode to JSON", op), sl.Err(err))
 		return
 	}
+
+	a.log.Info(
+		fmt.Sprintf("%s: requestData Marshaling", op),
+		slog.Any("Marshaled requestBody content", requestBody),
+	)
 
 	// Send a PUT request
 	req, err := http.NewRequest("PUT", requestURL, bytes.NewBuffer(requestBody))
@@ -70,16 +80,23 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 
 	defer resp.Body.Close()
 
-	// Read the response body
-	responseBody, err := io.ReadAll(resp.Body)
+	response, err := a.readResponse(resp)
 	if err != nil {
-		// c.String(http.StatusInternalServerError, err.Error())
-		a.log.Error(fmt.Sprintf("%s: failed to read the responseBody", op), sl.Err(err))
+		a.log.Error(fmt.Sprintf("%s: failed to get the response", op), sl.Err(err))
 		return
 	}
 
-	// the line bellow only for debugging
-	a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
+	// Checking if the "status" field exists in the response
+	status, ok := response["status"].(string)
+	if !ok {
+		a.log.Error(fmt.Sprintf("%s: status not found in response", op))
+		return
+	}
+
+	a.log.Info(
+		fmt.Sprintf("%s: habit tracker has been updated:", op),
+		slog.String("status", status),
+	)
 }
 
 // func (h *Handler) getAllHabitTrackers(c *gin.Context) {

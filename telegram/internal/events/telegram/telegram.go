@@ -16,18 +16,21 @@ import (
 )
 
 type Processor struct {
-	log                *slog.Logger
-	tg                 *tgClient.Client
-	offset             int
-	storage            storage.Storage
-	adapter            *v1.AdapterHandler
-	mu                 *sync.Mutex
-	eventCh            chan models.Event
-	startSendHelloCh   chan bool
-	startSendHelpCh    chan bool
-	startCreateHabitCh chan bool
-	continueHabitCh    chan bool
-	errChan            chan error
+	log                  *slog.Logger
+	tg                   *tgClient.Client
+	offset               int
+	storage              storage.Storage
+	adapter              *v1.AdapterHandler
+	mu                   *sync.Mutex
+	eventCh              chan models.Event
+	startSendHelloCh     chan bool
+	startSendHelpCh      chan bool
+	startCreateHabitCh   chan bool
+	habitDataChan        chan models.Habit
+	startUpdateTrackerCh chan bool
+	continueHabitCh      chan bool
+	continueTrackerCh    chan bool
+	errChan              chan error
 	// HabitCh      chan models.Habit
 	// TrackerCh    chan models.HabitTracker
 }
@@ -42,19 +45,22 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, continueHabitCh chan bool, errChan chan error) *Processor {
+func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, habitDataChan chan models.Habit, startUpdateTrackerCh chan bool, continueHabitCh chan bool, continueTrackerCh chan bool, errChan chan error) *Processor {
 	return &Processor{
-		log:                log,
-		tg:                 client,
-		storage:            storage,
-		adapter:            adapter,
-		mu:                 mu,
-		eventCh:            eventCh,
-		startSendHelloCh:   startSendHelloCh,
-		startSendHelpCh:    startSendHelpCh,
-		startCreateHabitCh: startCreateHabitCh,
-		continueHabitCh:    continueHabitCh,
-		errChan:            errChan,
+		log:                  log,
+		tg:                   client,
+		storage:              storage,
+		adapter:              adapter,
+		mu:                   mu,
+		eventCh:              eventCh,
+		startSendHelloCh:     startSendHelloCh,
+		startSendHelpCh:      startSendHelpCh,
+		startCreateHabitCh:   startCreateHabitCh,
+		habitDataChan:        habitDataChan,
+		startUpdateTrackerCh: startUpdateTrackerCh,
+		continueHabitCh:      continueHabitCh,
+		continueTrackerCh:    continueTrackerCh,
+		errChan:              errChan,
 		// HabitCh:      habitCh,
 		// TrackerCh:    trackerCh,
 	}

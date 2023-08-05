@@ -60,6 +60,10 @@ func (h *Handler) getHabitTrackerById(c *gin.Context) {
 func (h *Handler) updateHabitTracker(c *gin.Context) {
 	const op = "delivery.http.v1.habit_tracker_handler.updateHabitTracker"
 
+	h.log.Info(
+		fmt.Sprintf("%s: tracker update method was called", op),
+	)
+
 	userId, err := getUserId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error: failed to get user Id: %v", err.Error()))
@@ -87,9 +91,16 @@ func (h *Handler) updateHabitTracker(c *gin.Context) {
 		return
 	}
 
-	h.log.Info(fmt.Sprintf("%s: a habit tracker has been updated", op), slog.Int("habit id", habitId))
+	h.log.Info(
+		fmt.Sprintf("%s: a habit tracker has been updated", op),
+		slog.Int("habit id", habitId),
+	)
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
+
+	// c.JSON(http.StatusOK, map[string]interface{}{
+	// 	"status": "ok",
+	// })
 }
 
 //////////////////////////////////////////////////////////////////////////////
