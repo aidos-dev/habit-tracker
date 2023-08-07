@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/aidos-dev/habit-tracker/pkg/loggs/sl"
 	"github.com/aidos-dev/habit-tracker/telegram/internal/models"
@@ -12,10 +14,7 @@ import (
 )
 
 func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
-	const (
-		op        = "telegram/internal/adapter/delivery/http/v1/habit_handler.CreateHabit"
-		habitsUrl = "/api/habits"
-	)
+	const op = "telegram/internal/adapter/delivery/http/v1/habit_handler.CreateHabit"
 
 	a.log.Info(fmt.Sprintf("%s: CreateHabit method called", op))
 
@@ -23,7 +22,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	a.log.Info(fmt.Sprintf("%s: Executing CreateHabit with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + habitsUrl + userQuery + username
+	requestURL := habitsUrl + habitsUrl + userQuery + username
 
 	type Request struct {
 		Username    string `json:"tg_user_name"`
@@ -78,47 +77,114 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	return habitIDInt
 }
 
-// type getAllHabitsResponse struct {
-// 	Data []models.Habit `json:"data"`
-// }
+func (a *AdapterHandler) GetAllHabits(username string) []models.Habit {
+	const op = "telegram/internal/adapter/delivery/http/v1/habit_handler.getAllHabits"
 
-// func (h *Handler) getAllHabits(c *gin.Context) {
-// 	userId, err := getUserId(c)
-// 	if err != nil {
-// 		return
-// 	}
+	a.log.Info(fmt.Sprintf("%s: getAllHabits method called", op))
 
-// 	habits, err := h.services.Habit.GetAll(userId)
-// 	if err != nil {
-// 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getAllHabits: %v", err.Error()))
-// 		return
-// 	}
+	// Perform the necessary logic for command1
+	a.log.Info(fmt.Sprintf("%s: Executing getAllHabits with text: %s", op, username))
 
-// 	c.JSON(http.StatusOK, getAllHabitsResponse{
-// 		Data: habits,
-// 	})
-// }
+	// Make an HTTP request to the backend service
+	requestURL := habitsUrl + habitsUrl + userQuery + username
 
-// func (h *Handler) getHabitById(c *gin.Context) {
-// 	userId, err := getUserId(c)
-// 	if err != nil {
-// 		return
-// 	}
+	// Send a GET request
+	resp, err := http.Get(requestURL)
+	if err != nil {
+		a.log.Error(fmt.Sprintf("%s: failed to send http.Get request", op), sl.Err(err))
+		return nil
+	}
+	defer resp.Body.Close()
 
-// 	habitId, err := getHabitId(c)
-// 	if err != nil {
-// 		newErrorResponse(c, http.StatusBadRequest, fmt.Sprintf("handler:getHabitById: invalid id param: %v", habitId))
-// 		return
-// 	}
+	if resp.StatusCode != http.StatusOK {
+		a.log.Error(fmt.Sprintf("%s: request failed. status: %d", op, resp.StatusCode), sl.Err(err))
+		return nil
+	}
 
-// 	habit, err := h.services.Habit.GetById(userId, habitId)
-// 	if err != nil {
-// 		newErrorResponse(c, http.StatusInternalServerError, fmt.Sprintf("error from handler: getHabitById: %v", err.Error()))
-// 		return
-// 	}
+	// Read the response body
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		a.log.Error(fmt.Sprintf("%s: failed to read the response body", op), sl.Err(err))
+		return nil
+	}
 
-// 	c.JSON(http.StatusOK, habit)
-// }
+	type allHabits struct {
+		Data []models.Habit
+	}
+
+	// Decode the response body into the allHabits struct
+	var allHabitsData allHabits
+	if err := json.Unmarshal(responseBody, &allHabitsData); err != nil {
+		a.log.Error(fmt.Sprintf("%s: failed to decode the response", op), sl.Err(err))
+		return nil
+	}
+
+	a.log.Info(
+		fmt.Sprintf("%s: successfully got all habits from backend:", op),
+		slog.String("username", username),
+		slog.Any("All habits", allHabitsData.Data),
+	)
+
+	// // the line bellow only for debugging
+	// a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
+
+	// Return the slice of habits
+	return allHabitsData.Data
+}
+
+func (a *AdapterHandler) GetHabitById(habitId int, username string) (models.Habit, error) {
+	const op = "telegram/internal/adapter/delivery/http/v1/habit_handler.getHabitById"
+
+	a.log.Info(fmt.Sprintf("%s: getHabitById method called", op))
+
+	// Perform the necessary logic for command1
+	a.log.Info(fmt.Sprintf("%s: Executing getHabitById with text: %s", op, username))
+
+	// Make an HTTP request to the backend service
+	requestURL := habitsUrl + habitsUrl + "/" + strconv.Itoa(habitId) + userQuery + username
+
+	var emptyHabit models.Habit
+
+	// Send a GET request
+	resp, err := http.Get(requestURL)
+	if err != nil {
+		a.log.Error(fmt.Sprintf("%s: failed to send http.Get request", op), sl.Err(err))
+		return emptyHabit, fmt.Errorf("failed to get a habit")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		a.log.Error(fmt.Sprintf("%s: request failed. status: %d", op, resp.StatusCode), sl.Err(err))
+		return emptyHabit, fmt.Errorf("failed to get a habit")
+	}
+
+	// Read the response body
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		a.log.Error(fmt.Sprintf("%s: failed to read the response body", op), sl.Err(err))
+		return emptyHabit, fmt.Errorf("failed to get a habit")
+	}
+
+	var habit models.Habit
+
+	// Decode the response body into the habit
+	if err := json.Unmarshal(responseBody, &habit); err != nil {
+		a.log.Error(fmt.Sprintf("%s: failed to decode the response", op), sl.Err(err))
+		return emptyHabit, fmt.Errorf("failed to get a habit")
+	}
+
+	a.log.Info(
+		fmt.Sprintf("%s: successfully got a habit from backend:", op),
+		slog.String("username", username),
+		slog.Any("habit", habit),
+	)
+
+	// // the line bellow only for debugging
+	// a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
+
+	// Return a habit
+	return habit, nil
+}
 
 // func (h *Handler) deleteHabit(c *gin.Context) {
 // 	userId, err := getUserId(c)

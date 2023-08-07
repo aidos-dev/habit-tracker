@@ -23,7 +23,7 @@ func (a *AdapterHandler) SignUp(username string) {
 	a.log.Info(fmt.Sprintf("%s: Executing SignUp with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := a.BackendUrl + signUpUrl
+	requestURL := habitsUrl + signUpUrl
 
 	type Request struct {
 		Name string `json:"tg_user_name"`

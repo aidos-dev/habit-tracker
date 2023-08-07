@@ -7,12 +7,15 @@ const msgHello = "Hello! \n\n" + msgHelp
 
 const (
 	msgUnknownCommand = "Unknown command 🤔"
+	msgWrongIdFormat  = "Please send valid habit ID 😕"
+	msgWrongHabitId   = "A habit with such Id doesn't exist 😕"
 
 	msgNoHabitCreated     = "Could not create a habit 😕"
 	msgCreated            = "Habit created! 😄"
 	msgHabitAlreadyExists = "This habit already exists 😬"
 	msgHabitTitle         = "Please write the habit name"
 	msgHabitDescription   = "Write short description for the habit"
+	msgAllHabits          = "This is a list of your habits"
 
 	msgChooseHabit    = "Please choose the habit where you want to update a tracker and send me its ID"
 	msgTrackerUpdated = "Habit tracker has been updated 😬"

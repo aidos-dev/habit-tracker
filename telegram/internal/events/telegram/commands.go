@@ -3,6 +3,7 @@ package telegram
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,12 +15,13 @@ import (
 )
 
 const (
-	StartCmd    = "/start"
-	HelpCmd     = "/help"
-	Habit       = "/new_habit"
-	Tracker     = "/update_tracker"
-	DeleteHabit = "/delete_habit"
-	Cancel      = "/cancel"
+	StartCmd      = "/start"
+	HelpCmd       = "/help"
+	Habit         = "/new_habit"
+	AllHabits     = "/all_habits"
+	UpdateTracker = "/update_tracker"
+	DeleteHabit   = "/delete_habit"
+	Cancel        = "/cancel"
 )
 
 func (p *Processor) doCmd(text string, chatID int, username string) error {
@@ -53,9 +55,10 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	case text == Habit:
 		p.startCreateHabitCh <- true
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
-	case text == Tracker:
-		p.startUpdateTrackerCh <- true
-		p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
+	case text == AllHabits:
+		p.allHabits(chatID, username)
+	case text == UpdateTracker:
+		p.chooseTrackerToUpdate(chatID, username)
 
 	default:
 		/*
@@ -73,6 +76,18 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		case <-p.continueHabitCh:
 			p.startCreateHabitCh <- true
 			p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
+		case <-p.requestHabitIdCh:
+			habitId, err := strconv.Atoi(text)
+			if err != nil {
+				p.tg.SendMessage(chatID, msgWrongIdFormat)
+			}
+			habit, err := p.getHabitById(habitId, username)
+			if err != nil {
+				p.tg.SendMessage(chatID, msgWrongHabitId)
+			}
+			p.habitDataChan <- habit
+			p.startUpdateTrackerCh <- true
+			p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
 		case <-p.continueTrackerCh:
 			p.startUpdateTrackerCh <- true
 			p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
@@ -258,6 +273,44 @@ func (p *Processor) CreateHabit() {
 	}
 }
 
+/*
+chooseTrackerToUpdate method asks a user to choose a habit
+where the tracker needs to be updated. Then sends a signal to
+p.requestHabitIdCh
+*/
+func (p *Processor) chooseTrackerToUpdate(chatID int, username string) {
+	const op = "telegram/internal/events/telegram/commands.chooseTrackerToUpdate"
+
+	p.log.Info(fmt.Sprintf("%s: chooseTrackerToUpdate method called", op))
+
+	p.allHabits(chatID, username)
+
+	/*
+		here we ask a user to send the ID of a habit where the tracker
+		needs to be updated
+	*/
+	if err := p.tg.SendMessage(chatID, msgChooseHabit); err != nil {
+		p.errChan <- err
+	}
+
+	/*
+		here we send a signal that the next message from a user
+		will be a habit Id and it needs to be used
+		to find the appropriate habit from the backend
+	*/
+	p.requestHabitIdCh <- true
+}
+
+func (p *Processor) getHabitById(habitId int, username string) (models.Habit, error) {
+	var emptyHabit models.Habit
+	habit, err := p.adapter.GetHabitById(habitId, username)
+	if err != nil {
+		return emptyHabit, err
+	}
+
+	return habit, err
+}
+
 func (p *Processor) UpdateTracker() {
 	const (
 		op       = "telegram/internal/events/telegram/commands.UpdateTracker"
@@ -313,17 +366,18 @@ func (p *Processor) UpdateTracker() {
 			slog.Any("tracker value", tracker),
 		)
 
-		switch {
-		case text == Tracker:
-			if err := p.tg.SendMessage(chatID, msgChooseHabit); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-				p.log.Info(
-					fmt.Sprintf("%s: err sent to errChan", op),
-					slog.Any("err content", errs.Wrap(habitErr, err)),
-				)
-			}
+		if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
+			p.errChan <- errs.Wrap(habitErr, err)
+			p.log.Info(
+				fmt.Sprintf("%s: err sent to errChan", op),
+				slog.Any("err content", errs.Wrap(habitErr, err)),
+			)
+		}
 
-			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+		p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+
+		switch {
+		case text == UpdateTracker:
 
 		case tracker.UnitOfMessure == "":
 			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
@@ -467,6 +521,20 @@ func (p *Processor) requestNextPromt(nextPromtChan chan bool, chanName string) {
 
 	nextPromtChan <- true
 	p.log.Info(fmt.Sprintf("%s: signal sent to %s", op, chanName))
+}
+
+/*
+allHabits method gets all habits of a user from the backend db
+and sends them to a tg user as a message
+*/
+func (p *Processor) allHabits(chatID int, username string) {
+	const op = "telegram/internal/events/telegram/commands.allHabits"
+
+	p.log.Info(fmt.Sprintf("%s: allHabits method called", op))
+
+	allHabitsData := p.adapter.GetAllHabits(username)
+
+	p.tg.SendMessage(chatID, fmt.Sprintf("%s\n\n%v", msgAllHabits, allHabitsData))
 }
 
 func (p *Processor) SendHelp() {

@@ -28,6 +28,7 @@ type Processor struct {
 	startCreateHabitCh   chan bool
 	habitDataChan        chan models.Habit
 	startUpdateTrackerCh chan bool
+	requestHabitIdCh     chan bool
 	continueHabitCh      chan bool
 	continueTrackerCh    chan bool
 	errChan              chan error
@@ -45,22 +46,23 @@ var (
 	ErrUnknownMetaType  = errors.New("unknown meta type")
 )
 
-func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, eventCh chan models.Event, startSendHelloCh chan bool, startSendHelpCh chan bool, startCreateHabitCh chan bool, habitDataChan chan models.Habit, startUpdateTrackerCh chan bool, continueHabitCh chan bool, continueTrackerCh chan bool, errChan chan error) *Processor {
+func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Storage, adapter *v1.AdapterHandler, mu *sync.Mutex, channels models.Channels) *Processor {
 	return &Processor{
 		log:                  log,
 		tg:                   client,
 		storage:              storage,
 		adapter:              adapter,
 		mu:                   mu,
-		eventCh:              eventCh,
-		startSendHelloCh:     startSendHelloCh,
-		startSendHelpCh:      startSendHelpCh,
-		startCreateHabitCh:   startCreateHabitCh,
-		habitDataChan:        habitDataChan,
-		startUpdateTrackerCh: startUpdateTrackerCh,
-		continueHabitCh:      continueHabitCh,
-		continueTrackerCh:    continueTrackerCh,
-		errChan:              errChan,
+		eventCh:              channels.EventCh,
+		startSendHelloCh:     channels.StartSendHelloCh,
+		startSendHelpCh:      channels.StartSendHelpCh,
+		startCreateHabitCh:   channels.StartCreateHabitCh,
+		habitDataChan:        channels.HabitDataChan,
+		startUpdateTrackerCh: channels.StartUpdateTrackerCh,
+		requestHabitIdCh:     channels.RequestHabitIdCh,
+		continueHabitCh:      channels.ContinueHabitCh,
+		continueTrackerCh:    channels.ContinueTrackerCh,
+		errChan:              channels.ErrChan,
 		// HabitCh:      habitCh,
 		// TrackerCh:    trackerCh,
 	}

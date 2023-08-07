@@ -53,14 +53,28 @@ func Run() {
 		startSendHelloCh     = make(chan bool)
 		startSendHelpCh      = make(chan bool)
 		startCreateHabitCh   = make(chan bool)
+		continueHabitCh      = make(chan bool)
 		habitDataChan        = make(chan models.Habit)
 		startUpdateTrackerCh = make(chan bool)
-		continueHabitCh      = make(chan bool)
+		requestHabitIdCh     = make(chan bool)
 		continueTrackerCh    = make(chan bool)
 		errChan              = make(chan error)
 		// habitCh      chan models.Habit
 		// trackerCh    chan models.HabitTracker
 	)
+
+	channels := models.Channels{
+		EventCh:              eventCh,
+		StartSendHelloCh:     startSendHelloCh,
+		StartSendHelpCh:      startSendHelpCh,
+		StartCreateHabitCh:   startCreateHabitCh,
+		ContinueHabitCh:      continueHabitCh,
+		HabitDataChan:        habitDataChan,
+		StartUpdateTrackerCh: startUpdateTrackerCh,
+		RequestHabitIdCh:     requestHabitIdCh,
+		ContinueTrackerCh:    continueTrackerCh,
+		ErrChan:              errChan,
+	}
 
 	adapter := v1.NewAdapterHandler(log)
 
@@ -85,7 +99,7 @@ func Run() {
 	mu := &sync.Mutex{}
 
 	// processor
-	eventsProcessor := telegram.NewProcessor(log, tgClient, storage, adapter, mu, eventCh, startSendHelloCh, startSendHelpCh, startCreateHabitCh, habitDataChan, startUpdateTrackerCh, continueHabitCh, continueTrackerCh, errChan)
+	eventsProcessor := telegram.NewProcessor(log, tgClient, storage, adapter, mu, channels)
 
 	go eventsProcessor.SendHello()
 

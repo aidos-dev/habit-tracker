@@ -12,6 +12,7 @@ import (
 
 const (
 	backendURL = "http://habit-tracker:8000/telegram"
+	habitsUrl  = "/api/habits"
 	userQuery  = "?tgUser="
 )
 
@@ -19,7 +20,7 @@ type AdapterHandler struct {
 	log    *slog.Logger
 	Engine *gin.Engine
 	// Router     *gin.RouterGroup
-	BackendUrl string
+
 	// EventCh      chan models.Event
 	// StartHabitCh chan bool
 	// HabitCh      chan models.Habit
@@ -28,9 +29,9 @@ type AdapterHandler struct {
 
 func NewAdapterHandler(log *slog.Logger) *AdapterHandler {
 	return &AdapterHandler{
-		log:        log,
-		Engine:     gin.New(),
-		BackendUrl: backendURL,
+		log:    log,
+		Engine: gin.New(),
+
 		// EventCh:      eventCh,
 		// StartHabitCh: startHabitCh,
 		// HabitCh:      habitCh,

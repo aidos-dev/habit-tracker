@@ -27,7 +27,7 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 
 	// Make an HTTP request to the backend service
 	// http://localhost:8000/telegram/api/habits/7/tracker
-	requestURL := a.BackendUrl + habitsUrl + strconv.Itoa(habitId) + trackerUrl + userQuery + username
+	requestURL := habitsUrl + habitsUrl + strconv.Itoa(habitId) + trackerUrl + userQuery + username
 
 	type Request struct {
 		UnitOfMessure string    `json:"unit_of_messure"`
