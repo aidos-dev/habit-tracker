@@ -14,11 +14,7 @@ import (
 )
 
 func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitTracker models.HabitTracker) {
-	const (
-		op         = "telegram/internal/adapter/delivery/http/v1/habit_tracker_handler.UpdateHabitTracker"
-		habitsUrl  = "/api/habits/"
-		trackerUrl = "/tracker"
-	)
+	const op = "telegram/internal/adapter/delivery/http/v1/habit_tracker_handler.UpdateHabitTracker"
 
 	a.log.Info(fmt.Sprintf("%s: UpdateHabitTracker method called", op))
 
@@ -27,7 +23,7 @@ func (a *AdapterHandler) UpdateHabitTracker(username string, habitId int, habitT
 
 	// Make an HTTP request to the backend service
 	// http://localhost:8000/telegram/api/habits/7/tracker
-	requestURL := habitsUrl + habitsUrl + strconv.Itoa(habitId) + trackerUrl + userQuery + username
+	requestURL := backendURL + habitsUrl + strconv.Itoa(habitId) + trackerUrl + userQuery + username
 
 	type Request struct {
 		UnitOfMessure string    `json:"unit_of_messure"`

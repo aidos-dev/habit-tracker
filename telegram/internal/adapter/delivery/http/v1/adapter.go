@@ -13,6 +13,7 @@ import (
 const (
 	backendURL = "http://habit-tracker:8000/telegram"
 	habitsUrl  = "/api/habits"
+	trackerUrl = "/tracker"
 	userQuery  = "?tgUser="
 )
 

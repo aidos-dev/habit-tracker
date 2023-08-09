@@ -22,7 +22,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	a.log.Info(fmt.Sprintf("%s: Executing CreateHabit with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := habitsUrl + habitsUrl + userQuery + username
+	requestURL := backendURL + habitsUrl + userQuery + username
 
 	type Request struct {
 		Username    string `json:"tg_user_name"`
@@ -86,7 +86,7 @@ func (a *AdapterHandler) GetAllHabits(username string) []models.Habit {
 	a.log.Info(fmt.Sprintf("%s: Executing getAllHabits with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := habitsUrl + habitsUrl + userQuery + username
+	requestURL := backendURL + habitsUrl + userQuery + username
 
 	// Send a GET request
 	resp, err := http.Get(requestURL)
@@ -141,7 +141,7 @@ func (a *AdapterHandler) GetHabitById(habitId int, username string) (models.Habi
 	a.log.Info(fmt.Sprintf("%s: Executing getHabitById with text: %s", op, username))
 
 	// Make an HTTP request to the backend service
-	requestURL := habitsUrl + habitsUrl + "/" + strconv.Itoa(habitId) + userQuery + username
+	requestURL := backendURL + habitsUrl + "/" + strconv.Itoa(habitId) + userQuery + username
 
 	var emptyHabit models.Habit
 
