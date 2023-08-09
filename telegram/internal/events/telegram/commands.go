@@ -58,6 +58,7 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	case text == AllHabits:
 		p.allHabits(chatID, username)
 	case text == UpdateTracker:
+
 		p.chooseTrackerToUpdate(chatID, username)
 
 	default:
@@ -77,6 +78,9 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 			p.startCreateHabitCh <- true
 			p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
 		case <-p.requestHabitIdCh:
+
+			p.log.Info(fmt.Sprintf("%s: ==== requestHabitIdCh received a signal <- =====", op))
+
 			habitId, err := strconv.Atoi(text)
 			if err != nil {
 				p.tg.SendMessage(chatID, msgWrongIdFormat)
@@ -91,6 +95,7 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		case <-p.continueTrackerCh:
 			p.startUpdateTrackerCh <- true
 			p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
+
 		default:
 
 			p.log.Info(fmt.Sprintf("%s: the message couldn't find it's route", op))
@@ -177,6 +182,13 @@ func (p *Processor) CreateHabit() {
 			p.requestNextPromt(p.continueHabitCh, "continueHabitCh")
 
 		case habit.Title == "":
+
+			habit.Title = text
+			p.log.Info(
+				fmt.Sprintf("%s: habit Title filled", op),
+				slog.String("habit title", habit.Title),
+			)
+
 			if err := p.tg.SendMessage(chatID, msgHabitDescription); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 				p.log.Info(
@@ -185,26 +197,15 @@ func (p *Processor) CreateHabit() {
 				)
 			}
 
-			habit.Title = text
-			p.log.Info(
-				fmt.Sprintf("%s: habit Title filled", op),
-				slog.String("habit title", habit.Title),
-			)
-
 			p.requestNextPromt(p.continueHabitCh, "continueHabitCh")
 
 		case habit.Description == "":
-			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-			}
 
 			habit.Description = text
 			p.log.Info(
 				fmt.Sprintf("%s: habit Description filled", op),
 				slog.String("habit description", habit.Description),
 			)
-
-			p.requestNextPromt(p.continueHabitCh, "continueHabitCh")
 
 			p.log.Info(
 				fmt.Sprintf("%s: habit final values", op),
@@ -213,13 +214,18 @@ func (p *Processor) CreateHabit() {
 
 			habitId := p.adapter.CreateHabit(username, habit)
 
-			p.adapter.UpdateHabitTracker(username, habitId, tracker)
-			// log.Printf("CreateHabit: created habit id is: %v", habitId)
-
 			p.log.Info(
 				fmt.Sprintf("%s: habit created", op),
 				slog.Int("habitId", habitId),
 			)
+
+			if err := p.tg.SendMessage(chatID, msgCreated); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
+			}
 
 			habitData := models.Habit{
 				Id:          habitId,
@@ -249,6 +255,26 @@ func (p *Processor) CreateHabit() {
 				slog.Any("habit value", habit),
 			)
 
+			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
+			}
+
+			/*
+				sending signal to p.startUpdateTrackerCh in order to start
+				creating a tracker for the habit
+			*/
+			// p.startUpdateTrackerCh <- true
+
+			/*
+			   sending signal to p.requestNextPromt to let know doCmd func
+			   that next event should go to UpdateTracker method
+			*/
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+
 			// isExists, err := p.storage.IsExists(page)
 			// if err != nil {
 			// 	return err
@@ -265,8 +291,10 @@ func (p *Processor) CreateHabit() {
 			// 	p.errChan <- nil
 			// }
 
-			err := p.tg.SendMessage(chatID, msgCreated)
-			p.errChan <- err
+			// err := p.tg.SendMessage(chatID, msgCreated)
+			// p.errChan <- err
+
+			// p.errChan <- nil
 
 		}
 
@@ -278,20 +306,20 @@ chooseTrackerToUpdate method asks a user to choose a habit
 where the tracker needs to be updated. Then sends a signal to
 p.requestHabitIdCh
 */
-func (p *Processor) chooseTrackerToUpdate(chatID int, username string) {
+func (p *Processor) chooseTrackerToUpdate(chatId int, username string) {
 	const op = "telegram/internal/events/telegram/commands.chooseTrackerToUpdate"
 
 	p.log.Info(fmt.Sprintf("%s: chooseTrackerToUpdate method called", op))
-
-	p.allHabits(chatID, username)
 
 	/*
 		here we ask a user to send the ID of a habit where the tracker
 		needs to be updated
 	*/
-	if err := p.tg.SendMessage(chatID, msgChooseHabit); err != nil {
+	if err := p.tg.SendMessage(chatId, msgChooseHabit); err != nil {
 		p.errChan <- err
 	}
+
+	p.allHabits(chatId, username)
 
 	/*
 		here we send a signal that the next message from a user
@@ -302,6 +330,9 @@ func (p *Processor) chooseTrackerToUpdate(chatID int, username string) {
 }
 
 func (p *Processor) getHabitById(habitId int, username string) (models.Habit, error) {
+	const op = "telegram/internal/events/telegram/commands.getHabitById"
+	p.log.Info(fmt.Sprintf("%s: getHabitById method called", op))
+
 	var emptyHabit models.Habit
 	habit, err := p.adapter.GetHabitById(habitId, username)
 	if err != nil {
@@ -309,6 +340,20 @@ func (p *Processor) getHabitById(habitId int, username string) (models.Habit, er
 	}
 
 	return habit, err
+}
+
+/*
+allHabits method gets all habits of a user from the backend db
+and sends them to a tg user as a message
+*/
+func (p *Processor) allHabits(chatId int, username string) {
+	const op = "telegram/internal/events/telegram/commands.allHabits"
+
+	p.log.Info(fmt.Sprintf("%s: allHabits method called", op))
+
+	allHabitsData := p.adapter.GetAllHabits(username)
+
+	p.tg.SendMessage(chatId, fmt.Sprintf("%s\n\n%s", msgAllHabits, allHabitsData))
 }
 
 func (p *Processor) UpdateTracker() {
@@ -366,23 +411,17 @@ func (p *Processor) UpdateTracker() {
 			slog.Any("tracker value", tracker),
 		)
 
-		if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
-			p.errChan <- errs.Wrap(habitErr, err)
-			p.log.Info(
-				fmt.Sprintf("%s: err sent to errChan", op),
-				slog.Any("err content", errs.Wrap(habitErr, err)),
-			)
-		}
-
-		p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
-
 		switch {
+
 		case text == UpdateTracker:
 
-		case tracker.UnitOfMessure == "":
-			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
+			if err := p.tg.SendMessage(chatID, msgChooseHabit); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
 			}
+
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+
+		case tracker.UnitOfMessure == "":
 
 			tracker.UnitOfMessure = text
 			p.log.Info(
@@ -390,24 +429,28 @@ func (p *Processor) UpdateTracker() {
 				slog.String("tracker UoM", tracker.UnitOfMessure),
 			)
 
+			if err := p.tg.SendMessage(chatID, msgFrequency); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+			}
+
 			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 		case tracker.Frequency == "":
-			if err := p.tg.SendMessage(chatID, msgStartDate); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-			}
+
 			tracker.Frequency = text
 			p.log.Info(
 				fmt.Sprintf("%s: tracker Frequency filled", op),
 				slog.String("tracker frequency", tracker.Frequency),
 			)
 
+			if err := p.tg.SendMessage(chatID, msgStartDate); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+			}
+
 			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 		case tracker.StartDate.IsZero():
-			if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-			}
+
 			t, err := time.Parse(timeFormat, text)
 			if err != nil {
 				p.log.Error(fmt.Sprintf("%s: failed to parse time", op), sl.Err(err))
@@ -418,6 +461,10 @@ func (p *Processor) UpdateTracker() {
 				fmt.Sprintf("%s: tracker start date filled", op),
 				slog.Any("tracker start date", tracker.StartDate),
 			)
+
+			if err := p.tg.SendMessage(chatID, msgEndDate); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+			}
 
 			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
@@ -521,20 +568,6 @@ func (p *Processor) requestNextPromt(nextPromtChan chan bool, chanName string) {
 
 	nextPromtChan <- true
 	p.log.Info(fmt.Sprintf("%s: signal sent to %s", op, chanName))
-}
-
-/*
-allHabits method gets all habits of a user from the backend db
-and sends them to a tg user as a message
-*/
-func (p *Processor) allHabits(chatID int, username string) {
-	const op = "telegram/internal/events/telegram/commands.allHabits"
-
-	p.log.Info(fmt.Sprintf("%s: allHabits method called", op))
-
-	allHabitsData := p.adapter.GetAllHabits(username)
-
-	p.tg.SendMessage(chatID, fmt.Sprintf("%s\n\n%v", msgAllHabits, allHabitsData))
 }
 
 func (p *Processor) SendHelp() {

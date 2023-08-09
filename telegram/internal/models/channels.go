@@ -7,6 +7,7 @@ type Channels struct {
 	StartCreateHabitCh   chan bool
 	ContinueHabitCh      chan bool
 	HabitDataChan        chan Habit
+	CallAllHabitCh       chan bool
 	StartUpdateTrackerCh chan bool
 	RequestHabitIdCh     chan bool
 	ContinueTrackerCh    chan bool

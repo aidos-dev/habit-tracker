@@ -77,7 +77,7 @@ func (a *AdapterHandler) CreateHabit(username string, habit models.Habit) int {
 	return habitIDInt
 }
 
-func (a *AdapterHandler) GetAllHabits(username string) []models.Habit {
+func (a *AdapterHandler) GetAllHabits(username string) string {
 	const op = "telegram/internal/adapter/delivery/http/v1/habit_handler.getAllHabits"
 
 	a.log.Info(fmt.Sprintf("%s: getAllHabits method called", op))
@@ -92,20 +92,20 @@ func (a *AdapterHandler) GetAllHabits(username string) []models.Habit {
 	resp, err := http.Get(requestURL)
 	if err != nil {
 		a.log.Error(fmt.Sprintf("%s: failed to send http.Get request", op), sl.Err(err))
-		return nil
+		return ""
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		a.log.Error(fmt.Sprintf("%s: request failed. status: %d", op, resp.StatusCode), sl.Err(err))
-		return nil
+		return ""
 	}
 
 	// Read the response body
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		a.log.Error(fmt.Sprintf("%s: failed to read the response body", op), sl.Err(err))
-		return nil
+		return ""
 	}
 
 	type allHabits struct {
@@ -116,7 +116,7 @@ func (a *AdapterHandler) GetAllHabits(username string) []models.Habit {
 	var allHabitsData allHabits
 	if err := json.Unmarshal(responseBody, &allHabitsData); err != nil {
 		a.log.Error(fmt.Sprintf("%s: failed to decode the response", op), sl.Err(err))
-		return nil
+		return ""
 	}
 
 	a.log.Info(
@@ -125,11 +125,46 @@ func (a *AdapterHandler) GetAllHabits(username string) []models.Habit {
 		slog.Any("All habits", allHabitsData.Data),
 	)
 
+	habitsString := allHabitsList(allHabitsData.Data)
+
 	// // the line bellow only for debugging
 	// a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
 
-	// Return the slice of habits
-	return allHabitsData.Data
+	// Return all habits in one string
+	return habitsString
+}
+
+/*
+allHabitsList converts a slice of all Habits to a nice formatted
+list of all habits and collects them into one
+string variable to printed out for a telegram user
+*/
+func allHabitsList(habitsSlice []models.Habit) string {
+	const (
+		id      = "Id: "
+		habit   = "Habit: "
+		desript = "Description: "
+		newLine = "\n"
+	)
+
+	allHabitsString := ""
+
+	for _, el := range habitsSlice {
+		allHabitsString += id
+		allHabitsString += strconv.Itoa(el.Id)
+		allHabitsString += newLine
+
+		allHabitsString += habit
+		allHabitsString += el.Title
+		allHabitsString += newLine
+
+		allHabitsString += desript
+		allHabitsString += el.Description
+		allHabitsString += newLine
+		allHabitsString += newLine
+	}
+
+	return allHabitsString
 }
 
 func (a *AdapterHandler) GetHabitById(habitId int, username string) (models.Habit, error) {
