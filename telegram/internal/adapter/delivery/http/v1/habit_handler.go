@@ -125,7 +125,7 @@ func (a *AdapterHandler) GetAllHabits(username string) string {
 		slog.Any("All habits", allHabitsData.Data),
 	)
 
-	habitsString := allHabitsList(allHabitsData.Data)
+	habitsString := allHabitsToString(allHabitsData.Data)
 
 	// // the line bellow only for debugging
 	// a.log.Info(fmt.Sprintf("%s: response body", op), slog.Any("value", responseBody))
@@ -135,11 +135,11 @@ func (a *AdapterHandler) GetAllHabits(username string) string {
 }
 
 /*
-allHabitsList converts a slice of all Habits to a nice formatted
+allHabitsToString converts a slice of all Habits to a nice formatted
 list of all habits and collects them into one
 string variable to printed out for a telegram user
 */
-func allHabitsList(habitsSlice []models.Habit) string {
+func allHabitsToString(habitsSlice []models.Habit) string {
 	const (
 		id      = "Id: "
 		habit   = "Habit: "

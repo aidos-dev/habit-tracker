@@ -151,18 +151,18 @@ func (p *Processor) CreateHabit() {
 		username := event.UserName
 		text := event.Text
 
-		if text == Cancel {
-			p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
-			habit = clearHabit(habit)
-			tracker = clearTracker(tracker)
+		// if text == Cancel {
+		// 	p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
+		// 	habit = clearHabit(habit)
+		// 	tracker = clearTracker(tracker)
 
-			p.log.Info(
-				fmt.Sprintf("%s: habit intermidate values", op),
-				slog.Any("habit value", habit),
-			)
+		// 	p.log.Info(
+		// 		fmt.Sprintf("%s: habit intermidate values", op),
+		// 		slog.Any("habit value", habit),
+		// 	)
 
-			p.errChan <- nil
-		}
+		// 	p.errChan <- nil
+		// }
 
 		p.log.Info(
 			fmt.Sprintf("%s: habit intermidate values", op),
@@ -170,6 +170,20 @@ func (p *Processor) CreateHabit() {
 		)
 
 		switch {
+
+		case text == Cancel:
+
+			p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
+			habit = clearHabit(habit)
+			tracker = clearTracker(tracker)
+
+			p.log.Info(
+				fmt.Sprintf("%s: habit values after /cancel command", op),
+				slog.Any("habit value", habit),
+			)
+
+			p.errChan <- nil
+
 		case text == Habit:
 			if err := p.tg.SendMessage(chatID, msgHabitTitle); err != nil {
 				p.errChan <- errs.Wrap(habitErr, err)
@@ -227,6 +241,20 @@ func (p *Processor) CreateHabit() {
 				)
 			}
 
+			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
+				p.errChan <- errs.Wrap(habitErr, err)
+				p.log.Info(
+					fmt.Sprintf("%s: err sent to errChan", op),
+					slog.Any("err content", errs.Wrap(habitErr, err)),
+				)
+			}
+
+			/*
+			   sending signal to p.requestNextPromt to let know doCmd func
+			   that next event should go to UpdateTracker method
+			*/
+			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+
 			habitData := models.Habit{
 				Id:          habitId,
 				Title:       habit.Title,
@@ -255,25 +283,11 @@ func (p *Processor) CreateHabit() {
 				slog.Any("habit value", habit),
 			)
 
-			if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
-				p.errChan <- errs.Wrap(habitErr, err)
-				p.log.Info(
-					fmt.Sprintf("%s: err sent to errChan", op),
-					slog.Any("err content", errs.Wrap(habitErr, err)),
-				)
-			}
-
 			/*
 				sending signal to p.startUpdateTrackerCh in order to start
 				creating a tracker for the habit
 			*/
 			// p.startUpdateTrackerCh <- true
-
-			/*
-			   sending signal to p.requestNextPromt to let know doCmd func
-			   that next event should go to UpdateTracker method
-			*/
-			p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
 
 			// isExists, err := p.storage.IsExists(page)
 			// if err != nil {
@@ -364,8 +378,6 @@ func (p *Processor) UpdateTracker() {
 
 	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
-	habit := <-p.habitDataChan
-
 	var tracker models.HabitTracker
 
 	for {
@@ -390,6 +402,26 @@ func (p *Processor) UpdateTracker() {
 		chatID := event.ChatId
 		username := event.UserName
 		text := event.Text
+
+		/*
+			habit variable presents here to link created tracker to its parent habit
+		*/
+		var habit models.Habit
+
+		/*
+			here the habit is recieved through the p.habitDataChan
+			inside the select - case block in order to make this channel non-blocking.
+			It is required in this case because here it recieves a habit only in 2 cases:
+				1. When a new habit is created it is sent only once to UpdateTracker method (in
+				the very beginning of the tracker creation process)
+				2. When a user wants to update the tracker for a specific habit, the doCmd will
+				send a habit to UpdateTracker method only once (in the very beginning of the tracker
+				update process)
+		*/
+		select {
+		case habit = <-p.habitDataChan:
+		default:
+		}
 
 		if text == Cancel {
 			p.log.Info(fmt.Sprintf("%s: recieved command to Cancel", op))
