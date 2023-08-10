@@ -378,6 +378,11 @@ func (p *Processor) UpdateTracker() {
 
 	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
+	/*
+		habit variable presents here to link created tracker to its parent habit
+	*/
+	var habit models.Habit
+
 	var tracker models.HabitTracker
 
 	for {
@@ -402,11 +407,6 @@ func (p *Processor) UpdateTracker() {
 		chatID := event.ChatId
 		username := event.UserName
 		text := event.Text
-
-		/*
-			habit variable presents here to link created tracker to its parent habit
-		*/
-		var habit models.Habit
 
 		/*
 			here the habit is recieved through the p.habitDataChan
@@ -568,8 +568,10 @@ func (p *Processor) UpdateTracker() {
 
 // clearHabit resets all habit fields back to zero values
 func clearHabit(habit models.Habit) models.Habit {
+	habit.Id = 0
 	habit.Title = ""
 	habit.Description = ""
+	habit.Username = ""
 	return habit
 }
 
