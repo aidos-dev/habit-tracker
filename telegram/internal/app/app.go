@@ -57,7 +57,8 @@ func Run() {
 		habitDataCh          = make(chan models.Habit)
 		startAllHabitsCh     = make(chan bool)
 		startUpdateTrackerCh = make(chan bool)
-		requestHabitIdCh     = make(chan bool)
+		startChooseTrackerCh = make(chan bool)
+		receiveHabitIdCh     = make(chan bool)
 		continueTrackerCh    = make(chan bool)
 		errChan              = make(chan error)
 		// habitCh      chan models.Habit
@@ -73,7 +74,8 @@ func Run() {
 		HabitDataCh:          habitDataCh,
 		StartAllHabitsCh:     startAllHabitsCh,
 		StartUpdateTrackerCh: startUpdateTrackerCh,
-		RequestHabitIdCh:     requestHabitIdCh,
+		StartChooseTrackerCh: startChooseTrackerCh,
+		ReceiveHabitIdCh:     receiveHabitIdCh,
 		ContinueTrackerCh:    continueTrackerCh,
 		ErrChan:              errChan,
 	}
@@ -122,6 +124,8 @@ func Run() {
 		a user is in process of updating a tracker of the habit
 	*/
 	go eventsProcessor.UpdateTracker()
+
+	go eventsProcessor.ChooseTrackerToUpdate()
 
 	// consumer.Start(fetcher, processor)
 

@@ -208,7 +208,7 @@ func (a *AdapterHandler) GetHabitById(habitId int, username string) (models.Habi
 		return emptyHabit, fmt.Errorf("failed to get a habit")
 	}
 
-	a.log.Info(
+	a.log.Debug(
 		fmt.Sprintf("%s: successfully got a habit from backend:", op),
 		slog.String("username", username),
 		slog.Any("habit", habit),

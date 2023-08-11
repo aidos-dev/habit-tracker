@@ -29,7 +29,8 @@ type Processor struct {
 	habitDataCh          chan models.Habit
 	startAllHabitsCh     chan bool
 	startUpdateTrackerCh chan bool
-	requestHabitIdCh     chan bool
+	startChooseTrackerCh chan bool
+	receiveHabitIdCh     chan bool
 	continueHabitCh      chan bool
 	continueTrackerCh    chan bool
 	errChan              chan error
@@ -61,7 +62,8 @@ func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Sto
 		habitDataCh:          channels.HabitDataCh,
 		startAllHabitsCh:     channels.StartAllHabitsCh,
 		startUpdateTrackerCh: channels.StartUpdateTrackerCh,
-		requestHabitIdCh:     channels.RequestHabitIdCh,
+		startChooseTrackerCh: channels.StartChooseTrackerCh,
+		receiveHabitIdCh:     channels.ReceiveHabitIdCh,
 		continueHabitCh:      channels.ContinueHabitCh,
 		continueTrackerCh:    channels.ContinueTrackerCh,
 		errChan:              channels.ErrChan,
@@ -109,9 +111,7 @@ func (p *Processor) processMessage(event events.Event) error {
 		return errs.Wrap("can't process message", err)
 	}
 
-	// log.Printf("processMessage: Event content is: [%v]\n", event)
-	// the line bellow only for debugging
-	p.log.Info(fmt.Sprintf("%s: New event", op), slog.Any("event content", event))
+	p.log.Debug(fmt.Sprintf("%s: New event", op), slog.Any("event content", event))
 
 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
 		return errs.Wrap("can't process message", err)
