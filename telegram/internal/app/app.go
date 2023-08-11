@@ -54,7 +54,8 @@ func Run() {
 		startSendHelpCh      = make(chan bool)
 		startCreateHabitCh   = make(chan bool)
 		continueHabitCh      = make(chan bool)
-		habitDataChan        = make(chan models.Habit)
+		habitDataCh          = make(chan models.Habit)
+		startAllHabitsCh     = make(chan bool)
 		startUpdateTrackerCh = make(chan bool)
 		requestHabitIdCh     = make(chan bool)
 		continueTrackerCh    = make(chan bool)
@@ -69,7 +70,8 @@ func Run() {
 		StartSendHelpCh:      startSendHelpCh,
 		StartCreateHabitCh:   startCreateHabitCh,
 		ContinueHabitCh:      continueHabitCh,
-		HabitDataChan:        habitDataChan,
+		HabitDataCh:          habitDataCh,
+		StartAllHabitsCh:     startAllHabitsCh,
 		StartUpdateTrackerCh: startUpdateTrackerCh,
 		RequestHabitIdCh:     requestHabitIdCh,
 		ContinueTrackerCh:    continueTrackerCh,
@@ -111,6 +113,8 @@ func Run() {
 		a user is in process of habit creation
 	*/
 	go eventsProcessor.CreateHabit()
+
+	go eventsProcessor.AllHabits()
 
 	/*
 		method UpdateTracker runs in a separate goroutine and keeps listening

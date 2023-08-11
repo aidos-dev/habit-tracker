@@ -26,7 +26,8 @@ type Processor struct {
 	startSendHelloCh     chan bool
 	startSendHelpCh      chan bool
 	startCreateHabitCh   chan bool
-	habitDataChan        chan models.Habit
+	habitDataCh          chan models.Habit
+	startAllHabitsCh     chan bool
 	startUpdateTrackerCh chan bool
 	requestHabitIdCh     chan bool
 	continueHabitCh      chan bool
@@ -57,7 +58,8 @@ func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Sto
 		startSendHelloCh:     channels.StartSendHelloCh,
 		startSendHelpCh:      channels.StartSendHelpCh,
 		startCreateHabitCh:   channels.StartCreateHabitCh,
-		habitDataChan:        channels.HabitDataChan,
+		habitDataCh:          channels.HabitDataCh,
+		startAllHabitsCh:     channels.StartAllHabitsCh,
 		startUpdateTrackerCh: channels.StartUpdateTrackerCh,
 		requestHabitIdCh:     channels.RequestHabitIdCh,
 		continueHabitCh:      channels.ContinueHabitCh,

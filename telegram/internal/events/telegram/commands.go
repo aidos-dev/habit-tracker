@@ -56,7 +56,8 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		p.startCreateHabitCh <- true
 		p.log.Info(fmt.Sprintf("%s: switch sent true to startCreateHabitCh", op))
 	case text == AllHabits:
-		p.allHabits(chatID, username)
+		p.startAllHabitsCh <- true
+		p.log.Info(fmt.Sprintf("%s: switch sent true to startAllHabitsCh", op))
 	case text == UpdateTracker:
 
 		p.chooseTrackerToUpdate(chatID, username)
@@ -89,7 +90,7 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 			if err != nil {
 				p.tg.SendMessage(chatID, msgWrongHabitId)
 			}
-			p.habitDataChan <- habit
+			p.habitDataCh <- habit
 			p.startUpdateTrackerCh <- true
 			p.log.Info(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
 		case <-p.continueTrackerCh:
@@ -267,7 +268,7 @@ func (p *Processor) CreateHabit() {
 				so UpdateTracker method can use the habit data
 				to create or update a tracker for this habit
 			*/
-			p.habitDataChan <- habitData
+			p.habitDataCh <- habitData
 			p.log.Info(
 				fmt.Sprintf("%s: habitData is sent to p.habitDataChan", op),
 			)
@@ -333,7 +334,7 @@ func (p *Processor) chooseTrackerToUpdate(chatId int, username string) {
 		p.errChan <- err
 	}
 
-	p.allHabits(chatId, username)
+	// p.allHabits(chatId, username)
 
 	/*
 		here we send a signal that the next message from a user
@@ -360,14 +361,25 @@ func (p *Processor) getHabitById(habitId int, username string) (models.Habit, er
 allHabits method gets all habits of a user from the backend db
 and sends them to a tg user as a message
 */
-func (p *Processor) allHabits(chatId int, username string) {
-	const op = "telegram/internal/events/telegram/commands.allHabits"
+func (p *Processor) AllHabits() {
+	const op = "telegram/internal/events/telegram/commands.AllHabits"
 
-	p.log.Info(fmt.Sprintf("%s: allHabits method called", op))
+	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
-	allHabitsData := p.adapter.GetAllHabits(username)
+	for {
 
-	p.tg.SendMessage(chatId, fmt.Sprintf("%s\n\n%s", msgAllHabits, allHabitsData))
+		<-p.startAllHabitsCh
+
+		p.log.Info(fmt.Sprintf("%s: allHabits method called", op))
+
+		event := <-p.eventCh
+
+		allHabitsData := p.adapter.GetAllHabits(event.UserName)
+
+		p.tg.SendMessage(event.ChatId, fmt.Sprintf("%s\n\n%s", msgAllHabits, allHabitsData))
+
+		p.errChan <- nil
+	}
 }
 
 func (p *Processor) UpdateTracker() {
@@ -419,7 +431,7 @@ func (p *Processor) UpdateTracker() {
 				update process)
 		*/
 		select {
-		case habit = <-p.habitDataChan:
+		case habit = <-p.habitDataCh:
 		default:
 		}
 
