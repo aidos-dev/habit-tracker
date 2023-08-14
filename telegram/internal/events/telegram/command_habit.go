@@ -142,7 +142,11 @@ func (p *Processor) CreateHabit() {
 
 			// p.eventCh <- event
 
-			p.askUnitOfMessure(event.ChatId)
+			// p.askUnitOfMessure(event.ChatId)
+
+			p.startAskUnitOfMesCh <- true
+
+			p.eventCh <- event
 
 			habitData := models.Habit{
 				Id:          habitId,

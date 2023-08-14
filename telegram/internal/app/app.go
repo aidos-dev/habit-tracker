@@ -58,6 +58,7 @@ func Run() {
 		startAllHabitsCh     = make(chan bool)
 		startUpdateTrackerCh = make(chan bool)
 		startChooseTrackerCh = make(chan bool)
+		startAskUnitOfMesCh  = make(chan bool)
 		receiveHabitIdCh     = make(chan bool)
 		continueTrackerCh    = make(chan bool)
 		errChan              = make(chan error)
@@ -75,6 +76,7 @@ func Run() {
 		StartAllHabitsCh:     startAllHabitsCh,
 		StartUpdateTrackerCh: startUpdateTrackerCh,
 		StartChooseTrackerCh: startChooseTrackerCh,
+		StartAskUnitOfMesCh:  startAskUnitOfMesCh,
 		ReceiveHabitIdCh:     receiveHabitIdCh,
 		ContinueTrackerCh:    continueTrackerCh,
 		ErrChan:              errChan,
@@ -126,6 +128,8 @@ func Run() {
 	go eventsProcessor.UpdateTracker()
 
 	go eventsProcessor.ChooseTrackerToUpdate()
+
+	go eventsProcessor.AskUnitOfMessure()
 
 	// consumer.Start(fetcher, processor)
 

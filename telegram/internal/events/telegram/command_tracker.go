@@ -39,7 +39,7 @@ func (p *Processor) ChooseTrackerToUpdate() {
 			p.errChan <- err
 		}
 
-		p.errChan <- nil
+		// p.errChan <- nil
 
 		/*
 			here we send a signal that the next message from a user
@@ -57,18 +57,29 @@ different places:
 1) inside the CreateHabit method. It is called when a habit successfully created
 2) in a doCmd func when a user wants to update a tracker of an existing habit
 */
-func (p *Processor) askUnitOfMessure(chatID int) {
+func (p *Processor) AskUnitOfMessure() {
 	const op = "telegram/internal/events/telegram/commands.askUnitOfMessure"
 
-	if err := p.tg.SendMessage(chatID, msgUnitOfMessure); err != nil {
-		p.errChan <- fmt.Errorf("%s: failed to send a message to a user: %w", op, err)
-		p.log.Debug(
-			fmt.Sprintf("%s: err sent to errChan", op),
-			slog.Any("err content", fmt.Errorf("%s: failed to send a message to a user: %w", op, err)),
-		)
-	}
+	p.log.Info(fmt.Sprintf("%s: goroutine started", op))
 
-	p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+	for {
+
+		<-p.startAskUnitOfMesCh
+
+		p.log.Info(fmt.Sprintf("%s: AskUnitOfMessure method called", op))
+
+		event := <-p.eventCh
+
+		if err := p.tg.SendMessage(event.ChatId, msgUnitOfMessure); err != nil {
+			p.errChan <- fmt.Errorf("%s: failed to send a message to a user: %w", op, err)
+			p.log.Debug(
+				fmt.Sprintf("%s: err sent to errChan", op),
+				slog.Any("err content", fmt.Errorf("%s: failed to send a message to a user: %w", op, err)),
+			)
+		}
+
+		p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+	}
 }
 
 func (p *Processor) UpdateTracker() {

@@ -89,16 +89,14 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 				p.tg.SendMessage(chatID, msgWrongHabitId)
 			}
 
-			p.startUpdateTrackerCh <- true
-			p.log.Debug(fmt.Sprintf("%s: switch sent true to startUpdateTrackerCh", op))
+			p.startAskUnitOfMesCh <- true
+			p.log.Debug(fmt.Sprintf("%s: switch sent true to startAskUnitOfMesCh", op))
 
 			p.habitDataCh <- habit
 			p.log.Debug(
 				fmt.Sprintf("%s: habit is sent to habitDataCh", op),
 				slog.Any("habit", habit),
 			)
-
-			p.askUnitOfMessure(event.ChatId)
 
 		case <-p.continueTrackerCh:
 			p.startUpdateTrackerCh <- true

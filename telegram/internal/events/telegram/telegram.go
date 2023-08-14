@@ -30,6 +30,7 @@ type Processor struct {
 	startAllHabitsCh     chan bool
 	startUpdateTrackerCh chan bool
 	startChooseTrackerCh chan bool
+	startAskUnitOfMesCh  chan bool
 	receiveHabitIdCh     chan bool
 	continueHabitCh      chan bool
 	continueTrackerCh    chan bool
@@ -63,6 +64,7 @@ func NewProcessor(log *slog.Logger, client *tgClient.Client, storage storage.Sto
 		startAllHabitsCh:     channels.StartAllHabitsCh,
 		startUpdateTrackerCh: channels.StartUpdateTrackerCh,
 		startChooseTrackerCh: channels.StartChooseTrackerCh,
+		startAskUnitOfMesCh:  channels.StartAskUnitOfMesCh,
 		receiveHabitIdCh:     channels.ReceiveHabitIdCh,
 		continueHabitCh:      channels.ContinueHabitCh,
 		continueTrackerCh:    channels.ContinueTrackerCh,

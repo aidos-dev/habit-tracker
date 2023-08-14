@@ -11,6 +11,7 @@ type Channels struct {
 	CallAllHabitCh       chan bool
 	StartUpdateTrackerCh chan bool
 	StartChooseTrackerCh chan bool
+	StartAskUnitOfMesCh  chan bool
 	ReceiveHabitIdCh     chan bool
 	ContinueTrackerCh    chan bool
 	ErrChan              chan error
