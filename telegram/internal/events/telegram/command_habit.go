@@ -146,8 +146,6 @@ func (p *Processor) CreateHabit() {
 
 			p.startAskUnitOfMesCh <- true
 
-			p.eventCh <- event
-
 			habitData := models.Habit{
 				Id:          habitId,
 				Title:       habit.Title,
@@ -164,6 +162,8 @@ func (p *Processor) CreateHabit() {
 			p.log.Debug(
 				fmt.Sprintf("%s: habitData is sent to p.habitDataChan", op),
 			)
+
+			p.eventCh <- event
 
 			/*
 				clean up habit in order to release memory

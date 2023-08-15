@@ -68,6 +68,8 @@ func (p *Processor) AskUnitOfMessure() {
 
 		p.log.Info(fmt.Sprintf("%s: AskUnitOfMessure method called", op))
 
+		habit := <-p.habitDataCh
+
 		event := <-p.eventCh
 
 		if err := p.tg.SendMessage(event.ChatId, msgUnitOfMessure); err != nil {
@@ -79,6 +81,8 @@ func (p *Processor) AskUnitOfMessure() {
 		}
 
 		p.requestNextPromt(p.continueTrackerCh, "continueTrackerCh")
+
+		p.habitDataCh <- habit
 	}
 }
 
