@@ -82,4 +82,51 @@ docker-compose -f build/docker-compose.yml up habit-tracker
 
 </details>
 
+<details>
+<summary>TG-bot</summary>
+<br>
+
+To run the telegram-bot service run the command:
+
+```
+./tg-bot-habit -tg-bot-token 'token'
+```
+
+</details>
+
+
+<details>
+<summary>Testing</summary>
+<br>
+
+The project is tested with unit testing and mocks
+
+If the code logic is changed and test mocks and test funcs need to be updated accordingly, do the following:
+
+<details>
+<summary>Mock service</summary>
+<br>
+
+In order to generate the service layer mock do the following:
+
+1. Open the project in the terminal
+
+2. Go to directory of the service layer
+
+3. Run the command:
+
+```
+go generate
+```
+
+This command will regenerate the mock service
+
+4. Check if the unit tests needs to be updated accordning to updated logic
+
+</details>
+
+
+
+</details>
+
 

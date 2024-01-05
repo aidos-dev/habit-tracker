@@ -3,3 +3,4 @@
 .database
 migrate
 /cmd/testing
+files_storage
